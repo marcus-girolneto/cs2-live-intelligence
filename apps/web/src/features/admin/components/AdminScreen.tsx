@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight,
   Brain,
+  Coin,
   Crown,
   Gear,
   ListIcon,
@@ -18,6 +19,8 @@ import type { AiStatus, ProvidersResponse } from "../model/types";
 import { ActiveConfig } from "./ActiveConfig";
 import { AssignmentsPanel } from "./AssignmentsPanel";
 import { AuditPanel } from "./AuditPanel";
+import { CreditPacksEditor } from "./CreditPacksEditor";
+import { CreditSettingsPanel } from "./CreditSettingsPanel";
 import { PlansEditor } from "./PlansEditor";
 import { ProvidersList } from "./ProvidersList";
 import { SettingsPanel } from "./SettingsPanel";
@@ -25,12 +28,19 @@ import { UsersPanel } from "./UsersPanel";
 import { useI18n } from "@/shared/i18n";
 
 type Tab =
-  "providers" | "assignments" | "settings" | "plans" | "users" | "audit";
+  | "providers"
+  | "assignments"
+  | "settings"
+  | "plans"
+  | "credits"
+  | "users"
+  | "audit";
 const TABS: Tab[] = [
   "providers",
   "assignments",
   "settings",
   "plans",
+  "credits",
   "users",
   "audit",
 ];
@@ -73,6 +83,7 @@ export function AdminScreen() {
           { id: "assignments", label: t("Model assignment"), icon: <Brain /> },
           { id: "settings", label: t("App settings"), icon: <Gear /> },
           { id: "plans", label: t("Plans"), icon: <Crown /> },
+          { id: "credits", label: t("Credits"), icon: <Coin /> },
           { id: "users", label: t("Users & roles"), icon: <Users /> },
           { id: "audit", label: t("Audit log"), icon: <ListIcon /> },
         ]}
@@ -88,6 +99,14 @@ export function AdminScreen() {
       {tab === "plans" && (
         <TabPanel idBase={ID} id="plans">
           <PlansEditor onForbidden={deny} />
+        </TabPanel>
+      )}
+      {tab === "credits" && (
+        <TabPanel idBase={ID} id="credits">
+          <div className="adm-stack">
+            <CreditSettingsPanel onForbidden={deny} />
+            <CreditPacksEditor onForbidden={deny} />
+          </div>
         </TabPanel>
       )}
       {tab === "users" && (
@@ -141,9 +160,9 @@ function AiTabs({
   return (
     <TabPanel idBase={ID} id="assignments">
       <AssignmentsPanel
-        key={JSON.stringify(providers.data?.assignments ?? {})}
         providers={list}
         assignments={providers.data?.assignments ?? {}}
+        status={status.data}
         loading={providers.loading}
         onSaved={reload}
       />

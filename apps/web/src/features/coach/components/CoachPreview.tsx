@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { BRAND, LogoMark } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
 import { ArrowRight, Brain } from "@/shared/icons";
@@ -11,10 +12,12 @@ export function CoachPreview({
   href,
   name,
   review,
+  actions,
 }: {
   href: string;
   name: string;
   review: CoachReview | null;
+  actions?: ReactNode;
 }) {
   const { t } = useI18n();
   return (
@@ -42,11 +45,14 @@ export function CoachPreview({
       {review && review.plan.length > 0 && (
         <PlanList items={review.plan.slice(0, 3)} compact />
       )}
-      <Link className="btn btn-primary" href={href} data-testid="open-coach">
-        <Brain size={18} />{" "}
-        {review ? t("Open the full review") : t("Open in the coach")}
-        <ArrowRight size={16} />
-      </Link>
+      <div className="form-actions">
+        <Link className="btn btn-primary" href={href} data-testid="open-coach">
+          <Brain size={18} />{" "}
+          {review ? t("Open the full review") : t("Open in the coach")}
+          <ArrowRight size={16} />
+        </Link>
+        {actions}
+      </div>
     </section>
   );
 }

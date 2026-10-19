@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { WelcomeCredits } from "@/features/billing";
 import { useI18n } from "@/shared/i18n";
 import { useLocalStorage } from "@/shared/hooks";
 import { Close, Menu } from "@/shared/icons";
@@ -73,6 +74,7 @@ export function AppShell({
         </div>
         <SiteFooter />
       </div>
+      <WelcomeCredits />
     </div>
   );
 }

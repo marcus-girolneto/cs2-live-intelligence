@@ -35,14 +35,23 @@ export const pt: Record<string, string> = {
   "Drop the demo here or click to choose":
     "Arraste a demo aqui ou clique para escolher",
   "{size} MB · ready to upload": "{size} MB · pronta para enviar",
-  ".dem file · up to 64 MB": "Arquivo .dem · até 64 MB",
+  ".dem file · up to {mb} MB": "Arquivo .dem · até {mb} MB",
   "Demo file": "Arquivo da demo",
   "I allow this demo to be processed to generate the analysis.":
     "Autorizo o processamento desta demo para gerar a análise.",
   "Uploading…": "Enviando…",
   "That file is not a demo. Choose a .dem file.":
     "Esse arquivo não é uma demo. Escolha um arquivo .dem.",
-  "The demo exceeds the 64 MB limit.": "A demo passa do limite de 64 MB.",
+  "The demo exceeds the {mb} MB limit.": "A demo passa do limite de {mb} MB.",
+  "Upload cancelled.": "Envio cancelado.",
+  "Upload progress": "Progresso do envio",
+  "Processing upload…": "Processando o envio…",
+  "Uploading… {pct}%": "Enviando… {pct}%",
+  Uploaded: "Enviado",
+  "{sent} of {total} MB": "{sent} de {total} MB",
+  "{speed} MB/s": "{speed} MB/s",
+  "{m} min {s} s left": "faltam {m} min {s} s",
+  "{s} s left": "faltam {s} s",
   "Tick the permission box to process the demo.":
     "Marque a autorização para processar a demo.",
   "Upload failed.": "O envio falhou.",

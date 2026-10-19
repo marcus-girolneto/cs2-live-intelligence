@@ -28,7 +28,8 @@ export function ProvidersList({
   const [results, setResults] = useState<Record<string, TestResult>>({});
   const [testErr, setTestErr] = useState<Record<string, string>>({});
   const [testModel, setTestModel] = useState<Record<string, string>>({});
-  const { models, busy: fetching, error: modelErr, fetchModels } = useModels();
+  const { catalogs, busy, error: modelErr, fetchModels } = useModels();
+  const fetching = Object.keys(busy).find((id) => busy[id]) ?? null;
 
   async function remove(p: Provider) {
     if (
@@ -134,7 +135,7 @@ export function ProvidersList({
       <div className="adm-providers">
         {providers.map((p) => {
           const r = results[p.id];
-          const list = models[p.id] ?? [];
+          const list = catalogs[p.id]?.models.map((m) => m.id) ?? [];
           return (
             <ProviderCard
               key={p.id}

@@ -6,6 +6,7 @@ import { CrosshairLoader } from "@/shared/ui";
 import { useCheckout } from "../hooks/useCheckout";
 import { usePlans } from "../hooks/usePlans";
 import { currencyFor, type AccountPlan, type Interval } from "../model/plans";
+import { PacksSection } from "./credits/PacksSection";
 import { PlanComparison, PricingFaq } from "./PlanComparison";
 import { IntervalToggle, PricingPlans } from "./PricingPlans";
 
@@ -40,7 +41,7 @@ export function PricingSection({
         <H id="pricing-title">{t("Pick your rank")}</H>
         <p className="lead">
           {t(
-            "Start free. Upgrade when you want more reviews, the live AI IGL and video clips.",
+            "Start with a free review. Plans add monthly credits, cheaper Deep reviews, the live AI IGL, reports and video clips.",
           )}
         </p>
         <div className="pricing-tools">
@@ -80,6 +81,7 @@ export function PricingSection({
       />
       <h3 className="pricing-sub">{t("Compare plans")}</h3>
       <PlanComparison plans={plans} />
+      <PacksSection signedIn={signedIn} billingEnabled={billingEnabled} />
       {showFaq && (
         <>
           <h3 className="pricing-sub">{t("Questions")}</h3>

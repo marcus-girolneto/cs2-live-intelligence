@@ -140,9 +140,12 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
           <dl className="kv">
             {PURPOSES.map((p) => (
               <div key={p} className="kv-row">
-                <dt>{t(PURPOSE_LABEL[p])}</dt>
+                <dt>{t(PURPOSE_LABEL[p]!)}</dt>
                 <dd>
-                  {eff.aiSource?.[p] === "database" ? (
+                  {(eff.aiSource?.[p] ??
+                    (p === "review_quick"
+                      ? eff.aiSource?.review
+                      : undefined)) === "database" ? (
                     <span className="chip accent">
                       <Database size={12} /> {t("Database")}
                     </span>

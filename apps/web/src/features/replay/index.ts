@@ -5,6 +5,7 @@ export {
   ClipPlayerDialog,
   type ClipPlayerProps,
 } from "./components/ClipPlayer";
+export { ReelPlayerDialog, type ReelClipRef } from "./components/ReelPlayer";
 export { canExportVideo } from "./hooks/useClipPlayer";
 export { MAX_CLIP_SECONDS, parseClip, type ClipRef } from "./model/clip";
 export { mockCoaching, mockMeta, mockWindow } from "./model/mock";

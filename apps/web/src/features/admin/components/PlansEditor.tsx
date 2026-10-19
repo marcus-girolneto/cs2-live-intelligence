@@ -6,7 +6,9 @@ import { Callout, CrosshairLoader, Panel, Skeleton } from "@/shared/ui";
 import type { Currency, Plan } from "@/features/billing";
 import { useAdminPlans } from "../hooks/useAdminPlans";
 import {
+  FEATURE_FLAGS,
   NUMERIC_LIMITS,
+  type FeatureFlag,
   money,
   parseLimit,
   parseMoney,
@@ -14,7 +16,15 @@ import {
   type NumericLimit,
 } from "../model/draft";
 
-const LIMIT_LABEL: Record<NumericLimit, string> = {
+const LIMIT_LABEL: Record<NumericLimit | FeatureFlag, string> = {
+  monthlyCredits: "Credits / month",
+  cheaperDeep: "Discounted Deep review",
+  clipExport: "Clip video export",
+  perMapLearning: "Per-map deep learning",
+  monthlyReport: "Monthly performance report",
+  matchReel: "Match reel",
+  historyCompare: "History compare",
+  priorityQueue: "Priority processing",
   aiReviewsPerDay: "AI reviews / day",
   liveAiMatchesPerDay: "Live AI matches / day",
   uploadsPerDay: "Uploads / day",
@@ -132,38 +142,21 @@ export function PlansEditor({ onForbidden }: { onForbidden: () => void }) {
                 ))}
               </div>
               <div className="chip-row">
-                <label className="check">
-                  <input
-                    type="checkbox"
-                    checked={plan.limits.clipExport}
-                    onChange={(e) =>
-                      update(i, {
-                        ...plan,
-                        limits: {
-                          ...plan.limits,
-                          clipExport: e.target.checked,
-                        },
-                      })
-                    }
-                  />
-                  {t("Clip video export")}
-                </label>
-                <label className="check">
-                  <input
-                    type="checkbox"
-                    checked={plan.limits.perMapLearning}
-                    onChange={(e) =>
-                      update(i, {
-                        ...plan,
-                        limits: {
-                          ...plan.limits,
-                          perMapLearning: e.target.checked,
-                        },
-                      })
-                    }
-                  />
-                  {t("Per-map deep learning")}
-                </label>
+                {FEATURE_FLAGS.map((flag) => (
+                  <label key={flag} className="check">
+                    <input
+                      type="checkbox"
+                      checked={plan.limits[flag]}
+                      onChange={(e) =>
+                        update(i, {
+                          ...plan,
+                          limits: { ...plan.limits, [flag]: e.target.checked },
+                        })
+                      }
+                    />
+                    {t(LIMIT_LABEL[flag])}
+                  </label>
+                ))}
               </div>
             </fieldset>
           ))}

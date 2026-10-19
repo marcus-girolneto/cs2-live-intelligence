@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useUpgrade, useUsage } from "@/features/billing";
+import { useCredits, useUpgrade, useUsage } from "@/features/billing";
 import { useMapsApi, type Progress } from "@/features/maps";
 import type { MatchDto as Match } from "@/shared/api-types";
 import { ApiError } from "@/shared/http";
@@ -8,17 +8,22 @@ import { useI18n } from "@/shared/i18n";
 import { loadMe, useAccount } from "@/shared/session";
 import { useCoachApi } from "../api/context";
 import type { ReviewResponse } from "../api/coach.api";
-import { normalizeCoaching, type CoachReview } from "../model/coaching";
+import {
+  normalizeCoaching,
+  type CoachReview,
+  type ReviewTier,
+} from "../model/coaching";
 import {
   buildMatchCards,
   buildRoster,
   defaultPlayer,
-  savedReview,
   type AnalysisLike,
 } from "../model/session";
+import { usePlayerReviews } from "./usePlayerReviews";
 
 export type ActiveReview = {
   id: string;
+  tier: ReviewTier;
   coaching: CoachReview;
   rating: number | null;
   createdAt: string | null;
@@ -26,7 +31,7 @@ export type ActiveReview = {
   fresh: boolean;
   personalization?: ReviewResponse["personalization"];
 };
-export type Failure = { message: string; code?: string };
+export type Failure = { message: string; code?: string; tier: ReviewTier };
 
 function readUrl() {
   if (typeof window === "undefined") return { match: null, player: null };
@@ -43,13 +48,14 @@ function writeUrl(match: string | null, player: string | null) {
 
 /**
  * State machine of the AI Coach screen:
- * pick a match → pick a player → (saved review | run) → report.
- * Every "run" is one real AI request; reopening a stored review costs nothing.
+ * pick a match → pick a player → choose a tier (Quick | Deep) → report (⇄ compare).
+ * Every "run" is one real AI request paid in credits; reopening a stored review is free.
  */
 export function useCoachSession() {
   const { t, lang } = useI18n();
   const { account } = useAccount();
   const { refresh } = useUsage();
+  const credits = useCredits();
   const upgrade = useUpgrade();
   const api = useCoachApi();
   const maps = useMapsApi();
@@ -59,8 +65,12 @@ export function useCoachSession() {
   const [analysis, setAnalysis] = useState<AnalysisLike | null>(null);
   const [analysisError, setAnalysisError] = useState("");
   const [playerId, setPlayerId] = useState<string | null>(null);
-  const [review, setReview] = useState<ActiveReview | null>(null);
-  const [running, setRunning] = useState<number | null>(null);
+  const [shown, setShown] = useState<ReviewTier | "choose" | null>(null);
+  const [ratings, setRatings] = useState<Record<string, number | null>>({});
+  const [running, setRunning] = useState<{
+    since: number;
+    tier: ReviewTier;
+  } | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [loadError, setLoadError] = useState("");
   const wanted = useRef(readUrl());
@@ -130,14 +140,32 @@ export function useCoachSession() {
     if (pick) setPlayerId(pick);
   }, [roster, playerId]);
 
-  // Reopen the stored review for this match/player when there is one.
-  useEffect(() => {
-    if (!analysisId || !playerId || running) return;
-    const saved = savedReview(progress, analysisId, playerId);
-    setReview((current) =>
-      current?.fresh ? current : saved ? { ...saved, fresh: false } : null,
-    );
-  }, [analysisId, playerId, progress, running]);
+  const reviews = usePlayerReviews(analysisId, playerId, progress);
+  const byTier = reviews.byTier;
+  // Which screen: an explicit choice wins, else the newest stored review, else the tiers.
+  const latest: ReviewTier | null = byTier
+    ? byTier.deep && byTier.quick
+      ? Date.parse(byTier.deep.createdAt) >= Date.parse(byTier.quick.createdAt)
+        ? "deep"
+        : "quick"
+      : byTier.deep
+        ? "deep"
+        : byTier.quick
+          ? "quick"
+          : null
+    : null;
+  const view = shown ?? latest ?? "choose";
+  const pickedReview = view === "choose" ? null : (byTier?.[view] ?? null);
+  const review: ActiveReview | null = pickedReview
+    ? {
+        id: pickedReview.id,
+        tier: pickedReview.tier,
+        coaching: pickedReview.coaching,
+        rating: ratings[pickedReview.id] ?? pickedReview.rating,
+        createdAt: pickedReview.createdAt,
+        fresh: !!pickedReview.fresh,
+      }
+    : null;
 
   useEffect(() => {
     if (matches === null) return;
@@ -148,67 +176,96 @@ export function useCoachSession() {
     seq.current++;
     setMatchId(id);
     setPlayerId(null);
-    setReview(null);
+    setShown(null);
     setFailure(null);
     setRunning(null);
   }, []);
   const pickPlayer = useCallback((id: string | null) => {
     seq.current++;
     setPlayerId(id);
-    setReview(null);
+    setShown(null);
     setFailure(null);
     setRunning(null);
   }, []);
-
-  const run = useCallback(() => {
-    if (!analysisId || !playerId) return;
-    const id = ++seq.current;
-    setRunning(Date.now());
+  /** Back to the tier cards (e.g. "Ask again" or "Run a Deep review"). */
+  const choose = useCallback(() => {
     setFailure(null);
-    api
-      .requestReview(analysisId, playerId, lang)
-      .then((r) => {
-        if (seq.current !== id) return;
-        const next: ActiveReview = {
-          id: r.reviewId,
-          coaching: normalizeCoaching(r.coaching),
-          rating: null,
-          createdAt: new Date().toISOString(),
-          fresh: true,
-          ...(r.personalization ? { personalization: r.personalization } : {}),
-        };
-        setReview(next);
-        // Keep the "reviewed" badges and the dashboard plan in sync.
-        maps
-          .getProgress()
-          .then(setProgress)
-          .catch(() => undefined);
-      })
-      .catch((e: unknown) => {
-        if (seq.current !== id) return;
-        if (upgrade.handle(e)) return;
-        setFailure(
-          e instanceof ApiError
-            ? { message: e.message, ...(e.code ? { code: e.code } : {}) }
-            : { message: e instanceof Error ? e.message : "Request failed." },
-        );
-      })
-      .finally(() => {
-        if (seq.current !== id) return;
-        setRunning(null);
-        void refresh();
-      });
-  }, [api, maps, analysisId, playerId, lang, upgrade, refresh]);
+    setShown("choose");
+  }, []);
+  /** Open the stored review of a tier (free). */
+  const open = useCallback((tier: ReviewTier) => setShown(tier), []);
 
+  const add = reviews.add;
+  const run = useCallback(
+    (tier: ReviewTier) => {
+      if (!analysisId || !playerId) return;
+      // Not enough credits: offer packs/plans instead of a failing request.
+      if (!credits.canAfford(tier)) {
+        upgrade.openCredits({
+          needed: credits.cost(tier),
+          balance: credits.balance,
+          tier,
+        });
+        return;
+      }
+      const id = ++seq.current;
+      setRunning({ since: Date.now(), tier });
+      setFailure(null);
+      api
+        .requestReview(analysisId, playerId, lang, tier)
+        .then((r) => {
+          if (seq.current !== id) return;
+          const coaching = normalizeCoaching(r.coaching);
+          add({
+            id: r.reviewId,
+            tier,
+            coaching: { ...coaching, tier },
+            rating: null,
+            createdAt: new Date().toISOString(),
+            fresh: true,
+          });
+          setShown(tier);
+          // Keep the "reviewed" badges and the dashboard plan in sync.
+          maps
+            .getProgress()
+            .then(setProgress)
+            .catch(() => undefined);
+        })
+        .catch((e: unknown) => {
+          if (seq.current !== id) return;
+          if (upgrade.handle(e)) return;
+          setFailure(
+            e instanceof ApiError
+              ? {
+                  message: e.message,
+                  tier,
+                  ...(e.code ? { code: e.code } : {}),
+                }
+              : {
+                  message: e instanceof Error ? e.message : "Request failed.",
+                  tier,
+                },
+          );
+        })
+        .finally(() => {
+          if (seq.current !== id) return;
+          setRunning(null);
+          void refresh();
+        });
+    },
+    [api, maps, analysisId, playerId, lang, upgrade, refresh, credits, add],
+  );
+
+  const reviewId = review?.id;
   const rate = useCallback(
     (value: number) => {
-      if (!review) return;
-      setReview({ ...review, rating: value });
+      if (!reviewId) return;
+      setRatings((r) => ({ ...r, [reviewId]: value }));
       api
-        .rateReview(review.id, value)
-        .catch(() => setReview((r) => (r ? { ...r, rating: null } : r)));
+        .rateReview(reviewId, value)
+        .catch(() => setRatings((r) => ({ ...r, [reviewId]: null })));
     },
-    [api, review],
+    [api, reviewId],
   );
 
   return {
@@ -221,10 +278,15 @@ export function useCoachSession() {
     roster,
     player: roster.find((r) => r.steamId === playerId) ?? null,
     review,
+    /** Latest stored review per tier (null while loading). */
+    byTier,
+    view,
     running,
     failure,
     pickMatch,
     pickPlayer,
+    choose,
+    open,
     run,
     rate,
   };

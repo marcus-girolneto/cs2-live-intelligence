@@ -16,6 +16,7 @@ import {
 import { obj } from "./normalize";
 
 export * from "./catalogue";
+export * from "./credits";
 export {
   normalizeAccountPlan,
   normalizePlans,
@@ -58,13 +59,18 @@ const FEATURES: LimitFeature[] = [
   "live_ai",
   "upload",
   "clip_export",
+  "monthly_report",
+  "match_reel",
+  "history_compare",
+  "personal_coach",
 ];
 /** Reads a 402 plan_limit error (ApiError with body) into a typed object. */
 export function planLimitFrom(e: unknown): PlanLimitError | null {
   const err = e as { status?: unknown; code?: unknown; body?: unknown } | null;
   if (!err || err.status !== 402) return null;
   const body = obj(err.body) ?? {};
-  if ((err.code ?? body.code) !== "plan_limit") return null;
+  const code = err.code ?? body.code;
+  if (code !== "plan_limit" && code !== "plan_required") return null;
   const feature = FEATURES.includes(body.feature as LimitFeature)
     ? (body.feature as LimitFeature)
     : "ai_review";
@@ -100,7 +106,15 @@ export function upgradeTarget(
         ? (p.limits.liveAiMatchesPerDay ?? 1) > 0
         : feature === "per_map"
           ? p.limits.perMapLearning
-          : true,
+          : feature === "monthly_report"
+            ? p.limits.monthlyReport
+            : feature === "match_reel"
+              ? p.limits.matchReel
+              : feature === "history_compare"
+                ? p.limits.historyCompare
+                : feature === "personal_coach"
+                  ? p.limits.personalCoach
+                  : true,
   );
   return fits[0] ?? above[0] ?? paid.at(-1) ?? null;
 }

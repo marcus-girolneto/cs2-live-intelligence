@@ -111,7 +111,7 @@ export const pt1: Record<string, string> = {
   "Unnamed demo": "Demo sem nome",
   "Step 2 · Your match": "Passo 2 · Sua partida",
   "Telemetry consent required": "É preciso autorizar o processamento de demos.",
-  "Demo exceeds the 64 MiB upload limit.": "A demo passa do limite de 64 MB.",
+  "Demo exceeds the 500 MB upload limit.": "A demo passa do limite de 500 MB.",
   "Step 3 · Live": "Passo 3 · Ao vivo",
   "With the collector running on your PC, the score and your own stats appear here while you play.":
     "Com o coletor rodando no seu PC, o placar e as suas estatísticas aparecem aqui enquanto você joga.",

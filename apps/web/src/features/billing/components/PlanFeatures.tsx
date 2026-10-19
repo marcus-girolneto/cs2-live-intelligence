@@ -14,12 +14,30 @@ export function PlanFeatures({
   const { t } = useI18n();
   const n = (v: number | null) => (v === null ? "∞" : v);
   const rows: [boolean, string][] = [
-    [
-      true,
-      limits.aiReviewsPerDay === 1
-        ? t("1 AI Coach review per day")
-        : t("{n} AI Coach reviews per day", { n: n(limits.aiReviewsPerDay) }),
-    ],
+    ...(limits.monthlyCredits
+      ? ([
+          [true, t("{n} credits every month", { n: limits.monthlyCredits })],
+        ] as [boolean, string][])
+      : []),
+    ...(limits.deepCost !== null
+      ? ([[true, t("Deep review for {n} credits", { n: limits.deepCost })]] as [
+          boolean,
+          string,
+        ][])
+      : []),
+    // With credits, an unlimited daily review cap is noise — only show a real cap.
+    ...(limits.aiReviewsPerDay === null
+      ? []
+      : ([
+          [
+            true,
+            limits.aiReviewsPerDay === 1
+              ? t("1 AI Coach review per day")
+              : t("{n} AI Coach reviews per day", {
+                  n: n(limits.aiReviewsPerDay),
+                }),
+          ],
+        ] as [boolean, string][])),
     [
       (limits.liveAiMatchesPerDay ?? 1) > 0,
       (limits.liveAiMatchesPerDay ?? 1) > 0
@@ -42,6 +60,14 @@ export function PlanFeatures({
     [true, t("Watch 2D clips of key moments")],
     [limits.clipExport, t("Export clips as video")],
     [limits.perMapLearning, t("Per-map deep learning")],
+    [limits.monthlyReport, t("Monthly performance report")],
+    [
+      limits.personalCoach,
+      t("Personal Coach: your multi-week training program"),
+    ],
+    [limits.matchReel, t("Match reel (highlights + mistakes video)")],
+    [limits.historyCompare, t("History compare in deep reviews")],
+    [limits.priorityQueue, t("Priority processing")],
   ];
   return (
     <ul className={`plan-features ${compact ? "compact" : ""}`}>

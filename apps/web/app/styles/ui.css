@@ -580,6 +580,8 @@
 
 /* tables */
 .table-wrap {
+  /* Contains visually-hidden captions so they can't widen the page. */
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 2px;

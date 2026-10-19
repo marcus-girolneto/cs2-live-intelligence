@@ -3,7 +3,7 @@ import { useAdminApi } from "../api/context";
 import { useMemo, useState } from "react";
 import { formatDate, formatNumber } from "@/shared/format";
 import { useI18n } from "@/shared/i18n";
-import { Refresh, Search, Users as UsersIcon } from "@/shared/icons";
+import { Coin, Refresh, Search, Users as UsersIcon } from "@/shared/icons";
 import {
   CrosshairLoader,
   Avatar,
@@ -14,6 +14,7 @@ import {
 } from "@/shared/ui";
 import { useResource } from "../hooks/useResource";
 import { errorText, isForbidden, type AdminUser } from "../model/types";
+import { UserCreditsDialog } from "./UserCreditsDialog";
 import { UserPlanCell } from "./UserPlanCell";
 /* ------------------------------------------------------------ users */
 export function UsersPanel({
@@ -32,6 +33,9 @@ export function UsersPanel({
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
+  const [credits, setCredits] = useState<{ id: string; name: string } | null>(
+    null,
+  );
   const users = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = data?.users ?? [];
@@ -133,6 +137,7 @@ export function UsersPanel({
                 <th>{t("Plan")}</th>
                 <th className="r">{t("Matches")}</th>
                 <th className="r">{t("Reviews")}</th>
+                <th>{t("Credits")}</th>
                 <th>{t("Joined")}</th>
                 <th>{t("Last sign-in")}</th>
               </tr>
@@ -197,6 +202,17 @@ export function UsersPanel({
                     <td className="r">
                       {formatNumber(u.reviews, 0, locale) ?? "—"}
                     </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        aria-label={t("Credits of {name}", { name })}
+                        onClick={() => setCredits({ id: u.id, name })}
+                      >
+                        <Coin size={16} />
+                        {formatNumber(u.credits, 0, locale) ?? t("Manage")}
+                      </button>
+                    </td>
                     <td className="nowrap">
                       {formatDate(u.createdAt, locale) ?? "—"}
                     </td>
@@ -209,6 +225,16 @@ export function UsersPanel({
             </tbody>
           </table>
         </div>
+      )}
+      {credits && (
+        <UserCreditsDialog
+          userId={credits.id}
+          name={credits.name}
+          onClose={() => {
+            setCredits(null);
+            void reload();
+          }}
+        />
       )}
     </Panel>
   );

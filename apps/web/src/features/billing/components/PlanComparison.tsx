@@ -9,11 +9,26 @@ type Row = { label: string; value: (l: PlanLimits) => string | boolean };
 export function PlanComparison({ plans }: { plans: Plan[] }) {
   const { t } = useI18n();
   const n = (v: number | null) => (v === null ? "∞" : String(v));
+  const capped = plans.some((p) => p.limits.aiReviewsPerDay !== null);
   const rows: Row[] = [
     {
-      label: t("AI Coach reviews per day"),
-      value: (l) => n(l.aiReviewsPerDay),
+      label: t("Credits every month"),
+      value: (l) =>
+        l.monthlyCredits ? n(l.monthlyCredits) : t("Welcome credit"),
     },
+    {
+      label: t("Deep review cost"),
+      value: (l) =>
+        l.deepCost === null ? "—" : t("{n} credits", { n: l.deepCost }),
+    },
+    ...(capped
+      ? [
+          {
+            label: t("AI Coach reviews per day"),
+            value: (l: PlanLimits) => n(l.aiReviewsPerDay),
+          },
+        ]
+      : []),
     {
       label: t("Live AI IGL matches per day"),
       value: (l) =>
@@ -34,6 +49,11 @@ export function PlanComparison({ plans }: { plans: Plan[] }) {
     { label: t("Watch 2D clips"), value: () => true },
     { label: t("Clip video export"), value: (l) => l.clipExport },
     { label: t("Per-map deep learning"), value: (l) => l.perMapLearning },
+    { label: t("Monthly performance report"), value: (l) => l.monthlyReport },
+    { label: t("Personal Coach"), value: (l) => l.personalCoach },
+    { label: t("Match reel"), value: (l) => l.matchReel },
+    { label: t("History compare"), value: (l) => l.historyCompare },
+    { label: t("Priority processing"), value: (l) => l.priorityQueue },
   ];
   const visible = plans.filter((p) => p.active);
   return (
@@ -81,6 +101,18 @@ export function PlanComparison({ plans }: { plans: Plan[] }) {
 }
 
 const FAQ = [
+  {
+    q: "What's a credit?",
+    a: "Credits pay for AI reviews: a Quick review costs 1 credit, a Deep review 3 (2 on Pro). Opening a review you already have is always free.",
+  },
+  {
+    q: "Quick or Deep review?",
+    a: "Quick gives the verdict, scores, key moments and a plan. Deep uses a stronger AI and adds the utility lab, crosshair placement, positioning, a round-by-round table and up to 10 key moments.",
+  },
+  {
+    q: "Do credits expire?",
+    a: "Plan credits are refilled every month and expire at renewal. Purchased credits never expire. The welcome credit stays until you use it.",
+  },
   {
     q: "Can I cancel anytime?",
     a: "Yes. Cancel in one click from Manage subscription; you keep your plan until the end of the period you paid for.",

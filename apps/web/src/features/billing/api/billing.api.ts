@@ -5,7 +5,11 @@ import type {
   RedirectDto,
 } from "@/shared/api-types";
 import {
+  normalizeLedger,
+  normalizePacks,
   normalizePlans,
+  type CreditPack,
+  type LedgerEntry,
   type Currency,
   type Interval,
   type Plan,
@@ -25,6 +29,12 @@ export interface BillingApi {
   ): Promise<string>;
   /** Stripe Customer Portal URL (validated). */
   openPortal(): Promise<string>;
+  /** Credit movements of the signed-in account, newest first. */
+  getLedger(limit?: number): Promise<LedgerEntry[]>;
+  /** Credit packs on sale. */
+  getPacks(): Promise<CreditPack[]>;
+  /** Stripe Checkout URL for one credit pack (validated). */
+  buyCredits(packId: string, currency: Currency): Promise<string>;
 }
 
 /** Only https destinations (or same-origin) are followed (Stripe Checkout / Customer Portal). */
@@ -60,6 +70,21 @@ export function createBillingApi(http: HttpClient = platformHttp): BillingApi {
       const r = await http.post<Partial<RedirectDto> | undefined>(
         "billing/portal",
         {},
+      );
+      return safeRedirect(r?.url);
+    },
+    async getLedger(limit = 50) {
+      return normalizeLedger(
+        await http.get<unknown>("credits/ledger", { query: { limit } }),
+      );
+    },
+    async getPacks() {
+      return normalizePacks(await http.get<unknown>("credits/packs"));
+    },
+    async buyCredits(packId, currency) {
+      const r = await http.post<Partial<RedirectDto> | undefined>(
+        "billing/credits/checkout",
+        { packId, currency },
       );
       return safeRedirect(r?.url);
     },

@@ -1,10 +1,28 @@
 import type { Plan, PlanLimits } from "@/features/billing";
 
+export type FeatureFlag =
+  | "clipExport"
+  | "perMapLearning"
+  | "cheaperDeep"
+  | "monthlyReport"
+  | "matchReel"
+  | "historyCompare"
+  | "priorityQueue";
+export const FEATURE_FLAGS: FeatureFlag[] = [
+  "clipExport",
+  "perMapLearning",
+  "cheaperDeep",
+  "monthlyReport",
+  "matchReel",
+  "historyCompare",
+  "priorityQueue",
+];
 export type NumericLimit = Exclude<
   keyof PlanLimits,
-  "clipExport" | "perMapLearning"
+  FeatureFlag | "deepCost" | "personalCoach"
 >;
 export const NUMERIC_LIMITS: NumericLimit[] = [
+  "monthlyCredits",
   "aiReviewsPerDay",
   "liveAiMatchesPerDay",
   "uploadsPerDay",

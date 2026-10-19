@@ -8,6 +8,13 @@ export { PlanFeatures } from "./components/PlanFeatures";
 export { PricingScreen } from "./components/PricingScreen";
 export { PricingSection } from "./components/PricingSection";
 export { UsageMeter } from "./components/UsageMeter";
+export { CreditChip } from "./components/credits/CreditChip";
+export { CreditsPanel } from "./components/credits/CreditsPanel";
+export { CreditPacks } from "./components/credits/CreditPacks";
+export { LedgerList } from "./components/credits/LedgerList";
+export { WelcomeCredits } from "./components/credits/WelcomeCredits";
+export { useCredits } from "./hooks/useCredits";
+export { usePacks } from "./hooks/usePacks";
 export { useCheckout } from "./hooks/useCheckout";
 export { usePlans } from "./hooks/usePlans";
 export { UpgradeProvider, useUpgrade } from "./hooks/useUpgrade";
@@ -32,6 +39,16 @@ export {
   type PlanId,
   type PlanLimits,
   type Usage,
+  DEFAULT_PACKS,
+  normalizeCredits,
+  normalizeLedger,
+  normalizePack,
+  normalizePacks,
+  reasonLabel,
+  type CreditPack,
+  type Credits,
+  type LedgerEntry,
+  type ReviewTier,
 } from "./model/plans";
 /** Portuguese dictionary of this feature (merged by src/composition/i18n.ts). */
 export { pt as i18nPt } from "./i18n/pt";

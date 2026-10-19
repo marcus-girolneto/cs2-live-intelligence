@@ -5,9 +5,12 @@ import {
   forwardQuery,
   isAiRoute,
   cappedBody,
+  cappedStream,
   PUBLIC_ROUTES,
   MAX_DEMO_BYTES,
 } from "../proxy/allowlist";
+/** A 500 MB demo on a slow uplink can take a while. */
+const UPLOAD_TIMEOUT_MS = 30 * 60 * 1000;
 type Context = { params: Promise<{ path: string[] }> };
 async function proxy(request: Request, context: Context) {
   if (!sameOrigin(request)) return json({ error: "Origin not allowed" }, 403);
@@ -21,6 +24,7 @@ async function proxy(request: Request, context: Context) {
   if (!publicRoute && !token)
     return json({ error: "Sign in to continue." }, 401);
   const upload = path === "demos/uploads";
+  let streamed: ReturnType<typeof cappedStream> | null = null;
   try {
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -29,22 +33,31 @@ async function proxy(request: Request, context: Context) {
       headers["x-filename"] = request.headers.get("x-filename") ?? "";
     } else if (request.method !== "GET" && request.method !== "DELETE")
       headers["Content-Type"] = "application/json";
-    const body =
-      request.method === "GET" || request.method === "DELETE"
+    // Demos (up to MAX_DEMO_BYTES) are streamed through, never buffered in memory.
+    if (upload) streamed = cappedStream(request, MAX_DEMO_BYTES);
+    const body = upload
+      ? streamed?.body
+      : request.method === "GET" || request.method === "DELETE"
         ? undefined
-        : await cappedBody(request, upload ? MAX_DEMO_BYTES : 8192);
+        : await cappedBody(request, 8192);
     const upstream = await fetch(
       `${apiUrl()}/v1/${path}${request.method === "GET" ? forwardQuery(path, new URL(request.url).searchParams) : ""}`,
       {
         method: request.method,
         headers,
         body,
+        // Required by fetch to send a ReadableStream body.
+        ...(upload ? { duplex: "half" } : {}),
         cache: "no-store",
         signal: AbortSignal.timeout(
-          upload ? 120000 : isAiRoute(path) ? AI_PROXY_TIMEOUT_MS : 10000,
+          upload
+            ? UPLOAD_TIMEOUT_MS
+            : isAiRoute(path)
+              ? AI_PROXY_TIMEOUT_MS
+              : 10000,
         ),
         redirect: "error",
-      },
+      } as RequestInit,
     );
     const response = new Response(
       upstream.status === 204 ? null : await upstream.text(),
@@ -62,12 +75,16 @@ async function proxy(request: Request, context: Context) {
     return response;
   } catch (error) {
     const tooLarge =
-      error instanceof Error && error.message === "Payload too large";
+      streamed?.exceeded() ||
+      (error instanceof Error &&
+        (error.message === "Payload too large" ||
+          (error.cause instanceof Error &&
+            error.cause.message === "Payload too large")));
     return json(
       {
         error: tooLarge
           ? upload
-            ? "Demo exceeds the 64 MiB upload limit."
+            ? "Demo exceeds the 500 MB upload limit."
             : "Request body is too large."
           : "Service unavailable. Please try again.",
       },

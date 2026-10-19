@@ -33,10 +33,16 @@ export function planUpdateBody(p: Plan) {
       liveAiMatchesPerDay: p.limits.liveAiMatchesPerDay,
       uploadsPerDay: p.limits.uploadsPerDay,
       retentionDaysMax: p.limits.retentionDays,
+      monthlyCredits: p.limits.monthlyCredits ?? 0,
     },
     features: {
       clipExport: p.limits.clipExport,
       perMapLearning: p.limits.perMapLearning,
+      monthlyReport: p.limits.monthlyReport,
+      cheaperDeep: p.limits.cheaperDeep,
+      reel: p.limits.matchReel,
+      deepHistory: p.limits.historyCompare,
+      priorityQueue: p.limits.priorityQueue,
     },
     active: p.active,
   };
@@ -78,6 +84,8 @@ export function normalizePlans(raw: unknown): Plan[] {
 function limitsOf(o: Record<string, unknown>, base: PlanLimits): PlanLimits {
   const l = obj(o.limits) ?? {};
   const f = obj(o.features) ?? l;
+  /** GET plans `credits` ({monthly, quickCost, deepCost}). */
+  const c = obj(o.credits) ?? {};
   const bool = (v: unknown, d: boolean) => (typeof v === "boolean" ? v : d);
   return {
     aiReviewsPerDay: limit(l.aiReviewsPerDay, base.aiReviewsPerDay),
@@ -89,6 +97,24 @@ function limitsOf(o: Record<string, unknown>, base: PlanLimits): PlanLimits {
     ),
     clipExport: bool(f.clipExport, base.clipExport),
     perMapLearning: bool(f.perMapLearning, base.perMapLearning),
+    monthlyCredits: limit(l.monthlyCredits ?? c.monthly, base.monthlyCredits),
+    deepCost: limit(
+      c.deepCost ?? l.deepCost,
+      typeof f.cheaperDeep === "boolean"
+        ? f.cheaperDeep
+          ? 2
+          : 3
+        : base.deepCost,
+    ),
+    cheaperDeep: bool(f.cheaperDeep, base.cheaperDeep),
+    personalCoach: bool(f.personalCoach, base.personalCoach),
+    monthlyReport: bool(f.monthlyReport, base.monthlyReport),
+    matchReel: bool(f.reel ?? f.matchReel, base.matchReel),
+    historyCompare: bool(
+      f.deepHistory ?? f.historyCompare,
+      base.historyCompare,
+    ),
+    priorityQueue: bool(f.priorityQueue, base.priorityQueue),
   };
 }
 

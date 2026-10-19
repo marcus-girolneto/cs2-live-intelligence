@@ -1,19 +1,33 @@
 import { describe, expect, it } from "vitest";
+import type { UploadOptions, Uploader } from "@/shared/http";
 import { FakeHttpClient } from "@/shared/http/FakeHttpClient";
 import { createMatchesApi } from "./matches.api";
 
 describe("MatchesApi", () => {
-  it("uploads the raw demo with its file name and a 2-minute timeout", async () => {
-    const http = new FakeHttpClient().on("POST", "demos/uploads", { id: "j1" });
+  it("uploads the raw demo through the progress uploader", async () => {
+    const calls: { path: string; body: Blob; options?: UploadOptions }[] = [];
+    const uploader: Uploader = {
+      upload: async <T>(path: string, body: Blob, options?: UploadOptions) => {
+        calls.push({ path, body, options });
+        options?.onProgress?.({ loaded: 1, total: 1 });
+        return { id: "j1" } as T;
+      },
+    };
     const file = new File(["x"], "match.dem");
-    await expect(createMatchesApi(http).uploadDemo(file)).resolves.toEqual({
-      id: "j1",
-    });
-    expect(http.calls[0]!.options).toMatchObject({
+    const progress: number[] = [];
+    const ctrl = new AbortController();
+    await expect(
+      createMatchesApi(new FakeHttpClient(), uploader).uploadDemo(file, {
+        signal: ctrl.signal,
+        onProgress: (p) => progress.push(p.loaded),
+      }),
+    ).resolves.toEqual({ id: "j1" });
+    expect(calls[0]).toMatchObject({ path: "demos/uploads", body: file });
+    expect(calls[0]!.options).toMatchObject({
       headers: { "x-filename": "match.dem" },
-      body: file,
-      timeoutMs: 120000,
+      signal: ctrl.signal,
     });
+    expect(progress).toEqual([1]);
   });
   it("encodes match ids and unwraps lists", async () => {
     const http = new FakeHttpClient()

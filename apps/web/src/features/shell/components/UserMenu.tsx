@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSignOut } from "@/features/auth";
-import { PlanBadge, useUsage } from "@/features/billing";
+import { CreditChip, PlanBadge, useUsage } from "@/features/billing";
 import { useI18n } from "@/shared/i18n";
-import { Card, ChevronDown, Gear, Logout, Server } from "@/shared/icons";
+import { Card, ChevronDown, Coin, Gear, Logout, Server } from "@/shared/icons";
 import { type Account, displayName } from "@/shared/session";
 import { Avatar } from "@/shared/ui";
 
@@ -48,7 +48,10 @@ export function UserMenu({
         <Avatar profile={account.profile} size={34} fallback={name} />
         <span className="user-chip-text">
           <span className="user-chip-name">{name}</span>
-          <PlanBadge plan={plan} />
+          <span className="user-chip-meta">
+            <PlanBadge plan={plan} />
+            <CreditChip />
+          </span>
         </span>
         <ChevronDown size={16} />
       </button>
@@ -68,6 +71,9 @@ export function UserMenu({
           </div>
           <Link role="menuitem" href="/billing">
             <Card size={18} /> {t("Plan & billing")}
+          </Link>
+          <Link role="menuitem" href="/billing#credits">
+            <Coin size={18} /> {t("Credits")}
           </Link>
           <Link role="menuitem" href="/settings">
             <Gear size={18} /> {t("Settings")}

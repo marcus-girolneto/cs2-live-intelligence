@@ -5,6 +5,7 @@
 import { parsePlan, scopeOf, type PlanItem, type Scope } from "@/features/maps";
 import { parseClip, type ClipRef } from "@/features/replay";
 import { finite, text } from "@/shared/format";
+import { normalizeDeep, type DeepReview } from "./deep";
 
 export { parseClip, type ClipRef } from "@/features/replay";
 export { byScope, parsePlan, type PlanItem, type Scope } from "@/features/maps";
@@ -52,7 +53,12 @@ export type Drill = {
   metric?: string;
   scope: Scope;
 };
+export type ReviewTier = "quick" | "deep";
 export type CoachReview = {
+  /** null for reviews written before review tiers existed (shown as Quick). */
+  tier: ReviewTier | null;
+  /** Deep-only sections (utility lab, crosshair, positioning, round table). */
+  deep?: DeepReview;
   verdict?: string;
   summary?: string;
   map?: string;
@@ -170,7 +176,11 @@ function parseDrill(raw: unknown): Drill | null {
 
 export function normalizeCoaching(raw: unknown): CoachReview {
   const o = obj(raw) ?? {};
+  const deep = normalizeDeep(o.deep);
   return {
+    tier:
+      o.tier === "deep" || o.tier === "quick" ? o.tier : deep ? "deep" : null,
+    ...opt("deep", deep),
     ...opt("verdict", text(first(o, ["verdict", "headline"]))),
     ...opt("summary", text(o.summary)),
     ...opt("map", text(o.map)),

@@ -47,6 +47,26 @@ export function UpgradeSheet({
     upload: t("You reached today's demo uploads"),
     clip_export: t("Export your clips as video"),
     per_map: t("Per-map deep learning is a Pro feature"),
+    monthly_report: t("Monthly performance reports are a Pro feature"),
+    match_reel: t("Match reels are a Pro feature"),
+    history_compare: t("History compare is a Pro feature"),
+    personal_coach: t("Personal Coach is a Pro feature"),
+  };
+  const subs: Partial<Record<PlanLimitError["feature"], string>> = {
+    clip_export: t("Share your best plays as a video with your team."),
+    per_map: t("The coach learns your habits on each map separately."),
+    monthly_report: t(
+      "Every month: trends, per-map form, recurring mistakes and a plan — in one shareable report.",
+    ),
+    match_reel: t(
+      "All your highlights and mistakes of a match, back-to-back, exported as one video.",
+    ),
+    history_compare: t(
+      "See how each deep-review metric moved against your previous matches.",
+    ),
+    personal_coach: t(
+      "A second AI coach reads all your matches and writes your training program.",
+    ),
   };
   const price = target?.prices[currency];
   return (
@@ -60,11 +80,7 @@ export function UpgradeSheet({
       sub={
         wait
           ? t("Your free quota resets in {h}h {m}m.", { h: wait.h, m: wait.m })
-          : info.feature === "clip_export"
-            ? t("Share your best plays as a video with your team.")
-            : info.feature === "per_map"
-              ? t("The coach learns your habits on each map separately.")
-              : undefined
+          : subs[info.feature]
       }
       onClose={onClose}
     >

@@ -1,4 +1,5 @@
 // Portuguese (Brazil) translations of the admin feature, keyed by the English source string.
+import { ptCredits } from "./pt-credits";
 export const pt: Record<string, string> = {
   Administration: "Administração",
   "Control room": "Sala de controle",
@@ -220,4 +221,16 @@ export const pt: Record<string, string> = {
   "Test connection": "Testar conexão",
   Unlimited: "Ilimitado",
   keep: "manter",
+  "Packs saved.": "Pacotes salvos.",
+  "One-off purchases. Purchased credits never expire.":
+    "Compras avulsas. Créditos comprados nunca expiram.",
+  "Add pack": "Adicionar pacote",
+  "No packs on sale.": "Nenhum pacote à venda.",
+  "New pack": "Novo pacote",
+  Badge: "Selo",
+  None: "Nenhum",
+  Remove: "Remover",
+  "Save packs": "Salvar pacotes",
+  "Credit settings saved.": "Configurações de créditos salvas.",
+  ...ptCredits,
 };

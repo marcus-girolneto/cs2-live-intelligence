@@ -50,7 +50,14 @@ describe("server owner proxy", () => {
       "Content-Type": "application/octet-stream",
       "x-filename": "match.dem",
     });
-    expect(init.body).toEqual(new Uint8Array([1, 2, 3]));
+    // The demo is streamed through (never buffered) with the half-duplex flag fetch needs.
+    expect(init.body).toBeInstanceOf(ReadableStream);
+    expect((init as { duplex?: string }).duplex).toBe("half");
+    expect(
+      new Uint8Array(
+        await new Response(init.body as ReadableStream).arrayBuffer(),
+      ),
+    ).toEqual(new Uint8Array([1, 2, 3]));
   });
   it("rejects cookie-less protected reads before contacting the API", async () => {
     mocks.token.mockResolvedValue(undefined);

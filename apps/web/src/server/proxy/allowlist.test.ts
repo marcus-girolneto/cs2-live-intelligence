@@ -3,6 +3,7 @@ import {
   AI_PROXY_TIMEOUT_MS,
   allowedProxy,
   cappedBody,
+  cappedStream,
   forwardQuery,
   isAiRoute,
   PUBLIC_ROUTES,
@@ -39,6 +40,48 @@ describe("authenticated proxy boundary", () => {
       body: new Uint8Array([0, 1, 255]),
     });
     expect(await cappedBody(request, 3)).toEqual(new Uint8Array([0, 1, 255]));
+  });
+  it("streams accepted bytes through unchanged", async () => {
+    const request = new Request("http://localhost/upload", {
+      method: "POST",
+      body: new Uint8Array([0, 1, 255]),
+    });
+    const s = cappedStream(request, 3);
+    const out = new Uint8Array(await new Response(s.body).arrayBuffer());
+    expect(out).toEqual(new Uint8Array([0, 1, 255]));
+    expect(s.exceeded()).toBe(false);
+  });
+  it("cuts a streamed body as soon as it passes the cap", async () => {
+    const chunks = [new Uint8Array(5), new Uint8Array(5), new Uint8Array(5)];
+    let pulled = 0;
+    const source = new ReadableStream<Uint8Array>({
+      pull(c) {
+        const next = chunks[pulled++];
+        if (next) c.enqueue(next);
+        else c.close();
+      },
+    });
+    const request = new Request("http://localhost/upload", {
+      method: "POST",
+      body: source,
+      // @ts-expect-error -- Node's fetch needs duplex for stream bodies.
+      duplex: "half",
+    });
+    const s = cappedStream(request, 8);
+    await expect(new Response(s.body).arrayBuffer()).rejects.toThrow(
+      "Payload too large",
+    );
+    expect(s.exceeded()).toBe(true);
+    // It stopped reading right after the chunk that crossed the limit.
+    expect(pulled).toBeLessThan(chunks.length + 1);
+  });
+  it("rejects a declared oversized stream before reading it", () => {
+    const request = new Request("http://localhost/upload", {
+      method: "POST",
+      headers: { "Content-Length": "9" },
+      body: "tiny",
+    });
+    expect(() => cappedStream(request, 8)).toThrow("Payload too large");
   });
   it("allows AI routes with a long timeout only for them", () => {
     expect(allowedProxy("GET", "ai/status")).toBe(true);
@@ -160,5 +203,79 @@ describe("authenticated proxy boundary", () => {
       expect(allowedProxy(verb, path), `${verb} ${path}`).toBe(false);
     expect(PUBLIC_ROUTES.has("plans")).toBe(true);
     expect(PUBLIC_ROUTES.has("billing/status")).toBe(false);
+  });
+  it("allows the credit, review-tier, reel and report routes with exact verbs", () => {
+    const ok: [string, string][] = [
+      ["GET", "analyses/abc-1/reviews"],
+      ["GET", "analyses/abc-1/reel"],
+      ["POST", "analyses/abc-1/coaching"],
+      ["GET", "credits/ledger"],
+      ["GET", "credits/packs"],
+      ["POST", "billing/credits/checkout"],
+      ["GET", "reports"],
+      ["GET", "reports/r-2026-10"],
+      ["POST", "reports/generate"],
+      ["GET", "coach/personal"],
+      ["POST", "coach/personal/generate"],
+      ["GET", "admin/credits/settings"],
+      ["PUT", "admin/credits/settings"],
+      ["GET", "admin/credits/packs"],
+      ["PUT", "admin/credits/packs"],
+      ["GET", "admin/users/u-1/ledger"],
+      ["POST", "admin/users/u-1/credits"],
+    ];
+    for (const [verb, path] of ok)
+      expect(allowedProxy(verb, path), `${verb} ${path}`).toBe(true);
+    const denied: [string, string][] = [
+      ["POST", "analyses/abc/reviews"],
+      ["DELETE", "analyses/abc/reviews"],
+      ["POST", "analyses/abc/reel"],
+      ["GET", "analyses/../reel"],
+      ["POST", "credits/ledger"],
+      ["POST", "credits/packs"],
+      ["GET", "billing/credits/checkout"],
+      ["POST", "credits/grant"],
+      ["POST", "reports"],
+      ["POST", "coach/personal"],
+      ["GET", "coach/personal/generate"],
+      ["DELETE", "reports/r1"],
+      ["GET", "reports/r1/extra"],
+      ["POST", "admin/credits/settings"],
+      ["DELETE", "admin/credits/packs"],
+      ["PUT", "admin/users/u-1/credits"],
+      ["GET", "admin/users/u-1/credits"],
+      ["POST", "admin/users/../credits"],
+      ["POST", "admin/users/u-1/ledger"],
+    ];
+    for (const [verb, path] of denied)
+      expect(allowedProxy(verb, path), `${verb} ${path}`).toBe(false);
+    expect(isAiRoute("reports/generate")).toBe(true);
+    expect(isAiRoute("reports")).toBe(false);
+    expect(isAiRoute("coach/personal/generate")).toBe(true);
+    expect(isAiRoute("coach/personal")).toBe(false);
+    expect(isAiRoute("analyses/abc/reviews")).toBe(false);
+    expect(isAiRoute("billing/credits/checkout")).toBe(false);
+    expect(PUBLIC_ROUTES.has("credits/packs")).toBe(true);
+    expect(PUBLIC_ROUTES.has("credits/ledger")).toBe(false);
+  });
+  it("forwards only a safe steamId to reviews/reel and numeric ledger limits", () => {
+    expect(
+      forwardQuery(
+        "analyses/a1/reviews",
+        new URLSearchParams("steamId=76561197964020430&x=1"),
+      ),
+    ).toBe("?steamId=76561197964020430");
+    expect(
+      forwardQuery("analyses/a1/reel", new URLSearchParams("steamId=a%26b")),
+    ).toBe("");
+    expect(
+      forwardQuery("credits/ledger", new URLSearchParams("limit=20&x=2")),
+    ).toBe("?limit=20");
+    expect(
+      forwardQuery("admin/users/u1/ledger", new URLSearchParams("limit=abc")),
+    ).toBe("");
+    expect(
+      forwardQuery("analyses/a1/coaching", new URLSearchParams("steamId=1")),
+    ).toBe("");
   });
 });

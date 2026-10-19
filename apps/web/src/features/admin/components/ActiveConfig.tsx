@@ -10,6 +10,7 @@ import {
   PURPOSE_LABEL,
   PURPOSES,
   type AiStatus,
+  type Purpose,
   type PurposeStatus,
   type TestResult,
 } from "../model/types";
@@ -30,7 +31,7 @@ export function ActiveConfig({
   );
   const [result, setResult] = useState<Record<string, TestResult>>({});
   const [failure, setFailure] = useState<Record<string, string>>({});
-  async function test(purpose: "review" | "live") {
+  async function test(purpose: Purpose) {
     setBusy({ purpose, since: Date.now() });
     setResult((r) => ({ ...r, [purpose]: {} }));
     setFailure((f) => ({ ...f, [purpose]: "" }));
@@ -46,7 +47,9 @@ export function ActiveConfig({
   const purposes = PURPOSES.map((p) => ({
     purpose: p,
     s: (status?.purposes?.[p] ??
-      (p === "review" ? status : null)) as PurposeStatus | null,
+      (p === "review_quick"
+        ? (status?.purposes?.review ?? status)
+        : null)) as PurposeStatus | null,
   }));
   return (
     <Panel
@@ -66,13 +69,13 @@ export function ActiveConfig({
         {purposes.map(({ purpose, s }) => {
           if (!s && !loading) return null;
           if (!s) return null;
-          const review = purpose === "review";
+          const review = purpose === "review_quick";
           const r = result[purpose];
           const answered = r && r.model;
           return (
             <article key={purpose} className="adm-purpose">
               <header>
-                <h3>{t(PURPOSE_LABEL[purpose])}</h3>
+                <h3>{t(PURPOSE_LABEL[purpose]!)}</h3>
                 <span
                   className={`chip ${s.source === "database" ? "accent" : "ct"}`}
                 >

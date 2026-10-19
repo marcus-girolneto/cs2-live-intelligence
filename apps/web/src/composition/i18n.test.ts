@@ -29,6 +29,11 @@ const DYNAMIC_LABELS = [
   /^src\/features\/dashboard\//,
   /^src\/features\/maps\/model\/progress/,
   /^src\/features\/billing\/components\/PlanComparison/,
+  /^src\/features\/billing\/components\/credits\//,
+  /^src\/features\/billing\/model\/welcome/,
+  /^src\/features\/coach\/components\/deep\//,
+  /^src\/features\/coach\/model\/compare/,
+  /^src\/features\/admin\/model\/credits/,
 ];
 /** Files whose LABELS / LIMIT_LABEL records and `return "Text";` values are translated. */
 const LABEL_RECORDS = [
@@ -37,6 +42,8 @@ const LABEL_RECORDS = [
   "src/features/billing/model/plans.ts",
   "src/features/billing/model/catalogue.ts",
   "src/features/billing/model/normalize.ts",
+  "src/features/billing/model/credits.ts",
+  "src/features/coach/components/deep/nades.tsx",
 ];
 
 describe("i18n", () => {

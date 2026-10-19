@@ -1,11 +1,42 @@
 import { isApiError } from "@/shared/http";
 
-export type Purpose = "review" | "live";
-export const PURPOSES: Purpose[] = ["review", "live"];
-export const PURPOSE_LABEL: Record<Purpose, string> = {
-  review: "Post-match review",
-  live: "Live IGL",
+export type Purpose =
+  "review_quick" | "review_deep" | "live" | "report" | "personal_coach";
+export const PURPOSES: Purpose[] = [
+  "review_quick",
+  "review_deep",
+  "live",
+  "report",
+  "personal_coach",
+];
+/** A purpose without its own assignment uses this one (then the .env default). */
+export const PURPOSE_FALLBACK: Partial<Record<Purpose, Purpose>> = {
+  review_deep: "review_quick",
+  report: "review_quick",
+  personal_coach: "review_deep",
 };
+/** Labels of every purpose, including the legacy single "review" purpose. */
+export const PURPOSE_LABEL: Record<string, string> = {
+  review: "Post-match review",
+  review_quick: "Quick review",
+  review_deep: "Deep review",
+  live: "Live IGL",
+  report: "Monthly report",
+  personal_coach: "Personal Coach",
+};
+export const PURPOSE_HINT: Record<Purpose, string> = {
+  review_quick: "Quick review after each demo. A fast, reliable model.",
+  review_deep:
+    "Deep review (utility, crosshair, positioning, rounds). Prefer your strongest model.",
+  live: "Short IGL calls between rounds. Prefer a fast model.",
+  report:
+    "Monthly performance report for Pro players. A strong model with a large context.",
+  personal_coach:
+    "Personal Coach plans from all of a player's matches (Pro). Your strongest long-context model.",
+};
+/** Legacy APIs answer with a single "review" purpose: it stands in for Quick. */
+export const legacyPurpose = (p: Purpose) =>
+  p === "review_quick" ? "review" : null;
 
 export type Provider = {
   id: string;
@@ -24,7 +55,7 @@ export type Provider = {
   headerNames?: string[];
   keyConfigured?: boolean;
   keyLast4?: string | null;
-  assignedTo?: Purpose[];
+  assignedTo?: string[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -33,7 +64,7 @@ export type Assignment = {
   model: string;
   updatedAt?: string;
 };
-export type Assignments = Partial<Record<Purpose, Assignment>>;
+export type Assignments = Partial<Record<Purpose | "review", Assignment>>;
 export type ProvidersResponse = {
   providers?: Provider[];
   assignments?: Assignments;
@@ -62,7 +93,7 @@ export type PurposeStatus =
       keyConfigured?: boolean;
     };
 export type AiStatus = PurposeStatus & {
-  purposes?: Partial<Record<Purpose, PurposeStatus>>;
+  purposes?: Partial<Record<Purpose | "review", PurposeStatus>>;
 };
 export type TestResult = {
   ok?: boolean;
@@ -88,7 +119,7 @@ export type AppSettings = {
     maxInputBytes?: number | null;
     sampleDemoEnabled?: boolean;
     sampleDemoConfigured?: boolean;
-    aiSource?: Partial<Record<Purpose, string>>;
+    aiSource?: Partial<Record<Purpose | "review", string>>;
   };
 };
 export type AdminUser = {
@@ -102,6 +133,8 @@ export type AdminUser = {
   matches?: number;
   reviews?: number;
   plan?: unknown;
+  /** Credit balance (when the API reports it). */
+  credits?: number | null;
 };
 export type AuditEntry = {
   id: string;

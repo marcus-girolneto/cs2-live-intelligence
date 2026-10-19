@@ -11,6 +11,7 @@ test-results/
 .next-e2e/
 
 .next-build/
+.next-shots/
 
 *credentials.json
 .local-data/

@@ -10,6 +10,18 @@ export type PlanLimits = {
   retentionDays: number | null;
   clipExport: boolean;
   perMapLearning: boolean;
+  /** Credits granted every month by the plan (expire at renewal). */
+  monthlyCredits: number | null;
+  /** Credits charged for a Deep review on this plan (display; from GET plans `credits`). */
+  deepCost: number | null;
+  /** Deep reviews cost the discounted "Pro" price. */
+  cheaperDeep: boolean;
+  /** Personal Coach: a general plan written from all matches (Pro). */
+  personalCoach: boolean;
+  monthlyReport: boolean;
+  matchReel: boolean;
+  historyCompare: boolean;
+  priorityQueue: boolean;
 };
 export type Price = { month: number; year: number };
 export type Plan = {
@@ -37,7 +49,15 @@ export type AccountPlan = {
   limits?: PlanLimits;
 };
 export type LimitFeature =
-  "ai_review" | "live_ai" | "upload" | "clip_export" | "per_map";
+  | "ai_review"
+  | "live_ai"
+  | "upload"
+  | "clip_export"
+  | "per_map"
+  | "monthly_report"
+  | "match_reel"
+  | "history_compare"
+  | "personal_coach";
 export type PlanLimitError = {
   feature: LimitFeature;
   limit: number | null;
@@ -57,6 +77,14 @@ export const DEFAULT_PLANS: Plan[] = [
       retentionDays: 30,
       clipExport: false,
       perMapLearning: false,
+      monthlyCredits: 0,
+      deepCost: 3,
+      cheaperDeep: false,
+      personalCoach: false,
+      monthlyReport: false,
+      matchReel: false,
+      historyCompare: false,
+      priorityQueue: false,
     },
     active: true,
   },
@@ -74,6 +102,14 @@ export const DEFAULT_PLANS: Plan[] = [
       retentionDays: 90,
       clipExport: true,
       perMapLearning: false,
+      monthlyCredits: 10,
+      deepCost: 3,
+      cheaperDeep: false,
+      personalCoach: false,
+      monthlyReport: false,
+      matchReel: false,
+      historyCompare: false,
+      priorityQueue: false,
     },
     active: true,
   },
@@ -91,6 +127,14 @@ export const DEFAULT_PLANS: Plan[] = [
       retentionDays: 365,
       clipExport: true,
       perMapLearning: true,
+      monthlyCredits: 30,
+      deepCost: 2,
+      cheaperDeep: true,
+      personalCoach: true,
+      monthlyReport: true,
+      matchReel: true,
+      historyCompare: true,
+      priorityQueue: true,
     },
     active: true,
   },

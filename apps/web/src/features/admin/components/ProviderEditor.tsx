@@ -65,6 +65,12 @@ export function ProviderEditor({
       baseUrl: p.baseUrl,
       allowHttp: p.allowHttp === true,
       ...(!provider ? { name: p.label } : {}),
+      ...(p.extraBody && !f.extraBody.trim()
+        ? {
+            extraBody: JSON.stringify(p.extraBody, null, 2),
+            extraBodyDirty: true,
+          }
+        : {}),
     });
   }
   async function save(e: FormEvent) {
@@ -142,6 +148,11 @@ export function ProviderEditor({
             </button>
           ))}
         </div>
+        {PRESETS.find((x) => x.id === preset)?.note && (
+          <Callout tone="info">
+            {t(PRESETS.find((x) => x.id === preset)!.note!)}
+          </Callout>
+        )}
       </fieldset>
       <div className="form-row">
         <label>

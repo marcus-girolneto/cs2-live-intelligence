@@ -2,13 +2,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/shared/i18n";
-import { Card, Crown } from "@/shared/icons";
+import { Card, Crown, ListIcon } from "@/shared/icons";
 import { CrosshairLoader, PageHeader, Panel } from "@/shared/ui";
 import { useCheckout } from "../hooks/useCheckout";
 import { useNow } from "@/shared/hooks";
 import { useUsage } from "../hooks/useUsage";
 import { isPaid } from "../model/plans";
 import { BillingResult } from "./BillingResult";
+import { CreditsPanel } from "./credits/CreditsPanel";
+import { LedgerList } from "./credits/LedgerList";
+import { useLedger } from "../hooks/useLedger";
+import { useCredits } from "../hooks/useCredits";
 import { PlanBadge } from "./PlanBadge";
 import { UsageMeter } from "./UsageMeter";
 
@@ -18,13 +22,18 @@ export function BillingScreen() {
   const { plan, usage, refresh } = useUsage();
   const now = useNow();
   const { busy, error, manage } = useCheckout();
+  const { credits } = useCredits();
+  const ledger = useLedger();
   const [status, setStatus] = useState<"success" | "canceled" | null>(null);
   useEffect(() => {
     const s = new URLSearchParams(window.location.search).get("status");
     setStatus(s === "success" || s === "canceled" ? s : null);
     // The webhook may land a moment after the redirect: refresh the account twice.
     void refresh();
-    const id = setTimeout(() => void refresh(), 4000);
+    const id = setTimeout(() => {
+      void refresh();
+      if (s === "success") ledger.reload();
+    }, 4000);
     return () => clearTimeout(id);
   }, [refresh]);
   const renews = plan?.renewsAt ? Date.parse(plan.renewsAt) : NaN;
@@ -84,6 +93,21 @@ export function BillingScreen() {
           </Link>
         </div>
       </Panel>
+      <CreditsPanel history={false} />
+      {credits && (
+        <Panel
+          id="credits"
+          icon={<ListIcon size={20} />}
+          title={t("Credit history")}
+          sub={t("Every credit in and out of your account.")}
+        >
+          <LedgerList
+            entries={ledger.entries}
+            error={ledger.error}
+            onRetry={ledger.reload}
+          />
+        </Panel>
+      )}
     </main>
   );
 }

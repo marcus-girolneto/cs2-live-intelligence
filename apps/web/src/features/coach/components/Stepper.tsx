@@ -2,10 +2,10 @@
 import { useI18n } from "@/shared/i18n";
 import { Check } from "@/shared/icons";
 
-/** 1 Match · 2 Player · 3 Review */
-export function Stepper({ step }: { step: 1 | 2 | 3 }) {
+/** 1 Match · 2 Player · 3 Review type · 4 Report */
+export function Stepper({ step }: { step: 1 | 2 | 3 | 4 }) {
   const { t } = useI18n();
-  const steps = [t("Match"), t("Player"), t("Review")];
+  const steps = [t("Match"), t("Player"), t("Review type"), t("Report")];
   return (
     <ol className="stepper" aria-label={t("Steps")}>
       {steps.map((label, i) => {
@@ -20,7 +20,7 @@ export function Stepper({ step }: { step: 1 | 2 | 3 }) {
             <span className="st-n">
               {state === "done" ? <Check size={14} /> : n}
             </span>
-            {label}
+            <span className="st-label">{label}</span>
           </li>
         );
       })}

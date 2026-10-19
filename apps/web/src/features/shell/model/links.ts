@@ -2,10 +2,12 @@ import {
   Brain,
   Chart,
   Crosshair,
+  Medal,
   Gear,
   Monitor,
   Radar,
   Server,
+  Star,
   Upload,
 } from "@/shared/icons";
 
@@ -14,6 +16,8 @@ export type NavLink = {
   label: string;
   icon: typeof Radar;
   star?: boolean;
+  /** Small tag next to the label (e.g. "Pro"). */
+  badge?: string;
 };
 export type NavGroup = { label: string; links: readonly NavLink[] };
 
@@ -24,8 +28,16 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     links: [
       { href: "/", label: "Dashboard", icon: Radar },
       { href: "/coach", label: "AI Coach", icon: Brain, star: true },
+      {
+        href: "/coach/personal",
+        label: "Personal Coach",
+        icon: Star,
+        star: true,
+        badge: "Pro",
+      },
       { href: "/history", label: "Matches", icon: Crosshair },
       { href: "/progress", label: "Progress", icon: Chart },
+      { href: "/reports", label: "Reports", icon: Medal, badge: "Pro" },
     ],
   },
   {
@@ -46,6 +58,8 @@ export const ADMIN: NavLink = { href: "/admin", label: "Admin", icon: Server };
 /** Whether `href` is the current section (the match page counts as Matches). */
 export function isActive(path: string, href: string): boolean {
   if (href === "/") return path === "/";
+  // Personal Coach has its own entry under /coach.
+  if (href === "/coach" && path.startsWith("/coach/personal")) return false;
   return (
     path === href ||
     path.startsWith(`${href}/`) ||

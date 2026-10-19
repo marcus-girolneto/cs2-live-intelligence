@@ -19,4 +19,8 @@ export const pt: Record<string, string> = {
   Loop: "Repetir",
   "Export video": "Exportar vídeo",
   "Download .webm": "Baixar .webm",
+  "Clip {i} of {n} · round {r}": "Clipe {i} de {n} · round {r}",
+  "{n} clips": "{n} clipes",
+  "Loading the reel… {i}/{n}": "Carregando o reel… {i}/{n}",
+  "Reel clips": "Clipes do reel",
 };

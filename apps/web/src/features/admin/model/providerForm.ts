@@ -7,6 +7,10 @@ export const PRESETS: {
   baseUrl: string;
   allowHttp?: boolean;
   hint: string;
+  /** Suggested request extras (prefilled into "Extra body" when it is empty). */
+  extraBody?: Record<string, unknown>;
+  /** Why the suggestion matters (shown under the presets). */
+  note?: string;
 }[] = [
   {
     id: "openai",
@@ -21,6 +25,8 @@ export const PRESETS: {
     provider: "openrouter",
     baseUrl: "https://openrouter.ai/api/v1",
     hint: "Hundreds of models (Qwen, Llama, Claude…) with one key.",
+    extraBody: { provider: { data_collection: "deny" } },
+    note: "We prefilled Extra body with provider.data_collection = \"deny\": OpenRouter then only routes to upstream providers that don't store or train on your prompts (players' match data). Remove it only if you accept that.",
   },
   {
     id: "ollama",

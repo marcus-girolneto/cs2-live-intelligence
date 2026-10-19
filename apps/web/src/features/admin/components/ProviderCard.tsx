@@ -57,7 +57,7 @@ export function ProviderCard({
         <div className="chip-row">
           {(p.assignedTo ?? []).map((a) => (
             <span key={a} className="chip accent">
-              <Check size={12} /> {t(PURPOSE_LABEL[a])}
+              <Check size={12} /> {t(PURPOSE_LABEL[a] ?? a)}
             </span>
           ))}
           <span className={`chip ${p.keyConfigured ? "good" : ""}`}>

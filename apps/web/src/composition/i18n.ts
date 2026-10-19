@@ -12,6 +12,8 @@ import { i18nPt as matches } from "@/features/matches";
 import { i18nPt as privacy } from "@/features/privacy";
 import { i18nPt as progress } from "@/features/progress";
 import { i18nPt as replay } from "@/features/replay";
+import { i18nPt as personal } from "@/features/personal";
+import { i18nPt as reports } from "@/features/reports";
 import { i18nPt as settings } from "@/features/settings";
 import { i18nPt as shell } from "@/features/shell";
 import type { Dictionaries } from "@/shared/i18n";
@@ -33,6 +35,8 @@ export const ptParts = {
   privacy,
   progress,
   replay,
+  personal,
+  reports,
   settings,
   shell,
 };

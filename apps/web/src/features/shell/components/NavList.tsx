@@ -19,7 +19,7 @@ export function NavList({
   return (
     <div className="side-group">
       {title && <span className="side-group-title">{t(title)}</span>}
-      {links.map(({ href, label, icon: Icon, star }) => (
+      {links.map(({ href, label, icon: Icon, star, badge }) => (
         <Link
           key={href}
           href={href}
@@ -29,7 +29,8 @@ export function NavList({
         >
           <Icon size={20} />
           <span>{t(label)}</span>
-          {star && <i className="side-dot" aria-hidden="true" />}
+          {star && !badge && <i className="side-dot" aria-hidden="true" />}
+          {badge && <em className="side-badge">{badge}</em>}
         </Link>
       ))}
     </div>

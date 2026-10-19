@@ -45,6 +45,13 @@ type Options = {
   at?: number;
   focus: number | null;
   scene: Omit<SceneOptions, "focus" | "at" | "reducedMotion" | "clock">;
+  /**
+   * Called when playback reaches the end; return true when the caller moves on to another
+   * window (match reel): playback and any recording continue on the next window.
+   */
+  onEnd?: () => boolean;
+  /** Loop the window by default (single clips); a reel plays through instead. */
+  initialLoop?: boolean;
 };
 
 /**
@@ -59,13 +66,15 @@ export function useClipPlayer({
   at,
   focus,
   scene,
+  onEnd,
+  initialLoop = true,
 }: Options) {
   const start = win.frames[0]!.t;
   const end = Math.max(start + 0.1, win.frames.at(-1)!.t);
   const [t, setT] = useState(start);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [loop, setLoop] = useState(true);
+  const [loop, setLoop] = useState(initialLoop);
   const [slowmo, setSlowmo] = useState(true);
   const [recording, setRecording] = useState(false);
   const [download, setDownload] = useState<string | null>(null);
@@ -81,6 +90,15 @@ export function useClipPlayer({
   );
   const sceneRef = useRef(scene);
   sceneRef.current = scene;
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
+  const advancing = useRef(false);
+  // A new window (next clip of a reel) starts from its beginning.
+  useEffect(() => {
+    advancing.current = false;
+    live.current.t = start;
+    setT(start);
+  }, [win, start]);
 
   // Autoplay unless the user prefers reduced motion.
   useEffect(() => setPlaying(!reducedMotion()), []);
@@ -133,7 +151,11 @@ export function useClipPlayer({
       if (s.playing) {
         s.t += dt * effectiveSpeed(s.speed, s.t, at, s.slowmo);
         if (s.t >= end) {
-          if (recorder.current) {
+          if (advancing.current) s.t = end;
+          else if (onEndRef.current?.()) {
+            advancing.current = true;
+            s.t = end;
+          } else if (recorder.current) {
             s.t = end;
             stopRecording();
             setPlaying(false);

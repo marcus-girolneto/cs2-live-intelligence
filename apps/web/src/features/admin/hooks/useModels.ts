@@ -1,28 +1,28 @@
 "use client";
 import { useAdminApi } from "../api/context";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { normalizeModels, type ModelCatalog } from "../model/assign";
 import { errorText } from "../model/types";
-/** Models offered by a saved provider (GET admin/ai/providers/:id/models). */
+/** Models offered by each saved provider (GET admin/ai/providers/:id/models), cached. */
 export function useModels() {
   const api = useAdminApi();
-  const [models, setModels] = useState<Record<string, string[]>>({});
-  const [busy, setBusy] = useState<string | null>(null);
+  const [catalogs, setCatalogs] = useState<Record<string, ModelCatalog>>({});
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<Record<string, string>>({});
+  const asked = useRef(new Set<string>());
   const fetchModels = useCallback(
     async (providerId: string) => {
-      setBusy(providerId);
+      asked.current.add(providerId);
+      setBusy((b) => ({ ...b, [providerId]: true }));
       setError((e) => ({ ...e, [providerId]: "" }));
       try {
-        const r = await api.listModels(providerId);
-        const list = Array.isArray(r.models)
-          ? r.models.filter((m): m is string => typeof m === "string")
-          : [];
-        setModels((m) => ({ ...m, [providerId]: list }));
-        if (!list.length)
+        const c = normalizeModels(await api.listModels(providerId));
+        setCatalogs((m) => ({ ...m, [providerId]: c }));
+        if (!c.listed)
           setError((e) => ({
             ...e,
             [providerId]:
-              r.error ?? "The provider did not return a model list.",
+              c.error ?? "The provider did not return a model list.",
           }));
       } catch (e) {
         setError((x) => ({
@@ -30,10 +30,18 @@ export function useModels() {
           [providerId]: errorText(e, "Request failed."),
         }));
       } finally {
-        setBusy(null);
+        setBusy((b) => ({ ...b, [providerId]: false }));
       }
     },
     [api],
   );
-  return { models, busy, error, fetchModels };
+  /** Fetches a provider's list once (on first selection). */
+  const ensure = useCallback(
+    (providerId: string) => {
+      if (providerId && !asked.current.has(providerId))
+        void fetchModels(providerId);
+    },
+    [fetchModels],
+  );
+  return { catalogs, busy, error, fetchModels, ensure };
 }

@@ -53,14 +53,28 @@ export function ClipPlayerDialog(props: ClipPlayerProps) {
   );
 }
 
-function ClipStage({
+export type StageOptions = {
+  /** Reel: move to the next clip at the end (return true when there is one). */
+  onEnd?: () => boolean;
+  initialLoop?: boolean;
+  filename?: string;
+  /** Called right before a video export starts (reel: rewind to the first clip). */
+  onExportStart?: () => void;
+};
+
+export function ClipStage({
   clip,
   focusSteamId,
   exportAllowed,
   onUpsell,
   meta,
   win,
-}: ClipPlayerProps & { meta: ReplayMeta; win: ReplayWindow }) {
+  onEnd,
+  initialLoop,
+  filename,
+  onExportStart,
+}: Omit<ClipPlayerProps, "analysisId" | "title" | "onClose"> &
+  StageOptions & { meta: ReplayMeta; win: ReplayWindow }) {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -92,6 +106,8 @@ function ClipStage({
     ...(at !== undefined ? { at } : {}),
     focus,
     scene,
+    ...(onEnd ? { onEnd } : {}),
+    ...(initialLoop !== undefined ? { initialLoop } : {}),
   });
   const exporting: Exporting = !canExportVideo()
     ? { kind: "hidden" }
@@ -101,8 +117,13 @@ function ClipStage({
           kind: "ready",
           recording: p.recording,
           download: p.download,
-          filename: `${BRAND.name.toLowerCase()}-round${clip.round}-${Math.round(clip.from)}s.webm`,
-          onExport: p.exportClip,
+          filename:
+            filename ??
+            `${BRAND.name.toLowerCase()}-round${clip.round}-${Math.round(clip.from)}s.webm`,
+          onExport: () => {
+            onExportStart?.();
+            p.exportClip();
+          },
         };
   function key(e: KeyboardEvent) {
     const tag = (e.target as HTMLElement).tagName;

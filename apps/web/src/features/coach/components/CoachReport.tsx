@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { BRAND, LogoMark } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
@@ -33,6 +33,8 @@ export function CoachReport({
   onRate,
   onRegenerate,
   regenerateNote,
+  deepSlot,
+  tail,
 }: {
   review: ActiveReview;
   playerName: string;
@@ -43,6 +45,10 @@ export function CoachReport({
   onRate: (n: number) => void;
   onRegenerate: () => void;
   regenerateNote?: string | null;
+  /** Deep sections, rendered after the key moments. */
+  deepSlot?: ReactNode;
+  /** Rendered after the plan (e.g. the Deep teaser under a Quick review). */
+  tail?: ReactNode;
 }) {
   const { t, locale } = useI18n();
   const c = review.coaching;
@@ -71,6 +77,9 @@ export function CoachReport({
         </div>
         <div className="verdict-text">
           <span className="eyebrow">
+            <span className={`tier-tag ${review.tier}`}>
+              {review.tier === "deep" ? t("Deep review") : t("Quick review")}
+            </span>
             {BRAND.coach} · {playerName}
             {reviewMap && (
               <>
@@ -118,6 +127,8 @@ export function CoachReport({
         </section>
       )}
 
+      {deepSlot}
+
       {c.insights.length > 0 ? (
         <section className="report-sec">
           <h3 className="sec-title">
@@ -155,6 +166,8 @@ export function CoachReport({
           <PlanBoard plan={c.plan} map={reviewMap} />
         </section>
       )}
+
+      {tail}
 
       <footer className="report-foot">
         <div className="rate-review">

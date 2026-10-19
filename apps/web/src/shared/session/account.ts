@@ -43,4 +43,6 @@ export type Account = {
   /** Subscription and daily usage (raw; normalised by the billing feature). */
   plan?: unknown;
   usage?: unknown;
+  /** Credit balance, buckets, welcome grant and review costs (raw; normalised by billing). */
+  credits?: unknown;
 };

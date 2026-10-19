@@ -14,6 +14,9 @@ function fake(overrides: Partial<BillingApi> = {}): BillingApi {
     getBillingStatus: vi.fn(async () => ({ enabled: true })),
     startCheckout: vi.fn(async () => "https://x"),
     openPortal: vi.fn(async () => "https://x"),
+    getLedger: vi.fn(async () => []),
+    getPacks: vi.fn(async () => []),
+    buyCredits: vi.fn(async () => "https://x"),
     ...overrides,
   };
 }

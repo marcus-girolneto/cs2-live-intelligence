@@ -24,6 +24,9 @@ describe("useCheckout", () => {
       getBillingStatus: vi.fn(),
       startCheckout: vi.fn(async () => "https://checkout.stripe.com/s"),
       openPortal: vi.fn(),
+      getLedger: vi.fn(),
+      getPacks: vi.fn(),
+      buyCredits: vi.fn(),
     };
     const { result } = renderHook(() => useCheckout(), { wrapper: wrap(api) });
     act(() => result.current.checkout(DEFAULT_PLANS[1]!, "month", "USD"));
@@ -44,6 +47,9 @@ describe("useCheckout", () => {
       openPortal: vi.fn(async () => {
         throw new ApiError("x", 503, "billing_disabled");
       }),
+      getLedger: vi.fn(),
+      getPacks: vi.fn(),
+      buyCredits: vi.fn(),
     };
     const { result } = renderHook(() => useCheckout(), { wrapper: wrap(api) });
     act(() => result.current.manage());

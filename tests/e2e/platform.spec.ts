@@ -121,14 +121,14 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   await page.getByRole("tab", { name: "AI Coach" }).click();
   await page.getByTestId("open-coach").click();
   await expect(page).toHaveURL(/\/coach\?match=/);
-  await expect(page.getByRole("button", { name: "Run my review" })).toBeVisible(
-    {
-      timeout: 30000,
-    },
-  );
   // The dev owner has no SteamID: pick the first player of the roster.
+  await expect(page.locator(".roster-card").first()).toBeVisible({
+    timeout: 30000,
+  });
   await page.locator(".roster-card").first().click();
-  await page.getByRole("button", { name: "Run my review" }).click();
+  // Step 3: choose the review tier (the admin dev owner runs it without credits).
+  await expect(page.getByTestId("tier-quick")).toBeVisible();
+  await page.getByRole("button", { name: /Run Quick review/ }).click();
   await expect(page.getByTestId("coach-report")).toBeVisible({
     timeout: 30000,
   });
@@ -145,7 +145,13 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   await expect(page.getByText("Mock plan: trade your entry")).toBeVisible();
   await page.getByRole("button", { name: "5 stars" }).click();
   await expect(page.getByText("Saved to your progress.")).toBeVisible();
+  // "Ask again" goes back to the tier step, where the Quick review can be run again.
   await page.getByRole("button", { name: "Ask again" }).click();
+  await expect(page.getByTestId("tier-quick")).toBeVisible();
+  await page
+    .getByTestId("tier-quick")
+    .getByRole("button", { name: /Run again/ })
+    .click();
   await expect(page.getByTestId("coach-report")).toBeVisible({
     timeout: 30000,
   });

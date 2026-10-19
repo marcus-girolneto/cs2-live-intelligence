@@ -92,4 +92,132 @@ export const pt: Record<string, string> = {
   "Every day at midnight (UTC). The coach screen shows exactly how long until the next reset.":
     "Todo dia à meia-noite (UTC). A tela do coach mostra exatamente quanto falta para renovar.",
   "Checkout is unavailable.": "O pagamento está indisponível.",
+  Credits: "Créditos",
+  "Credit packs": "Pacotes de créditos",
+  "Credit history": "Histórico de créditos",
+  "Every credit in and out of your account.":
+    "Cada crédito que entrou e saiu da sua conta.",
+  "Credits every month": "Créditos por mês",
+  "Welcome credit": "Crédito de boas-vindas",
+  "Deep review cost": "Custo da review Deep",
+  "{n} credits": "{n} créditos",
+  "Monthly performance report": "Relatório mensal de desempenho",
+  "Match reel": "Reel da partida",
+  "History compare": "Comparação com histórico",
+  "Priority processing": "Processamento prioritário",
+  "{n} credits every month": "{n} créditos todo mês",
+  "Deep review for {n} credits": "Review Deep por {n} créditos",
+  "Match reel (highlights + mistakes video)":
+    "Reel da partida (vídeo de destaques + erros)",
+  "History compare in deep reviews":
+    "Comparação com histórico nas reviews Deep",
+  "Start with a free review. Plans add monthly credits, cheaper Deep reviews, the live AI IGL, reports and video clips.":
+    "Comece com uma review grátis. Os planos somam créditos mensais, reviews Deep mais baratas, o IGL de IA ao vivo, relatórios e clipes em vídeo.",
+  "Monthly performance reports are a Pro feature":
+    "Relatórios mensais de desempenho são um recurso Pro",
+  "Match reels are a Pro feature": "Reels de partida são um recurso Pro",
+  "History compare is a Pro feature":
+    "Comparação com histórico é um recurso Pro",
+  "Every month: trends, per-map form, recurring mistakes and a plan — in one shareable report.":
+    "Todo mês: tendências, desempenho por mapa, erros recorrentes e um plano — em um relatório para compartilhar.",
+  "All your highlights and mistakes of a match, back-to-back, exported as one video.":
+    "Todos os seus destaques e erros da partida, em sequência, exportados como um só vídeo.",
+  "See how each deep-review metric moved against your previous matches.":
+    "Veja como cada métrica da review Deep mudou em relação às suas partidas anteriores.",
+  "You need {n} more credits": "Faltam {n} créditos",
+  "Buy credits": "Comprar créditos",
+  "This review costs {n} credits. Top up and run it right away.":
+    "Esta review custa {n} créditos. Recarregue e rode agora mesmo.",
+  "Credits pay for AI reviews. Purchased credits never expire.":
+    "Créditos pagam as reviews de IA. Créditos comprados nunca expiram.",
+  "Your balance": "Seu saldo",
+  "Or get credits every month": "Ou ganhe créditos todo mês",
+  "Monthly credits": "Créditos mensais",
+  credits: "créditos",
+  "{price} per credit": "{price} por crédito",
+  "Buy {n} credits": "Comprar {n} créditos",
+  Buy: "Comprar",
+  "Admins run reviews without spending credits.":
+    "Admins rodam reviews sem gastar créditos.",
+  "Quick review {q} · Deep review {d}": "Review Quick {q} · Review Deep {d}",
+  "{n} cr": "{n} cr",
+  "credits available": "créditos disponíveis",
+  "Expiring in {n} days": "Expiram em {n} dias",
+  "Plan credits renew on {date}.": "Os créditos do plano renovam em {date}.",
+  "No credit movements yet": "Nenhuma movimentação de créditos ainda",
+  "Reviews, purchases and monthly grants show up here.":
+    "Reviews, compras e créditos mensais aparecem aqui.",
+  "No subscription needed. Purchased credits never expire.":
+    "Sem assinatura. Créditos comprados nunca expiram.",
+  "What a credit buys": "O que um crédito compra",
+  "Quick review": "Review Quick",
+  "Deep review": "Review Deep",
+  "(2 on Pro)": "(2 no Pro)",
+  "Opening a saved review": "Abrir uma review salva",
+  "Refresh my Steam profile": "Atualizar meu perfil Steam",
+  "Try it on the sample match": "Testar na partida de exemplo",
+  "Got it": "Entendi",
+  "Monthly plan credits": "Créditos mensais do plano",
+  "Credit pack": "Pacote de créditos",
+  Refund: "Reembolso",
+  "Adjustment by support": "Ajuste pelo suporte",
+  "Plan credits expired": "Créditos do plano expiraram",
+  Starter: "Starter",
+  Squad: "Squad",
+  Grinder: "Grinder",
+  "Make your game details public to get your free review":
+    "Deixe os detalhes de jogo públicos para ganhar sua review grátis",
+  "We check your Steam profile once to give the free review to real players. Your game details are private right now.":
+    "Verificamos seu perfil Steam uma vez para dar a review grátis a jogadores reais. Seus detalhes de jogo estão privados agora.",
+  "Your free review unlocks soon": "Sua review grátis libera em breve",
+  "Your Steam account is very new, so the free review isn't available yet. You can still use credit packs or a plan right away.":
+    "Sua conta Steam é muito nova, então a review grátis ainda não está disponível. Você já pode usar pacotes de créditos ou um plano.",
+  "The free review isn't available for this account":
+    "A review grátis não está disponível para esta conta",
+  "This Steam account isn't eligible for the welcome credit. Credit packs and plans work as usual.":
+    "Esta conta Steam não é elegível ao crédito de boas-vindas. Pacotes e planos funcionam normalmente.",
+  "The free review was already used here": "A review grátis já foi usada aqui",
+  "The welcome credit was already claimed from this network. Credit packs and plans work as usual.":
+    "O crédito de boas-vindas já foi resgatado nesta rede. Pacotes e planos funcionam normalmente.",
+  "You already used your free review": "Você já usou sua review grátis",
+  "The welcome credit is one per player. Credit packs and plans give you more reviews.":
+    "O crédito de boas-vindas é um por jogador. Pacotes e planos dão mais reviews.",
+  "Sign in with Steam to get your free review":
+    "Entre com a Steam para ganhar sua review grátis",
+  "The welcome credit is tied to a Steam account. Local accounts can buy credits or a plan.":
+    "O crédito de boas-vindas é ligado a uma conta Steam. Contas locais podem comprar créditos ou um plano.",
+  "You have 1 free review": "Você tem 1 review grátis",
+  "Try the AI coach on the sample match or on your own demo — it's on us.":
+    "Teste o coach de IA na partida de exemplo ou na sua própria demo — é por nossa conta.",
+  "Your free review is on its way": "Sua review grátis está a caminho",
+  "We're checking your Steam profile. This usually takes a moment — refresh in a bit.":
+    "Estamos verificando seu perfil Steam. Costuma levar um instante — atualize daqui a pouco.",
+  "Credit packs and plans work as usual.":
+    "Pacotes de créditos e planos funcionam normalmente.",
+  "Open Steam → your profile → Edit Profile → Privacy Settings.":
+    "Abra a Steam → seu perfil → Editar perfil → Configurações de privacidade.",
+  "Set “My profile” and “Game details” to Public.":
+    "Deixe “Meu perfil” e “Detalhes de jogo” como Público.",
+  "Come back and refresh your Steam profile here.":
+    "Volte e atualize seu perfil Steam aqui.",
+  "Expire at renewal": "Expiram na renovação",
+  Bonus: "Bônus",
+  "Welcome and gifts": "Boas-vindas e presentes",
+  Purchased: "Comprados",
+  "Never expire": "Nunca expiram",
+  "What's a credit?": "O que é um crédito?",
+  "Credits pay for AI reviews: a Quick review costs 1 credit, a Deep review 3 (2 on Pro). Opening a review you already have is always free.":
+    "Créditos pagam as reviews de IA: uma review Quick custa 1 crédito, uma Deep 3 (2 no Pro). Abrir uma review que você já tem é sempre grátis.",
+  "Quick or Deep review?": "Review Quick ou Deep?",
+  "Quick gives the verdict, scores, key moments and a plan. Deep uses a stronger AI and adds the utility lab, crosshair placement, positioning, a round-by-round table and up to 10 key moments.":
+    "A Quick traz o veredito, as notas, os momentos-chave e um plano. A Deep usa uma IA mais forte e adiciona o laboratório de utilitárias, posicionamento da mira, posicionamento, uma tabela round a round e até 10 momentos-chave.",
+  "Do credits expire?": "Os créditos expiram?",
+  "Plan credits are refilled every month and expire at renewal. Purchased credits never expire. The welcome credit stays until you use it.":
+    "Os créditos do plano são recarregados todo mês e expiram na renovação. Créditos comprados nunca expiram. O crédito de boas-vindas fica até você usar.",
+  "Best value": "Melhor custo",
+  "Personal Coach: your multi-week training program":
+    "Coach Pessoal: seu programa de treino de várias semanas",
+  "Personal Coach is a Pro feature": "O Coach Pessoal é um recurso Pro",
+  "A second AI coach reads all your matches and writes your training program.":
+    "Um segundo coach de IA lê todas as suas partidas e escreve seu programa de treino.",
 };

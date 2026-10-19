@@ -2,12 +2,15 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import { useI18n } from "@/shared/i18n";
 import { useBillingApi } from "../api/context";
+import { BuyCreditsSheet } from "../components/credits/BuyCreditsSheet";
 import { UpgradeSheet } from "../components/UpgradeSheet";
 import {
   checkoutErrorText,
   currencyFor,
+  insufficientFrom,
   planLimitFrom,
   upgradeTarget,
+  type InsufficientCredits,
   type Plan,
   type PlanLimitError,
 } from "../model/plans";
@@ -17,29 +20,59 @@ import { useUsage } from "./useUsage";
 type Ctx = {
   /** Opens the upgrade sheet for a limit or a locked feature. */
   open: (info: PlanLimitError) => void;
-  /** Opens the sheet when `error` is a 402 plan_limit; returns true when handled. */
+  /** Opens the "buy credits" sheet (packs + plans). */
+  openCredits: (info?: Partial<InsufficientCredits>) => void;
+  /**
+   * Opens the right sheet when `error` is a 402 plan_limit or insufficient_credits;
+   * returns true when handled.
+   */
   handle: (error: unknown) => boolean;
 };
 const UpgradeContext = createContext<Ctx>({
   open: () => {},
+  openCredits: () => {},
   handle: () => false,
 });
 export const useUpgrade = () => useContext(UpgradeContext);
 
-/** Holds the single upgrade sheet of the signed-in app. */
+type Sheet =
+  | { kind: "plan"; info: PlanLimitError }
+  | { kind: "credits"; info: InsufficientCredits };
+
+/** Holds the single upgrade / buy-credits sheet of the signed-in app. */
 export function UpgradeProvider({ children }: { children: React.ReactNode }) {
-  const [info, setInfo] = useState<PlanLimitError | null>(null);
-  const open = useCallback((i: PlanLimitError) => setInfo(i), []);
+  const [sheet, setSheet] = useState<Sheet | null>(null);
+  const open = useCallback(
+    (info: PlanLimitError) => setSheet({ kind: "plan", info }),
+    [],
+  );
+  const openCredits = useCallback(
+    (info: Partial<InsufficientCredits> = {}) =>
+      setSheet({
+        kind: "credits",
+        info: { needed: null, balance: null, packs: [], ...info },
+      }),
+    [],
+  );
   const handle = useCallback((e: unknown) => {
+    const credits = insufficientFrom(e);
+    if (credits) {
+      setSheet({ kind: "credits", info: credits });
+      return true;
+    }
     const limit = planLimitFrom(e);
-    if (limit) setInfo(limit);
+    if (limit) setSheet({ kind: "plan", info: limit });
     return !!limit;
   }, []);
+  const close = useCallback(() => setSheet(null), []);
   return (
-    <UpgradeContext.Provider value={{ open, handle }}>
+    <UpgradeContext.Provider value={{ open, openCredits, handle }}>
       {children}
-      {info && (
-        <UpgradeSheetContainer info={info} onClose={() => setInfo(null)} />
+      {sheet?.kind === "plan" && (
+        <UpgradeSheetContainer info={sheet.info} onClose={close} />
+      )}
+      {sheet?.kind === "credits" && (
+        <BuyCreditsSheet info={sheet.info} onClose={close} />
       )}
     </UpgradeContext.Provider>
   );

@@ -7,10 +7,12 @@ import { useElapsed } from "@/shared/hooks";
 /** Step 3: full-width CS loader while the real AI call runs (10–60 s). */
 export function CoachRunning({
   since,
+  tier = "quick",
   events,
   playerName,
 }: {
   since: number;
+  tier?: "quick" | "deep";
   events: number;
   playerName: string;
 }) {
@@ -43,6 +45,9 @@ export function CoachRunning({
       <div className="cr-logo">
         <LogoMark size={128} animated />
       </div>
+      <span className={`tier-tag ${tier}`}>
+        {tier === "deep" ? t("Deep review") : t("Quick review")}
+      </span>
       <h2>
         {t("{coach} is reviewing {name}", {
           coach: BRAND.coach,
@@ -69,7 +74,11 @@ export function CoachRunning({
         </span>
       </div>
       <p className="muted small">
-        {t("A real review takes 10 to 60 seconds. Keep this tab open.")}
+        {tier === "deep"
+          ? t(
+              "A Deep review uses a stronger AI and can take a few minutes. Keep this tab open.",
+            )
+          : t("A real review takes 10 to 60 seconds. Keep this tab open.")}
       </p>
     </div>
   );

@@ -2,36 +2,20 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { ClipPlayerDialog } from "@/features/replay";
-import {
-  UsageMeter,
-  remaining,
-  useNow,
-  useUpgrade,
-  useUsage,
-} from "@/features/billing";
+import { UsageMeter, useNow, useUpgrade, useUsage } from "@/features/billing";
 import { MapBadge } from "@/features/maps";
 import { BRAND } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
 import { formatDate, mapName } from "@/shared/format";
-import { ArrowRight, Brain, Crosshair, Refresh, Upload } from "@/shared/icons";
-import {
-  Callout,
-  EmptyState,
-  PageHeader,
-  PageLoader,
-  Skeleton,
-} from "@/shared/ui";
+import { Brain, Crosshair, Upload } from "@/shared/icons";
+import { Callout, EmptyState, PageHeader, PageLoader } from "@/shared/ui";
 import { useCoachSession } from "../hooks/useCoachSession";
 import type { ClipRef } from "../model/coaching";
-import { evidenceRounds } from "../model/session";
-import { CoachReport } from "./CoachReport";
-import { CoachRunning } from "./CoachRunning";
+import { CoachWorkspace } from "./CoachWorkspace";
 import { MatchPicker } from "./MatchPicker";
-import { PlayerPicker } from "./PlayerPicker";
-import { RunPanel } from "./RunPanel";
 import { Stepper } from "./Stepper";
 
-/** /coach — the AI Coach screen (match → player → review → report). */
+/** /coach — the AI Coach screen (match → player → review type → report). */
 export function CoachScreen() {
   const { t, locale } = useI18n();
   const s = useCoachSession();
@@ -45,16 +29,11 @@ export function CoachScreen() {
     (c: ClipRef, title: string) => setClip({ clip: c, title }),
     [],
   );
-  const left = remaining(usage?.aiReviews);
-  const upsellReviews = () =>
-    upgrade.open({
-      feature: "ai_review",
-      limit: usage?.aiReviews?.limit ?? null,
-      ...(usage?.resetsAt ? { resetsAt: usage.resetsAt } : {}),
-    });
   const exportAllowed = isAdmin || !!limits?.clipExport;
-  const step = !s.card ? 1 : s.running || s.review ? 3 : 2;
-  const meter = <UsageMeter kind="aiReviews" usage={usage} now={now} />;
+  const step = !s.card ? 1 : !s.player ? 2 : s.running || s.review ? 4 : 3;
+  const meter = usage?.aiReviews ? (
+    <UsageMeter kind="aiReviews" usage={usage} now={now} compact />
+  ) : undefined;
   return (
     <main className="page coach-page">
       <PageHeader
@@ -64,11 +43,6 @@ export function CoachScreen() {
         lead={t(
           "Pick a match and a player. The coach reviews every round and shows you the moments that matter — in 2D replay.",
         )}
-        actions={
-          usage?.aiReviews ? (
-            <div className="head-usage">{meter}</div>
-          ) : undefined
-        }
       />
       <Stepper step={step} />
       {s.loadError && (
@@ -136,87 +110,7 @@ export function CoachScreen() {
               {t("Change match")}
             </button>
           </div>
-          {s.analysisError ? (
-            <Callout tone="error" role="alert">
-              {t(s.analysisError)}
-            </Callout>
-          ) : !s.analysis ? (
-            <Skeleton height={240} />
-          ) : s.running ? (
-            <CoachRunning
-              since={s.running}
-              events={s.analysis.analysis.events?.length ?? 0}
-              playerName={s.player?.name ?? ""}
-            />
-          ) : s.review ? (
-            <CoachReport
-              review={s.review}
-              playerName={s.player?.name ?? ""}
-              map={s.card.map}
-              matchHref={`/history?match=${encodeURIComponent(s.card.matchId)}`}
-              roundsFor={(ids) => evidenceRounds(ids, s.analysis)}
-              onPlay={play}
-              onRate={s.rate}
-              onRegenerate={() => (left === 0 ? upsellReviews() : s.run())}
-              regenerateNote={
-                left !== null
-                  ? t("Asking again uses 1 of your daily reviews.")
-                  : null
-              }
-            />
-          ) : (
-            <section aria-label={t("Choose the player")}>
-              <h2 className="step-title">
-                {t("Who should the coach review?")}
-              </h2>
-              <PlayerPicker
-                roster={s.roster}
-                selected={s.player?.steamId ?? null}
-                onPick={s.pickPlayer}
-              />
-              {s.failure && (
-                <Callout
-                  tone={
-                    s.failure.code === "ai_not_configured" ? "warn" : "error"
-                  }
-                  role="alert"
-                  title={
-                    s.failure.code === "ai_not_configured"
-                      ? t("The coach is offline right now")
-                      : t("The review could not be finished.")
-                  }
-                >
-                  <p>
-                    {s.failure.code === "ai_not_configured"
-                      ? t("Please try again later.")
-                      : t(s.failure.message)}
-                  </p>
-                  {s.failure.code === "ai_not_configured" && isAdmin ? (
-                    <Link href="/admin">
-                      {t("Open AI settings")} <ArrowRight size={14} />
-                    </Link>
-                  ) : (
-                    <div>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={s.run}
-                      >
-                        <Refresh size={16} /> {t("Try again")}
-                      </button>
-                    </div>
-                  )}
-                </Callout>
-              )}
-              <RunPanel
-                playerName={s.player?.name ?? null}
-                remaining={left}
-                meter={meter}
-                onRun={s.run}
-                onUpsell={upsellReviews}
-              />
-            </section>
-          )}
+          <CoachWorkspace s={s} meter={meter} onPlay={play} />
         </>
       )}
       {clip && s.card && (

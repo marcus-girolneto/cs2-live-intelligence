@@ -25,4 +25,9 @@ describe("navigation", () => {
     expect(isActive("/demo", "/history")).toBe(true);
     expect(isActive("/historyx", "/history")).toBe(false);
   });
+  it("keeps Personal Coach apart from the AI Coach entry", () => {
+    expect(isActive("/coach/personal", "/coach")).toBe(false);
+    expect(isActive("/coach/personal", "/coach/personal")).toBe(true);
+    expect(isActive("/coach", "/coach")).toBe(true);
+  });
 });

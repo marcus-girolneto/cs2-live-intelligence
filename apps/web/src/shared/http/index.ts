@@ -13,3 +13,10 @@ export {
   type RequestOptions,
 } from "./HttpClient";
 export { ensureLocalSession } from "./localSession";
+export {
+  platformUploader,
+  XhrUploader,
+  type Uploader,
+  type UploadOptions,
+  type UploadProgress,
+} from "./Uploader";

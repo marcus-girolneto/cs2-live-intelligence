@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SteamIdentity } from "@/features/auth";
+import { CreditsPanel, WelcomeCredits } from "@/features/billing";
 import {
   type Progress,
   generalPlanOf,
@@ -9,6 +10,7 @@ import {
   useMapsApi,
 } from "@/features/maps";
 import { type MatchSummary, useMatchesApi } from "@/features/matches";
+import { PersonalCoachCard } from "@/features/personal";
 import type { MatchDto } from "@/shared/api-types";
 import { BRAND } from "@/shared/brand";
 import { finite } from "@/shared/format";
@@ -90,6 +92,7 @@ export function DashboardScreen() {
         }
       />
       <SteamIdentity account={account} />
+      <WelcomeCredits variant="banner" />
 
       {firstTime ? (
         <Onboarding />
@@ -101,10 +104,12 @@ export function DashboardScreen() {
               latest={latest}
               summaries={summaries}
             />
+            <PersonalCoachCard matches={matches?.length ?? null} />
             <QuickActions />
           </div>
 
           <div className="dash-side">
+            <CreditsPanel />
             <FormPanel progress={progress} progressFailed={progressFailed} />
             <PlanPanel
               progress={progress}

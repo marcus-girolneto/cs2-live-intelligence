@@ -167,3 +167,41 @@ export const SignInMark = icon(
     <path d="m10.5 14.2 3.2-3.4" />
   </>,
 );
+/** Credit coin: a hexagonal token with a notch (tactical, not a currency sign). */
+export const Coin = icon(
+  <>
+    <path d="M12 2.8 20 7.4v9.2L12 21.2 4 16.6V7.4L12 2.8Z" />
+    <path d="M12 7v10M9.2 9.5 12 7l2.8 2.5M9.2 14.5 12 17l2.8-2.5" />
+  </>,
+);
+export const Gift = icon(
+  <>
+    <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
+    <path d="M5 12.5V20h14v-7.5M12 8.5V20M12 8.5S10.8 4 8.2 4.4C6 4.8 6.6 8.5 12 8.5ZM12 8.5S13.2 4 15.8 4.4c2.2.4 1.6 4.1-3.8 4.1Z" />
+  </>,
+);
+/** Lightning bolt: the Quick review. */
+export const Bolt = icon(<path d="M13.5 2.5 5 13.5h6l-1 8 8.5-11h-6l1-8Z" />);
+/** Stacked layers: the Deep review. */
+export const Layers = icon(
+  <>
+    <path d="m12 3 9 4.8-9 4.8-9-4.8L12 3Z" />
+    <path d="m3 12.2 9 4.8 9-4.8M3 16.4l9 4.8 9-4.8" />
+  </>,
+);
+/** Two columns with arrows: side-by-side comparison. */
+export const Compare = icon(
+  <>
+    <rect x="3" y="4" width="7" height="16" rx="1" />
+    <rect x="14" y="4" width="7" height="16" rx="1" />
+    <path d="M10 12h4M12.5 10.5 14 12l-1.5 1.5" />
+  </>,
+);
+export const Share = icon(
+  <>
+    <circle cx="18" cy="5.5" r="2.5" />
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="18" cy="18.5" r="2.5" />
+    <path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1" />
+  </>,
+);

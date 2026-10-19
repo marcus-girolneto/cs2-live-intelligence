@@ -4,7 +4,7 @@ import { useI18n } from "@/shared/i18n";
 import { formatNumber } from "@/shared/format";
 import type { CoachScore, ScoreKey } from "../model/coaching";
 
-const LABELS: Record<ScoreKey, string> = {
+export const LABELS: Record<ScoreKey, string> = {
   aim: "Aim",
   positioning: "Positioning",
   utility: "Utility",
