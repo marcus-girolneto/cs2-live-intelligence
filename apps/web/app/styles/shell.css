@@ -89,12 +89,12 @@
   color: var(--text);
 }
 
-/* ---------- Sidebar ---------- */
-.shell {
+/* ---------- Sidebar (signed-in shell only; the public shell stays a column) ---------- */
+.app-shell {
   --side-w: 248px;
   flex-direction: row;
 }
-.shell.side-collapsed {
+.app-shell.side-collapsed {
   --side-w: 76px;
 }
 .shell-body {
@@ -403,7 +403,7 @@
   :root {
     --topbar: 56px;
   }
-  .shell {
+  .app-shell {
     flex-direction: column;
   }
   .shell > .sidebar {

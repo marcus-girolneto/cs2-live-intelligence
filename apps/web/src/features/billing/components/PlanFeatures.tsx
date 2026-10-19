@@ -13,42 +13,24 @@ export function PlanFeatures({
 }) {
   const { t } = useI18n();
   const n = (v: number | null) => (v === null ? "∞" : v);
+  // Same rows in the same order on every plan, so cards line up side by side.
+  const live = limits.liveAiMatchesPerDay;
   const rows: [boolean, string][] = [
-    ...(limits.monthlyCredits
-      ? ([
-          [true, t("{n} credits every month", { n: limits.monthlyCredits })],
-        ] as [boolean, string][])
-      : []),
-    ...(limits.deepCost !== null
-      ? ([[true, t("Deep review for {n} credits", { n: limits.deepCost })]] as [
-          boolean,
-          string,
-        ][])
-      : []),
-    // With credits, an unlimited daily review cap is noise — only show a real cap.
-    ...(limits.aiReviewsPerDay === null
-      ? []
-      : ([
-          [
-            true,
-            limits.aiReviewsPerDay === 1
-              ? t("1 AI Coach review per day")
-              : t("{n} AI Coach reviews per day", {
-                  n: n(limits.aiReviewsPerDay),
-                }),
-          ],
-        ] as [boolean, string][])),
+    limits.monthlyCredits
+      ? [true, t("{n} credits every month", { n: limits.monthlyCredits })]
+      : [true, t("1 welcome credit to start")],
+    [true, t("Deep review: {n} credits", { n: limits.deepCost ?? 3 })],
     [
-      (limits.liveAiMatchesPerDay ?? 1) > 0,
-      (limits.liveAiMatchesPerDay ?? 1) > 0
-        ? limits.liveAiMatchesPerDay === 1
-          ? t("Live AI IGL in 1 match per day")
-          : t("Live AI IGL in {n} matches per day", {
-              n: n(limits.liveAiMatchesPerDay),
-            })
-        : t("Live AI IGL (rule-based tips only)"),
+      live === null || live > 0,
+      live === null
+        ? t("Live AI IGL: unlimited")
+        : live > 1
+          ? t("Live AI IGL: {n} matches/day", { n: live })
+          : live === 1
+            ? t("Live AI IGL: 1 match/day")
+            : t("Live tips only (no AI)"),
     ],
-    [true, t("{n} demo uploads per day", { n: n(limits.uploadsPerDay) })],
+    [true, t("{n} uploads per day", { n: n(limits.uploadsPerDay) })],
     [
       true,
       limits.retentionDays === null
@@ -57,16 +39,13 @@ export function PlanFeatures({
           ? t("1-year match history")
           : t("{n}-day match history", { n: limits.retentionDays }),
     ],
-    [true, t("Watch 2D clips of key moments")],
+    [true, t("2D clips of key moments")],
     [limits.clipExport, t("Export clips as video")],
-    [limits.perMapLearning, t("Per-map deep learning")],
-    [limits.monthlyReport, t("Monthly performance report")],
-    [
-      limits.personalCoach,
-      t("Personal Coach: your multi-week training program"),
-    ],
-    [limits.matchReel, t("Match reel (highlights + mistakes video)")],
-    [limits.historyCompare, t("History compare in deep reviews")],
+    [limits.perMapLearning, t("Per-map learning")],
+    [limits.monthlyReport, t("Monthly report")],
+    [limits.personalCoach, t("Personal Coach")],
+    [limits.matchReel, t("Match reel video")],
+    [limits.historyCompare, t("History compare")],
     [limits.priorityQueue, t("Priority processing")],
   ];
   return (

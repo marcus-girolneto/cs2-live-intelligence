@@ -1,4 +1,7 @@
-/** Plan types and the published v1 catalogue (fallback when the plans endpoint is unavailable). */
+/**
+ * Plan types and the built-in catalogue used only when GET plans is unavailable. It mirrors
+ * the backend defaults exactly (apps/api migrations 0006–0008; checked by catalogue.test.ts).
+ */
 export type Interval = "month" | "year";
 export type Currency = "BRL" | "USD";
 export type PlanId = "free" | "basic" | "pro" | (string & {});
@@ -71,7 +74,7 @@ export const DEFAULT_PLANS: Plan[] = [
     name: "Free",
     prices: { BRL: { month: 0, year: 0 }, USD: { month: 0, year: 0 } },
     limits: {
-      aiReviewsPerDay: 1,
+      aiReviewsPerDay: null,
       liveAiMatchesPerDay: 0,
       uploadsPerDay: 2,
       retentionDays: 30,
@@ -96,13 +99,13 @@ export const DEFAULT_PLANS: Plan[] = [
       USD: { month: 499, year: 4990 },
     },
     limits: {
-      aiReviewsPerDay: 3,
+      aiReviewsPerDay: null,
       liveAiMatchesPerDay: 1,
       uploadsPerDay: 5,
       retentionDays: 90,
       clipExport: true,
       perMapLearning: false,
-      monthlyCredits: 10,
+      monthlyCredits: 15,
       deepCost: 3,
       cheaperDeep: false,
       personalCoach: false,
@@ -121,13 +124,13 @@ export const DEFAULT_PLANS: Plan[] = [
       USD: { month: 999, year: 9990 },
     },
     limits: {
-      aiReviewsPerDay: 8,
+      aiReviewsPerDay: null,
       liveAiMatchesPerDay: 5,
       uploadsPerDay: 15,
       retentionDays: 365,
       clipExport: true,
       perMapLearning: true,
-      monthlyCredits: 30,
+      monthlyCredits: 45,
       deepCost: 2,
       cheaperDeep: true,
       personalCoach: true,

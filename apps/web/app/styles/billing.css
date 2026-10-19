@@ -65,6 +65,9 @@
 }
 .pricing .ls-head {
   justify-items: center;
+  justify-self: center;
+  width: 100%;
+  margin-inline: auto;
   text-align: center;
 }
 .pricing-tools {

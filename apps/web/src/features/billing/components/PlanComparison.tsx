@@ -9,26 +9,17 @@ type Row = { label: string; value: (l: PlanLimits) => string | boolean };
 export function PlanComparison({ plans }: { plans: Plan[] }) {
   const { t } = useI18n();
   const n = (v: number | null) => (v === null ? "∞" : String(v));
-  const capped = plans.some((p) => p.limits.aiReviewsPerDay !== null);
   const rows: Row[] = [
     {
       label: t("Credits every month"),
       value: (l) =>
-        l.monthlyCredits ? n(l.monthlyCredits) : t("Welcome credit"),
+        l.monthlyCredits ? n(l.monthlyCredits) : t("Welcome credit only"),
     },
     {
       label: t("Deep review cost"),
       value: (l) =>
         l.deepCost === null ? "—" : t("{n} credits", { n: l.deepCost }),
     },
-    ...(capped
-      ? [
-          {
-            label: t("AI Coach reviews per day"),
-            value: (l: PlanLimits) => n(l.aiReviewsPerDay),
-          },
-        ]
-      : []),
     {
       label: t("Live AI IGL matches per day"),
       value: (l) =>
@@ -122,12 +113,12 @@ const FAQ = [
     a: "Card worldwide, and Pix in Brazil. Prices are shown in reais in Portuguese and in US dollars in English.",
   },
   {
-    q: "What counts as an AI review?",
-    a: "Each time the coach writes a review for one player of one match. Opening a review you already have is free; “Ask again” counts as a new one.",
+    q: "When is a credit spent?",
+    a: "Each time the coach writes a new review for one player of one match. Opening a review you already have is free; “Ask again” writes a new one.",
   },
   {
-    q: "When do daily limits reset?",
-    a: "Every day at midnight (UTC). The coach screen shows exactly how long until the next reset.",
+    q: "When do upload limits reset?",
+    a: "Daily demo uploads reset every day at midnight (UTC). Reviews are limited only by your credits.",
   },
 ] as const;
 

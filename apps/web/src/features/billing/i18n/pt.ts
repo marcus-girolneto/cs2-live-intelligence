@@ -220,4 +220,23 @@ export const pt: Record<string, string> = {
   "Personal Coach is a Pro feature": "O Coach Pessoal é um recurso Pro",
   "A second AI coach reads all your matches and writes your training program.":
     "Um segundo coach de IA lê todas as suas partidas e escreve seu programa de treino.",
+  "{n} uploads per day": "{n} envios por dia",
+  "1 welcome credit to start": "1 crédito de boas-vindas para começar",
+  "2D clips of key moments": "Clipes 2D dos momentos-chave",
+  "Deep review: {n} credits": "Review Deep: {n} créditos",
+  "Live AI IGL: {n} matches/day": "IGL de IA ao vivo: {n} partidas/dia",
+  "Live AI IGL: 1 match/day": "IGL de IA ao vivo: 1 partida/dia",
+  "Live AI IGL: unlimited": "IGL de IA ao vivo: ilimitado",
+  "Live tips only (no AI)": "Só dicas ao vivo (sem IA)",
+  "Match reel video": "Vídeo do reel da partida",
+  "Per-map learning": "Aprendizado por mapa",
+  "Welcome credit only": "Só o crédito de boas-vindas",
+  "Team review": "Review do time",
+  Team: "Time",
+  "When is a credit spent?": "Quando um crédito é gasto?",
+  "Each time the coach writes a new review for one player of one match. Opening a review you already have is free; “Ask again” writes a new one.":
+    "Cada vez que o coach escreve uma review nova de um jogador em uma partida. Abrir uma review que você já tem é grátis; “Perguntar de novo” escreve uma nova.",
+  "When do upload limits reset?": "Quando os limites de envio renovam?",
+  "Daily demo uploads reset every day at midnight (UTC). Reviews are limited only by your credits.":
+    "Os envios diários de demo renovam todo dia à meia-noite (UTC). As reviews são limitadas só pelos seus créditos.",
 };

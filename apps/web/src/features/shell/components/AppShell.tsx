@@ -33,7 +33,7 @@ export function AppShell({
     return () => document.body.classList.remove("no-scroll");
   }, [drawer]);
   return (
-    <div className={`shell ${collapsed ? "side-collapsed" : ""}`}>
+    <div className={`shell app-shell ${collapsed ? "side-collapsed" : ""}`}>
       <a className="skip-link" href="#main">
         {t("Skip to content")}
       </a>
