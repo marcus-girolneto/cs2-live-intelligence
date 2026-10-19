@@ -12,6 +12,8 @@ import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { Pool } from "pg";
+import { request as httpRequest } from "node:http";
+import type { AddressInfo } from "node:net";
 import type { FastifyInstance } from "fastify";
 import { PgRepository } from "../src/repository.js";
 import { buildApp } from "../src/app.js";
@@ -151,6 +153,35 @@ describe.skipIf(!databaseUrl)(
           })
         ).statusCode,
       ).toBe(404);
+    });
+    it("releases upload concurrency after clients abort partial streams", async () => {
+      if (!app.server.listening)
+        await app.listen({ host: "127.0.0.1", port: 0 });
+      const address = app.server.address() as AddressInfo;
+      for (let i = 0; i < 5; i++)
+        await new Promise<void>((resolveAbort) => {
+          const request = httpRequest({
+            hostname: "127.0.0.1",
+            port: address.port,
+            path: "/v1/demos/uploads",
+            method: "POST",
+            headers: {
+              ...headers,
+              "content-type": "application/octet-stream",
+              "x-filename": "partial.dem",
+              "content-length": "100000",
+            },
+          });
+          request.on("error", () => resolveAbort());
+          request.write(Buffer.alloc(100));
+          setTimeout(() => request.destroy(), 20);
+        });
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+      expect((await upload(Buffer.from("valid after abort"))).statusCode).toBe(
+        202,
+      );
+      expect((await repo.matches("owner")).matches).toHaveLength(1);
+      expect(await readdir(directory)).toHaveLength(1);
     });
     it("claims jobs only once across workers and rejects expired stale completion", async () => {
       const { id } = (await upload(Buffer.from("corrupt"))).json();

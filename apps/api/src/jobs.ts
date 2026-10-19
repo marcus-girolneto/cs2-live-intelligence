@@ -186,6 +186,13 @@ export async function registerJobs(
     throw new Error("Upload cap must be 1 byte..128 MiB");
   const worker = await createWorker(repo, options);
   let activeUploads = 0;
+  const releaseUpload = async (request: FastifyRequest) => {
+    const upload = request as UploadRequest;
+    if (upload.uploadActive) {
+      activeUploads--;
+      upload.uploadActive = false;
+    }
+  };
   const owner = async (request: FastifyRequest) => {
     const token = request.headers.authorization?.startsWith("Bearer ")
       ? request.headers.authorization.slice(7)
@@ -275,12 +282,9 @@ export async function registerJobs(
         (request as UploadRequest).uploadActive = true;
         (request as UploadRequest).uploadOwner = id;
       },
-      onResponse: async (request) => {
-        if ((request as UploadRequest).uploadActive) {
-          activeUploads--;
-          (request as UploadRequest).uploadActive = false;
-        }
-      },
+      onResponse: releaseUpload,
+      onRequestAbort: releaseUpload,
+      onError: async (request) => releaseUpload(request),
     },
     async (request, reply) => {
       const file = request.body as Uploaded;
