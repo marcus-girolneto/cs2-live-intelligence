@@ -1,6 +1,6 @@
 # CS2 demo parser
 
-A real CS2 `.dem` parser built with pinned [`demoinfocs-golang/v4 v4.5.1`](https://github.com/markus-wa/demoinfocs-golang/tree/v4.5.1), MIT license (notice retained in `LICENSE.demoinfocs-golang`). `go.mod` and `go.sum` pin direct and transitive dependencies. It does not obtain game files or call Steam/FACEIT/AI.
+A real CS2 `.dem` parser built with pinned [`demoinfocs-golang/v5 v5.2.0`](https://github.com/markus-wa/demoinfocs-golang/tree/v5.2.0), MIT license (notice retained in `LICENSE.demoinfocs-golang`). `go.mod` and `go.sum` pin direct and transitive dependencies. It does not obtain game files or call Steam/FACEIT/AI.
 
 ```sh
 go build -o /tmp/cs2live-demo-parser ./cmd/demo-parser
@@ -59,3 +59,10 @@ Limits: 128 players, 1000 rounds, 5,000,000 normalized pending/committed events,
 Unit tests cover deterministic normalization, complete/partial flags, post-round exclusion, duplicate rounds, missing/world actors, health damage versus overkill/armor, event and file limits, CLI stderr/stdout separation, corrupt headers and direct roundtrip against `packages/contracts/fixtures/normalized-demo.json`. The optional real fixture test checks the public demo's actual map, player/round/event counts and unique event IDs.
 
 Real CS2 parse is verified with a public generic fixture. [Provenance, license, checksum and measurements](testdata/PROVENANCE.md) describe the source and observed output. The large binary and generated JSON are ignored; use the pinned fetch script to reproduce. This single fixture does not validate every CS2 patch or competitive demo format.
+
+## Library version notes
+
+- v5.2.0 (parser `cs2live.4`) is required for CS2 demos recorded after the late-2026 game updates;
+  v4.5.1 failed on them with `unable to find existing entity`.
+- v5 does not report C4 explosion damage (no attacker) as player-hurt events. Player metrics are
+  unaffected: ADR and every damage metric only count damage dealt by players.

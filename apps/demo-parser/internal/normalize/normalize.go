@@ -15,12 +15,13 @@ import (
 	"strings"
 
 	"github.com/golang/geo/r3"
-	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	dem "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/msg"
 )
 
-const Version = "demoinfocs-golang/v4@v4.5.1+cs2live.3"
+const Version = "demoinfocs-golang/v5@v5.2.0+cs2live.4"
 
 // DefaultMaxBytes is the default input cap (500 MiB = 524288000 bytes, the product's demo
 // upload limit); MaxBytes is the hard ceiling accepted by -max-bytes.
@@ -374,9 +375,13 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 	}
 	p := dem.NewParser(reader)
 	defer p.Close()
-	if _, err = p.ParseHeader(); err != nil {
-		return out, nil, fmt.Errorf("demo header: %w", err)
-	}
+	// v5 has no separate header step: the map name arrives with the server info message.
+	mapName := ""
+	p.RegisterNetMessageHandler(func(m *msg.CSVCMsg_ServerInfo) {
+		if name := m.GetMapName(); name != "" {
+			mapName = name
+		}
+	})
 	b := newBuilder()
 	if wantReplay {
 		b.rec = newRecorder()
@@ -472,7 +477,7 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 				return
 			}
 			path := []r3.Vector{}
-			for _, t := range e.Projectile.Trajectory2 {
+			for _, t := range e.Projectile.Trajectory {
 				path = append(path, t.Position)
 			}
 			b.rec.detonate(e.Projectile.UniqueID(), safe(r3.Vector{}, e.Projectile.Position), path, tick())
@@ -569,7 +574,7 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 	if len(b.doc.Rounds) == 0 {
 		return out, nil, errors.New("demo contains no fully observed valid live rounds")
 	}
-	b.doc.Map = p.Header().MapName
+	b.doc.Map = mapName
 	doc := b.result()
 	if b.rec != nil {
 		replay = b.rec.result(doc)

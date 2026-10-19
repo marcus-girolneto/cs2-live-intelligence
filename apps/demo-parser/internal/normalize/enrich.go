@@ -5,8 +5,8 @@ import (
 	"sort"
 
 	"github.com/golang/geo/r3"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/events"
 )
 
 // Enrichment helpers (cs2live.2). Every value read from live entities goes through safe so a
@@ -235,8 +235,12 @@ func (b *builder) grenade(kind common.EquipmentType, thrower *common.Player, pos
 }
 
 func (b *builder) flashed(victim, attacker *common.Player, tick int) {
-	// Dead players are sometimes reported as flashed; only living victims count.
-	if victim == nil || attacker == nil || !safe(true, victim.IsAlive) {
+	// Dead players are sometimes reported as flashed; only living victims count. Without a pawn
+	// entity liveness is unknown (v5 would report "dead"), so the flash is kept.
+	if victim == nil || attacker == nil {
+		return
+	}
+	if !safe(true, func() bool { return victim.PlayerPawnEntity() == nil || victim.IsAlive() }) {
 		return
 	}
 	duration := safe(0.0, func() float64 { return float64(victim.FlashDuration) })
