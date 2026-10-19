@@ -5,6 +5,7 @@
 import type { Analysis, CoachFact, DeepReview } from "@cs2/contracts";
 import { HISTORY_METRICS } from "./deep/rounds.js";
 import { learnProfile } from "./learn.js";
+import { FILTERED, sanitizeUntrusted } from "./security.js";
 
 export type CoachHistoryInput = {
   steamId: string;
@@ -188,6 +189,8 @@ export function buildCoachAggregates(
   // Plan adherence: did the metric tied to an earlier plan item improve after it was given?
   const seen = new Set<string>();
   for (const plan of input.plans) {
+    // Earlier model outputs are untrusted (second-order injection): skip instruction-like ones.
+    if (sanitizeUntrusted(plan.text, 300) === FILTERED) continue;
     const key = PLAN_METRICS.find(([re]) => re.test(plan.text))?.[1];
     if (!key || seen.has(`${key}|${plan.text}`) || seen.size >= 6) continue;
     seen.add(`${key}|${plan.text}`);

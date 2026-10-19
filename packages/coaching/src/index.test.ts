@@ -1,3 +1,4 @@
+import { unwrapData } from "./security.js";
 import { describe, it, expect } from "vitest";
 import { analyzeDemo } from "@cs2/analytics";
 import { readFileSync } from "node:fs";
@@ -43,12 +44,8 @@ function provider(
   return (async (url: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body)) as Record<string, unknown>;
     sent.push({ url, body, headers: init.headers as Record<string, string> });
-    const user = JSON.parse(
-      (body.messages as { role: string; content: string }[])[1]!.content.slice(
-        (
-          body.messages as { role: string; content: string }[]
-        )[1]!.content.indexOf("{"),
-      ),
+    const user = unwrapData(
+      (body.messages as { role: string; content: string }[])[1]!.content,
     ) as { facts: { id: string }[] };
     return new Response(
       JSON.stringify({
@@ -147,7 +144,7 @@ describe("AI coaching (real provider call through configuration)", () => {
       expect(r.coaching.mode).toBe("provider");
       expect(r.coaching.summary).toBe("Solid game.");
       expect(r.coaching.plan).toEqual(["Play opening duels with a teammate"]);
-      expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v6");
+      expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v7");
       expect(r.coaching.provenance?.model).toBe("qwen/qwen3-235b-a22b");
       expect(r.call).toMatchObject({
         provider: "openrouter",

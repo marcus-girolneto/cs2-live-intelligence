@@ -1,4 +1,5 @@
 import type { Analysis } from "@cs2/contracts";
+import { FILTERED, sanitizeUntrusted } from "./security.js";
 
 type Player = Analysis["players"][number];
 type Metric = Player["adr"];
@@ -275,10 +276,13 @@ export function plansForMap(
   const thisMap: { date: string; text: string }[] = [];
   for (const p of plans ?? [])
     for (const item of p.items) {
-      if (item.scope === "general")
-        general.push({ date: p.date, text: item.text });
+      // Earlier model outputs are untrusted (second-order injection): sanitised, and dropped
+      // when they look like instructions.
+      const text = sanitizeUntrusted(item.text, 300);
+      if (!text || text === FILTERED) continue;
+      if (item.scope === "general") general.push({ date: p.date, text });
       else if (perMapLearning && map && (item.map ?? p.map) === map)
-        thisMap.push({ date: p.date, text: item.text });
+        thisMap.push({ date: p.date, text });
     }
   return { general: general.slice(0, 6), thisMap: thisMap.slice(0, 6) };
 }

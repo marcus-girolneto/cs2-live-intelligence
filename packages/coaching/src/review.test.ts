@@ -1,3 +1,4 @@
+import { unwrapData } from "./security.js";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { analyzeDemo } from "@cs2/analytics";
@@ -54,7 +55,7 @@ function fake(answer: (p: Payload) => unknown, seen: Payload[] = []) {
       messages: { content: string }[];
     };
     const user = body.messages[1]!.content;
-    const payload = JSON.parse(user.slice(user.indexOf("{"))) as Payload;
+    const payload = unwrapData(user) as Payload;
     seen.push(payload);
     return new Response(
       JSON.stringify({
@@ -406,7 +407,7 @@ describe("v5 review building", () => {
     expect(r.coaching.keyMoments).toHaveLength(1);
     expect(r.coaching.verdict).toBe("Strong openings; trade your deaths.");
     expect(r.coaching.scores).toBeDefined();
-    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v6");
+    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v7");
   });
 });
 

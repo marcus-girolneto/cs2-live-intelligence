@@ -10,13 +10,11 @@ import {
   playerInsights,
   type CoachLang,
 } from "./player.js";
+import { AiError, type AiConfig, type ModelResult } from "./provider.js";
+import { secureModelCall } from "./prompt-kit.js";
+import type { GuardSpec } from "./security.js";
 import {
-  AiError,
-  callModel,
-  type AiConfig,
-  type ModelResult,
-} from "./provider.js";
-import {
+  customInstructionText,
   languageInstruction,
   languageReminder,
   personalizationPrompt,
@@ -59,6 +57,8 @@ export * from "./report.js";
 export * from "./reel.js";
 export * from "./personal-coach.js";
 export * from "./personal-coach-ai.js";
+export * from "./security.js";
+export * from "./prompt-kit.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */
@@ -359,7 +359,8 @@ export async function aiCoaching(
     perMap,
   );
   const candidates = focus ? momentCandidates(analysis, focus.steamId) : [];
-  // Player names are deliberately never sent (prompt-injection isolation).
+  // Player names are deliberately never sent (prompt-injection isolation); every string left
+  // is sanitised again by secureModelCall (identifiers allowlisted, free text filtered).
   const payload = {
     map: analysis.map ?? null,
     rounds: analysis.roundOutcomes?.length ?? null,
@@ -388,49 +389,70 @@ export async function aiCoaching(
         }
       : {}),
   };
-  const call = await callModel(
+  const prefs = options.personal?.preferences;
+  const secured = await secureModelCall({
+    purpose: deep ? "review_deep" : "review_quick",
     config,
-    {
-      system:
-        languageReminder(lang) +
-        "\n\n" +
-        (deep ? DEEP_SYSTEM_PROMPT : POST_MATCH_SYSTEM_PROMPT) +
-        (options.personal
-          ? personalizationPrompt(options.personal.preferences)
-          : "") +
-        languageInstruction(lang),
-      user: languageReminder(lang) + "\nDATA:\n" + JSON.stringify(payload),
-      schemaName: deep ? "cs2_deep_coaching" : "cs2_coaching",
-      schema: deep ? deepCoachingOutputSchema : coachingOutputSchema,
-    },
-    options.fetch,
-  );
+    system: (b) =>
+      languageReminder(lang) +
+      "\n\n" +
+      (deep ? DEEP_SYSTEM_PROMPT : POST_MATCH_SYSTEM_PROMPT) +
+      (prefs ? personalizationPrompt(prefs, b) : "") +
+      languageInstruction(lang),
+    ...(prefs ? { customText: customInstructionText(prefs) } : {}),
+    reminder: languageReminder(lang),
+    payload,
+    schemaName: deep ? "cs2_deep_coaching" : "cs2_coaching",
+    schema: deep ? deepCoachingOutputSchema : coachingOutputSchema,
+    guard: COACHING_GUARD,
+    lang,
+    knownIds: [...facts.map((f) => f.id), ...candidates.map((c) => c.id)],
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+  });
   const coaching = validateCoaching(
-    buildReview(call.data, analysis, {
+    buildReview(secured.data, analysis, {
       focusSteamId: focus?.steamId,
       lang,
       candidateIds: candidates,
       allowedFacts: new Set(facts.map((f) => f.id)),
-      model: call.model,
+      model: secured.meta.model,
       tier,
       ...(deep ? { deep: deep.deep } : {}),
     }),
     analysis,
   );
-  const rawInsights = (call.data as { insights?: unknown }).insights;
-  if (
-    !coaching.insights.length &&
-    Array.isArray(rawInsights) &&
-    rawInsights.length
-  )
+  coaching.caveats.push(...secured.caveats);
+  const insightsOf = (v: unknown) => {
+    const list = (v as { insights?: unknown } | null)?.insights;
+    return Array.isArray(list) ? list.length : 0;
+  };
+  if (!coaching.insights.length && insightsOf(secured.data))
     throw new AiError(
       "invalid_output",
       "The model's answer cited no valid evidence.",
     );
-  const meta: Partial<ModelResult> = { ...call };
-  delete meta.data;
-  return { coaching, call: meta as Omit<ModelResult, "data"> };
+  if (!coaching.insights.length && secured.issues.length)
+    throw new AiError(
+      "invalid_output",
+      "The model's answer failed the output safety checks.",
+    );
+  return { coaching, call: secured.meta };
 }
+
+/** Human-readable parts of a review answer (checked by the output guard). */
+export const COACHING_GUARD: GuardSpec = {
+  fields: ["verdict", "summary"],
+  lists: ["plan"],
+  items: {
+    insights: {
+      fields: ["observation", "actionablePractice"],
+      lists: ["caveats"],
+    },
+    keyMoments: { fields: ["title", "whatHappened", "whatToDoInstead"] },
+    drills: { fields: ["name", "howTo", "metric"] },
+    plan: { fields: ["text"] },
+  },
+};
 
 const text = (v: unknown, max: number) =>
   typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined;

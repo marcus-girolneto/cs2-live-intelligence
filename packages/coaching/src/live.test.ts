@@ -1,3 +1,4 @@
+import { unwrapData } from "./security.js";
 import { describe, expect, it } from "vitest";
 import { aiLiveCall, liveCoachInputSchema } from "./live.js";
 import { AiError, loadAiConfig, type AiConfig } from "./provider.js";
@@ -61,16 +62,14 @@ describe("live AI coach", () => {
     expect(r.call).toMatchObject({
       focus: "trade",
       confidence: "high",
-      promptVersion: "igl-live-v2",
+      promptVersion: "igl-live-v3",
     });
     const messages = seen.body!.messages as { content: string }[];
     expect(messages[0]!.content).toContain("LIVE Counter-Strike 2 match");
     expect(messages[0]!.content).toContain("Brazilian Portuguese");
     expect(messages[0]!.content.startsWith("Responda em português")).toBe(true);
     expect(messages[1]!.content.startsWith("Responda em português")).toBe(true);
-    expect(
-      JSON.parse(messages[1]!.content.slice(messages[1]!.content.indexOf("{"))),
-    ).toMatchObject({
+    expect(unwrapData(messages[1]!.content)).toMatchObject({
       round: 5,
       own: { armor: 0 },
     });

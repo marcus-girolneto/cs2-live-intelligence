@@ -1,13 +1,11 @@
 import { z } from "zod";
-import {
-  AiError,
-  callModel,
-  type AiConfig,
-  type ModelResult,
-} from "./provider.js";
+import { AiError, type AiConfig, type ModelResult } from "./provider.js";
+import { secureModelCall } from "./prompt-kit.js";
+import type { GuardSpec } from "./security.js";
 import type { Personalization } from "./index.js";
 import { historyForMap, plansForMap } from "./learn.js";
 import {
+  customInstructionText,
   languageInstruction,
   languageReminder,
   personalizationPrompt,
@@ -113,41 +111,40 @@ export async function aiLiveCall(
   const perMap = options.personal?.perMapLearning ?? true;
   const history = historyForMap(options.personal?.history, data.map, perMap);
   const plans = plansForMap(options.personal?.previousPlans, data.map, perMap);
-  const result = await callModel(
+  const lang = options.lang ?? "en";
+  const prefs = options.personal?.preferences;
+  const secured = await secureModelCall({
+    purpose: "live",
     config,
-    {
-      system:
-        languageReminder(options.lang ?? "en") +
-        "\n\n" +
-        LIVE_SYSTEM_PROMPT +
-        (options.personal
-          ? personalizationPrompt(options.personal.preferences)
-          : "") +
-        languageInstruction(options.lang ?? "en"),
-      user:
-        languageReminder(options.lang ?? "en") +
-        "\nDATA:\n" +
-        JSON.stringify({
-          ...data,
-          recentRounds: data.recentRounds.slice(-12),
-          ...(history ? { playerHistory: history } : {}),
-          ...(plans.general.length || plans.thisMap.length
-            ? { previousPlans: plans }
-            : {}),
-        }),
-      schemaName: "cs2_live_call",
-      schema: LIVE_OUTPUT_SCHEMA,
+    system: (b) =>
+      languageReminder(lang) +
+      "\n\n" +
+      LIVE_SYSTEM_PROMPT +
+      (prefs ? personalizationPrompt(prefs, b) : "") +
+      languageInstruction(lang),
+    ...(prefs ? { customText: customInstructionText(prefs) } : {}),
+    reminder: languageReminder(lang),
+    payload: {
+      ...data,
+      recentRounds: data.recentRounds.slice(-12),
+      ...(history ? { playerHistory: history } : {}),
+      ...(plans.general.length || plans.thisMap.length
+        ? { previousPlans: plans }
+        : {}),
     },
-    options.fetch,
-  );
-  const parsed = callSchema.safeParse(result.data);
+    schemaName: "cs2_live_call",
+    schema: LIVE_OUTPUT_SCHEMA,
+    guard: LIVE_GUARD,
+    lang,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+  });
+  const parsed = callSchema.safeParse(secured.data);
   if (!parsed.success)
     throw new AiError(
       "invalid_output",
       "The model's live call did not match the expected format.",
     );
-  const meta: Partial<ModelResult> = { ...result };
-  delete meta.data;
+  const meta = secured.meta;
   return {
     call: {
       call: parsed.data.call.trim().slice(0, 140),
@@ -156,6 +153,13 @@ export async function aiLiveCall(
       confidence: data.recentRounds.length < 3 ? "low" : parsed.data.confidence,
       promptVersion: LIVE_PROMPT_VERSION,
     },
-    meta: meta as Omit<ModelResult, "data">,
+    meta,
   };
 }
+
+/** Both live fields are critical: an unsafe call or reason rejects the answer. */
+export const LIVE_GUARD: GuardSpec = {
+  fields: ["call", "why"],
+  critical: ["call", "why"],
+  caps: { call: 140, why: 300 },
+};

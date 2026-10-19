@@ -1,3 +1,4 @@
+import { unwrapData } from "./security.js";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { analyzeDemo } from "@cs2/analytics";
@@ -46,10 +47,7 @@ function provider(
     const body = JSON.parse(String(init.body)) as Body;
     sent.push(body);
     const user = body.messages[1]!.content;
-    const data = JSON.parse(user.slice(user.indexOf("{"))) as Record<
-      string,
-      unknown
-    >;
+    const data = unwrapData(user) as Record<string, unknown>;
     return new Response(
       JSON.stringify({
         choices: [
@@ -126,11 +124,9 @@ describe("review tiers", () => {
     expect(sent[0]!.response_format?.json_schema?.name).toBe(
       "cs2_deep_coaching",
     );
-    const payload = JSON.parse(
-      sent[0]!.messages[1]!.content.slice(
-        sent[0]!.messages[1]!.content.indexOf("{"),
-      ),
-    );
+    const payload = unwrapData(sent[0]!.messages[1]!.content) as {
+      deep: { utility?: unknown };
+    };
     expect(payload.deep.utility).toBeDefined();
     expect(r.coaching.tier).toBe("deep");
     expect(r.coaching.provenance?.promptVersion).toBe(DEEP_PROMPT_VERSION);

@@ -1,3 +1,4 @@
+import { unwrapData } from "./security.js";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { analyzeDemo } from "@cs2/analytics";
@@ -117,10 +118,16 @@ describe("coach preferences", () => {
     );
     expect(text).toContain("PASSIVE");
     expect(text).toContain("AWPER");
-    expect(text).toContain("compatible with every rule above");
-    expect(text).toContain("<<<PLAYER_INSTRUCTIONS");
-    // Users cannot close the instruction block early.
-    expect(text.match(/>>>/g)).toHaveLength(1);
+    // Unsafe custom instructions are left out entirely.
+    expect(text).not.toContain("PLAYER CUSTOM INSTRUCTIONS");
+    expect(text).not.toContain("wallhack");
+    const safe = personalizationPrompt(
+      parsePreferences({ instructions: "Be blunt\u200b and   short" }),
+    );
+    expect(safe).toContain("compatible with every rule above");
+    expect(safe).toMatch(
+      /<<PREFS-[0-9a-f]{24}>>\nBe blunt and short\n<<END-PREFS-/,
+    );
   });
   it("sends preferences, history and previous plans to the model", async () => {
     const a = analysis();
@@ -128,11 +135,11 @@ describe("coach preferences", () => {
     let body = "";
     const fakeFetch = (async (_u: string, init: RequestInit) => {
       body = String(init.body);
-      const user = JSON.parse(
-        (JSON.parse(body).messages[1].content as string).slice(
-          (JSON.parse(body).messages[1].content as string).indexOf("{"),
-        ),
-      );
+      const user = unwrapData(
+        JSON.parse(body).messages[1].content as string,
+      ) as {
+        facts: { id: string }[];
+      };
       const content = user.facts
         ? { summary: "s", insights: [], plan: [] }
         : { call: "c", why: "w", focus: "keep", confidence: "low" };

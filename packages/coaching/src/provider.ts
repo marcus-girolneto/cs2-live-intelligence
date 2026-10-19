@@ -235,7 +235,61 @@ export function parseModelJson(text: string): unknown {
 const redact = (text: string, secret: string) =>
   secret ? text.split(secret).join("[redacted]") : text;
 
-function requestBody(config: AiConfig, call: ModelCall) {
+/**
+ * Request parameters configuration "extraBody" may never set: the model, the messages, the
+ * token budget, the output format, streaming and tools are decided by code only. No request
+ * ever carries tools or functions.
+ */
+export const PROTECTED_BODY_KEYS = [
+  "model",
+  "messages",
+  "input",
+  "instructions",
+  "prompt",
+  "system",
+  "tools",
+  "tool_choice",
+  "functions",
+  "function_call",
+  "parallel_tool_calls",
+  "response_format",
+  "text",
+  "max_tokens",
+  "max_completion_tokens",
+  "max_output_tokens",
+  "n",
+  "stream",
+] as const;
+const FORBIDDEN_IN_BODY = [
+  "tools",
+  "tool_choice",
+  "functions",
+  "function_call",
+];
+/** extraBody without protected keys (provider routing, reasoning, usage options stay). */
+export function safeExtraBody(
+  extra: Record<string, unknown>,
+  maxTokensParam?: string,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(extra))
+    if (
+      !(PROTECTED_BODY_KEYS as readonly string[]).includes(k) &&
+      k !== maxTokensParam
+    )
+      out[k] = v;
+  return out;
+}
+
+export function requestBody(config: AiConfig, call: ModelCall) {
+  const body = buildBody(config, call);
+  for (const key of FORBIDDEN_IN_BODY)
+    if (key in body) throw new Error(`AI requests never carry ${key}`);
+  return body;
+}
+
+function buildBody(config: AiConfig, call: ModelCall): Record<string, unknown> {
+  const extra = safeExtraBody(config.extraBody, config.maxTokensParam);
   const schemaHint = `Respond with a single JSON object that matches this JSON Schema exactly, with no other text:\n${JSON.stringify(call.schema)}`;
   const system =
     config.jsonMode === "json_schema"
@@ -243,6 +297,7 @@ function requestBody(config: AiConfig, call: ModelCall) {
       : `${call.system}\n\n${schemaHint}`;
   if (config.apiStyle === "responses")
     return {
+      ...extra,
       model: config.model,
       store: false,
       max_output_tokens: config.maxOutputTokens,
@@ -267,9 +322,9 @@ function requestBody(config: AiConfig, call: ModelCall) {
       ...(config.temperature !== undefined
         ? { temperature: config.temperature }
         : {}),
-      ...config.extraBody,
     };
   return {
+    ...extra,
     model: config.model,
     messages: [
       { role: "system", content: system },
@@ -293,7 +348,6 @@ function requestBody(config: AiConfig, call: ModelCall) {
     ...(config.temperature !== undefined
       ? { temperature: config.temperature }
       : {}),
-    ...config.extraBody,
   };
 }
 
