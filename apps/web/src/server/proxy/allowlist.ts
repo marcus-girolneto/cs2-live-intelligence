@@ -40,6 +40,16 @@ const routes: [string, RegExp][] = [
   ["GET", /^coach\/profile$/],
   ["PUT", /^coach\/profile$/],
   ["GET", /^coach\/progress$/],
+  // Which player you are in your demos, and which demos are yours.
+  ["PUT", /^coach\/identity$/],
+  ["GET", /^matches\/ownership$/],
+  ["PATCH", /^matches\/[A-Za-z0-9_-]+\/ownership$/],
+  ["GET", /^matches\/auto-reviews$/],
+  // Team review, you-vs-lobby ranking and match integrity signals.
+  ["POST", /^analyses\/[A-Za-z0-9_-]+\/team-review$/],
+  ["GET", /^analyses\/[A-Za-z0-9_-]+\/team-reviews$/],
+  ["GET", /^analyses\/[A-Za-z0-9_-]+\/lobby$/],
+  ["GET", /^analyses\/[A-Za-z0-9_-]+\/integrity$/],
   ["POST", /^coach\/reviews\/[A-Za-z0-9_-]+\/rating$/],
   ["GET", /^demos\/sample$/],
   ["POST", /^demos\/sample$/],
@@ -66,6 +76,9 @@ const routes: [string, RegExp][] = [
   ["PUT", /^admin\/users\/[A-Za-z0-9_-]+\/role$/],
   ["GET", /^admin\/audit$/],
   ["POST", /^admin\/analyses\/reprocess$/],
+  ["GET", /^admin\/analyses\/reprocess\/status$/],
+  ["GET", /^admin\/ai\/ratings$/],
+  ["GET", /^admin\/ai\/eval\/latest$/],
   ["GET", /^admin\/plans$/],
   ["PUT", /^admin\/plans$/],
   ["PUT", /^admin\/users\/[A-Za-z0-9_-]+\/plan$/],
@@ -86,11 +99,18 @@ export const PUBLIC_ROUTES = new Set([
 const INT = /^[0-9]{1,4}$/;
 const SECONDS = /^[0-9]{1,4}(\.[0-9]{1,3})?$/;
 const PLAYER = /^[A-Za-z0-9_-]{1,32}$/;
+const MAP = /^[a-z0-9_]{1,32}$/;
+const IDS = /^[A-Za-z0-9_-]{1,64}(,[A-Za-z0-9_-]{1,64}){0,99}$/;
 const QUERY: [RegExp, Record<string, RegExp>][] = [
+  [/^coach\/progress$/, { map: MAP }],
+  [/^matches\/(ownership|auto-reviews)$/, { ids: IDS }],
   [/^admin\/audit$/, { limit: INT }],
   [/^credits\/ledger$/, { limit: INT }],
   [/^admin\/users\/[A-Za-z0-9_-]+\/ledger$/, { limit: INT }],
-  [/^analyses\/[A-Za-z0-9_-]+\/(reviews|reel)$/, { steamId: PLAYER }],
+  [
+    /^analyses\/[A-Za-z0-9_-]+\/(reviews|reel|team-reviews|lobby)$/,
+    { steamId: PLAYER },
+  ],
   [
     /^analyses\/[A-Za-z0-9_-]+\/replay$/,
     { round: INT, from: SECONDS, to: SECONDS },
@@ -117,7 +137,7 @@ export const isAiRoute = (path: string) =>
   path.startsWith("admin/ai/") ||
   path === "reports/generate" ||
   path === "coach/personal/generate" ||
-  /^analyses\/[A-Za-z0-9_-]+\/coaching$/.test(path);
+  /^analyses\/[A-Za-z0-9_-]+\/(coaching|team-review)$/.test(path);
 export { MAX_DEMO_BYTES } from "@/shared/config/limits";
 /**
  * Streams the request body through unchanged while counting bytes: never buffers the
