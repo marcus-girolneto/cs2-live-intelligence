@@ -192,6 +192,18 @@ func TestPublicCS2Fixture(t *testing.T) {
 		}
 		ids[e.ID] = true
 	}
+	aims := 0
+	for _, e := range d.Events {
+		if e.Aim != nil {
+			aims++
+			if len(e.Aim.Dt) < 2 || len(e.Aim.Dt) != len(e.Aim.Yaw) || len(e.Aim.Dt) != len(e.Aim.Pitch) {
+				t.Fatalf("malformed aim window: %+v", e.Aim)
+			}
+		}
+	}
+	if aims < 50 {
+		t.Fatalf("aim windows: %d", aims)
+	}
 	if counts["kill"] != 62 || counts["damage"] != 254 || counts["round_end"] != 10 || counts["shot"] != 1159 || counts["grenade"] != 195 || counts["flashed"] != 71 || counts["bomb"] != 9 {
 		t.Fatal(counts)
 	}

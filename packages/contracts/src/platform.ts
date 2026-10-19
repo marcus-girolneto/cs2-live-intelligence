@@ -43,6 +43,21 @@ export const grenadeSchema = z.enum([
   "decoy",
 ]);
 /**
+ * The attacker's view at full tick rate for the 0.5 s before the first shot of an engagement
+ * (parser cs2live.5+; on the first gun damage or kill of each attacker/victim/burst). Degrees;
+ * pitch positive = looking down; `dt` are tick offsets relative to `firstShotTick` (≤ 0).
+ */
+export const aimSchema = z.object({
+  firstShotTick: z.number().int().nonnegative(),
+  dt: z.array(z.number().int().max(0)).max(256),
+  yaw: z.array(z.number()).max(256),
+  pitch: z.array(z.number()).max(256),
+  targetYaw: z.number(),
+  targetPitch: z.number(),
+  bodyPitch: z.number(),
+});
+export type Aim = z.infer<typeof aimSchema>;
+/**
  * Demo events. Fields after the original 1.0 set are optional enrichment (parser
  * cs2live.2+): positions are world coordinates, `place` is the in-game callout name
  * (e.g. "TopofMid"), `roundTime` is seconds since the end of freeze time.
@@ -71,6 +86,7 @@ export const demoEventSchema = z.discriminatedUnion("type", [
     roundTime: z.number().optional(),
     /** Grenades the victim still carried (parser cs2live.3+); absent = unknown. */
     victimGrenades: z.array(z.string().max(16)).max(8).optional(),
+    aim: aimSchema.optional(),
   }),
   z.object({
     ...common,
@@ -86,6 +102,7 @@ export const demoEventSchema = z.discriminatedUnion("type", [
     /** Callout the attacker stood in when the damage was dealt. */
     attackerPlace: place,
     roundTime: z.number().optional(),
+    aim: aimSchema.optional(),
   }),
   z.object({
     ...common,
@@ -327,6 +344,45 @@ export const playerMetricsSchema = z.object({
   /** Metric version 1.2 (parser cs2live.2+): detailed breakdowns. */
   detail: playerDetailSchema.optional(),
 });
+/**
+ * Match integrity signals (see docs/INTEGRITY.md). Statistical observations about one match,
+ * shown only to the uploader of that match; never an accusation. `level` is "none" unless a
+ * signal has enough samples and exceeds its documented, conservative threshold.
+ */
+export const integrityLevelSchema = z.enum(["none", "low", "elevated", "high"]);
+export const integrityReasonSchema = z.object({
+  code: z.enum([
+    "inhuman_snaps",
+    "headshot_rate",
+    "head_hits_per_shot",
+    "reaction_time",
+    "smoke_wall_kills",
+  ]),
+  value: z.number(),
+  threshold: z.number(),
+  n: z.number().int().nonnegative(),
+});
+export const integrityPlayerSchema = z.object({
+  steamId: id,
+  level: integrityLevelSchema,
+  reasons: z.array(integrityReasonSchema).max(8),
+});
+/** Steam ban state of a match participant (ISteamUser/GetPlayerBans), checked after upload. */
+export const matchBanSchema = z.object({
+  steamId: id,
+  vacBans: z.number().int().nonnegative(),
+  gameBans: z.number().int().nonnegative(),
+  daysSinceLastBan: z.number().int().nonnegative(),
+  /** A ban whose date is after the match (last ban newer than the match). */
+  bannedAfterMatch: z.boolean(),
+});
+export const integritySchema = z.object({
+  players: z.array(integrityPlayerSchema).max(128),
+  bannedAfterMatch: z.array(matchBanSchema).max(128).optional(),
+});
+export type Integrity = z.infer<typeof integritySchema>;
+export type IntegrityPlayer = z.infer<typeof integrityPlayerSchema>;
+export type MatchBan = z.infer<typeof matchBanSchema>;
 export const analysisSchema = z.object({
   schemaVersion: z.literal("1.0"),
   source: z.literal("demo"),
@@ -346,6 +402,8 @@ export const analysisSchema = z.object({
   players: z.array(playerMetricsSchema),
   evidence: z.array(evidenceSchema),
   caveats: z.array(z.string()),
+  /** Per-match integrity signals (aim snaps need parser cs2live.5+); uploader-only. */
+  integrity: integritySchema.optional(),
 });
 export type Analysis = z.infer<typeof analysisSchema>;
 export type Evidence = z.infer<typeof evidenceSchema>;

@@ -21,7 +21,7 @@ import (
 	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/msg"
 )
 
-const Version = "demoinfocs-golang/v5@v5.2.0+cs2live.4"
+const Version = "demoinfocs-golang/v5@v5.2.0+cs2live.5"
 
 // DefaultMaxBytes is the default input cap (500 MiB = 524288000 bytes, the product's demo
 // upload limit); MaxBytes is the hard ceiling accepted by -max-bytes.
@@ -109,6 +109,9 @@ type Event struct {
 	// VictimGrenades lists the grenades the victim still carried when killed (cs2live.3+;
 	// absent when the inventory could not be read).
 	VictimGrenades *[]string `json:"victimGrenades,omitempty"`
+	// Aim: the attacker's view before the first shot of the engagement (cs2live.5+; first gun
+	// damage or kill of each attacker/victim/burst only).
+	Aim *Aim `json:"aim,omitempty"`
 }
 type Demo struct {
 	SchemaVersion string       `json:"schemaVersion"`
@@ -135,10 +138,12 @@ type builder struct {
 	tickRate  float64
 	// rec samples replay data when a replay artifact was requested (nil otherwise).
 	rec *recorder
+	// aim keeps per-tick view samples and shot bursts for engagement aim windows.
+	aim *aimTracker
 }
 
 func newBuilder() *builder {
-	return &builder{doc: Demo{SchemaVersion: "1.0", ParserVersion: Version, Players: []Player{}, Rounds: []Round{}, Events: []Event{}}, players: map[string]Player{}, pending: []Event{}, freezeEnd: -1}
+	return &builder{doc: Demo{SchemaVersion: "1.0", ParserVersion: Version, Players: []Player{}, Rounds: []Round{}, Events: []Event{}}, players: map[string]Player{}, pending: []Event{}, freezeEnd: -1, aim: newAimTracker()}
 }
 func team(t common.Team) string {
 	switch t {
@@ -448,7 +453,11 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 		if b.active == nil || !playing() {
 			return
 		}
-		b.add(b.kill(e, tick()))
+		ev := b.kill(e, tick())
+		if isGun(e.Weapon) {
+			ev.Aim = b.aim.engagement(ev.AttackerID, ev.VictimID, ev.Tick, b.tickRate)
+		}
+		b.add(ev)
 		if b.limitErr != nil {
 			p.Cancel()
 		}
@@ -474,8 +483,16 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 		}
 		cancel()
 	})
+	p.RegisterEventHandler(func(events.FrameDone) {
+		if live() {
+			b.aim.frame(tick(), safe(nil, p.GameState().Participants().Playing))
+		}
+	})
 	p.RegisterEventHandler(func(e events.WeaponFire) {
 		if live() {
+			if id := aimID(e.Shooter); id != "" && isGun(e.Weapon) {
+				b.aim.shot(id, tick(), b.tickRate)
+			}
 			b.shot(e, tick())
 			if b.rec != nil && isGun(e.Weapon) {
 				b.rec.shot(e.Shooter, weaponName(e.Weapon), tick())
@@ -626,6 +643,9 @@ func (b *builder) hurt(e events.PlayerHurt, tick int) {
 	ev.Hitgroup = hitgroupName(e.HitGroup)
 	if e.Attacker != nil && e.Attacker != e.Player {
 		ev.AttackerPlace = playerPlace(e.Attacker)
+		if isGun(e.Weapon) {
+			ev.Aim = b.aim.engagement(ev.AttackerID, ev.VictimID, tick, b.tickRate)
+		}
 	}
 	b.add(ev)
 }

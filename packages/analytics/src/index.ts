@@ -8,6 +8,14 @@ import {
 } from "@cs2/contracts";
 import { playerAdvanced, resolveSides } from "./advanced.js";
 import { enrichment, pistolRounds, playerDetail, slug } from "./detail.js";
+import { integritySignals } from "./anomaly.js";
+export {
+  INTEGRITY_THRESHOLDS,
+  angleDelta,
+  binomialZ,
+  integritySignals,
+  snapOf,
+} from "./anomaly.js";
 export { TRADE_TICKS } from "./advanced.js";
 export { EARLY_DEATH_SECONDS, ECO_BELOW, FORCE_BELOW, GUNS } from "./detail.js";
 export const METRIC_VERSION = "1.2.0";
@@ -477,5 +485,6 @@ export function analyzeDemo(input: unknown): Analysis {
     players,
     evidence,
     caveats,
+    integrity: { players: integritySignals(demo) },
   });
 }
