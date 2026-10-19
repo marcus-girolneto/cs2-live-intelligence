@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { coolingDown, focusProgress, normalizePersonal } from "./personal";
+import {
+  coolingDown,
+  EMPTY_PERSONAL,
+  focusProgress,
+  generateErrorMessage,
+  normalizePersonal,
+  teaserFrom,
+} from "./personal";
 
 describe("normalizePersonal", () => {
   it("maps the envelope defensively", () => {
@@ -67,11 +74,7 @@ describe("normalizePersonal", () => {
   });
 
   it("handles empty or plan-only payloads", () => {
-    expect(normalizePersonal(null)).toEqual({
-      latest: null,
-      history: [],
-      nextAllowedAt: null,
-    });
+    expect(normalizePersonal(null)).toEqual(EMPTY_PERSONAL);
     expect(normalizePersonal({ latest: { headline: "" } }).latest).toBeNull();
     expect(normalizePersonal({ headline: "Direct" }).latest?.headline).toBe(
       "Direct",
@@ -83,5 +86,97 @@ describe("normalizePersonal", () => {
     expect(focusProgress(null, 3)).toBeNull();
     expect(focusProgress(0, 0)).toBe(100);
     expect(focusProgress(10, 0)).toBe(0);
+  });
+  it("reads the PersonalCoachDto envelope and resolves cited fact ids", () => {
+    const s = normalizePersonal({
+      latest: {
+        id: "pc1",
+        createdAt: "2026-10-18T12:00:00Z",
+        trigger: "manual",
+        plan: {
+          schemaVersion: "1.0",
+          headline: "Trade more",
+          workingWell: [{ text: "Entries", evidence: ["open_ct", "ghost"] }],
+          notWorking: [{ text: "Isolated", evidence: ["traded"] }],
+          focusAreas: [
+            {
+              area: "Trading",
+              why: "w",
+              targetMetric: "traded",
+              current: 29,
+              target: 45,
+            },
+          ],
+          weeklyProgram: [],
+          perMap: [{ map: "de_mirage", notes: "Window smoke" }],
+          nextReviewSuggestion: "Later",
+          generatedAt: "nope",
+          basedOnMatches: 12,
+          facts: [
+            {
+              id: "open_ct",
+              label: "Opening duels won",
+              value: 58,
+              unit: "%",
+              trend: 2,
+              better: "higher",
+              matches: 12,
+            },
+            {
+              id: "traded",
+              label: "Traded deaths",
+              value: 29.44,
+              unit: "%",
+              trend: null,
+              better: "higher",
+              matches: 12,
+              map: "de_mirage",
+            },
+          ],
+          caveats: ["Few deep reviews."],
+        },
+      },
+      history: [
+        {
+          id: "pc1",
+          createdAt: "2026-10-18T12:00:00Z",
+          headline: "Trade more",
+          basedOnMatches: 12,
+        },
+      ],
+      analyzedMatches: 14,
+      newMatchesSinceLast: 2,
+      nextAvailableAt: "2026-10-25T00:00:00Z",
+      autoRegenerateAfterMatches: 5,
+    });
+    const p = s.latest!;
+    expect(p.workingWell[0]!.evidence).toBe("Opening duels won: 58%");
+    expect(p.notWorking[0]!.evidence).toBe("Traded deaths: 29.4% (de_mirage)");
+    expect(p.focusAreas[0]!.targetMetric).toBe("Traded deaths");
+    expect(p.generatedAt).toBe("2026-10-18T12:00:00Z");
+    expect(p.caveats).toEqual(["Few deep reviews."]);
+    expect(s).toMatchObject({
+      nextAllowedAt: "2026-10-25T00:00:00Z",
+      analyzedMatches: 14,
+      newMatchesSinceLast: 2,
+      autoRegenerateAfterMatches: 5,
+    });
+    expect(s.history[0]!.generatedAt).toBe("2026-10-18T12:00:00Z");
+  });
+  it("reads the 402 teaser and explains generate errors", () => {
+    expect(
+      teaserFrom({
+        status: 402,
+        body: {
+          code: "plan_required",
+          teaser: { analyzedMatches: 12, reviews: 3, plansGiven: 2 },
+        },
+      }),
+    ).toEqual({ analyzedMatches: 12, reviews: 3, plansGiven: 2 });
+    expect(teaserFrom({ status: 500, body: {} })).toBeNull();
+    expect(generateErrorMessage({ code: "personal_coach_cooldown" })).toMatch(
+      /recently/,
+    );
+    expect(generateErrorMessage({ code: "x" })).toBeNull();
   });
 });

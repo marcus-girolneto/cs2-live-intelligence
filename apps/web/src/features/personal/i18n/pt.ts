@@ -60,4 +60,14 @@ export const pt: Record<string, string> = {
   "{n} min/day": "{n} min/dia",
   "You win your duels — now win them together.":
     "Você vence seus duelos — agora vença em equipe.",
+  "1 new match since this plan": "1 partida nova desde este plano",
+  "{n} new matches since this plan": "{n} partidas novas desde este plano",
+  "Rewrites itself after {n} new matches":
+    "Se reescreve sozinho após {n} partidas novas",
+  "1 AI review to learn from": "1 review de IA para aprender",
+  "{n} AI reviews to learn from": "{n} reviews de IA para aprender",
+  "Your plan was written recently. A new one unlocks soon.":
+    "Seu plano foi escrito há pouco. Um novo libera em breve.",
+  "Your Personal Coach needs a few more analyzed matches first.":
+    "Seu Personal Coach precisa de mais algumas partidas analisadas antes.",
 };

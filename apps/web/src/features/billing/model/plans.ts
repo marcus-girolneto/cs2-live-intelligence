@@ -64,16 +64,34 @@ const FEATURES: LimitFeature[] = [
   "history_compare",
   "personal_coach",
 ];
-/** Reads a 402 plan_limit error (ApiError with body) into a typed object. */
+/** Plan feature flags the API names in plan_feature errors → upgrade sheet topics. */
+const FEATURE_ALIAS: Record<string, LimitFeature> = {
+  reel: "match_reel",
+  matchReel: "match_reel",
+  monthlyReport: "monthly_report",
+  deepHistory: "history_compare",
+  personalCoach: "personal_coach",
+  clipExport: "clip_export",
+};
+/** Reads a 402 plan_limit / plan_feature / plan_required error (ApiError with body) into a typed object. */
 export function planLimitFrom(e: unknown): PlanLimitError | null {
   const err = e as { status?: unknown; code?: unknown; body?: unknown } | null;
   if (!err || err.status !== 402) return null;
   const body = obj(err.body) ?? {};
   const code = err.code ?? body.code;
-  if (code !== "plan_limit" && code !== "plan_required") return null;
-  const feature = FEATURES.includes(body.feature as LimitFeature)
-    ? (body.feature as LimitFeature)
-    : "ai_review";
+  if (
+    code !== "plan_limit" &&
+    code !== "plan_required" &&
+    code !== "plan_feature"
+  )
+    return null;
+  const raw = String(body.feature ?? "");
+  const named = FEATURE_ALIAS[raw] ?? raw;
+  const feature = FEATURES.includes(named as LimitFeature)
+    ? (named as LimitFeature)
+    : code === "plan_required"
+      ? "personal_coach"
+      : "ai_review";
   const out: PlanLimitError = {
     feature,
     limit: body.limit === null ? null : finite(body.limit),

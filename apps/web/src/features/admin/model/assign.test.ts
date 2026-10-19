@@ -7,6 +7,31 @@ import {
 } from "./assign";
 
 describe("normalizeModels", () => {
+  it("merges the details list (name, context, price per 1M tokens)", () => {
+    const c = normalizeModels({
+      supported: true,
+      models: ["a/one", "b/two"],
+      details: [
+        {
+          id: "a/one",
+          name: "One",
+          contextLength: 128000,
+          pricePerMTokIn: 0.2,
+          pricePerMTokOut: 0.6,
+          structuredOutputs: true,
+        },
+        { id: "zz" },
+      ],
+    });
+    expect(c.models[0]).toEqual({
+      id: "a/one",
+      name: "One",
+      contextLength: 128000,
+      structuredOutputs: true,
+      price: { input: 0.2, output: 0.6 },
+    });
+    expect(c.models[1]).toEqual({ id: "b/two", price: null });
+  });
   it("reads string lists and priced objects", () => {
     const c = normalizeModels({
       supported: true,

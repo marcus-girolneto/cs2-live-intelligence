@@ -1961,3 +1961,41 @@ svg.down {
   white-space: normal;
   text-align: center;
 }
+.rd-story {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s3, 12px);
+  margin-top: var(--s3, 12px);
+}
+.rd-story-col {
+  border-left: 3px solid var(--line);
+  padding: 4px 0 4px 12px;
+  min-width: 0;
+}
+.rd-story-col.good {
+  border-left-color: var(--good);
+}
+.rd-story-col.warn {
+  border-left-color: var(--warn);
+}
+.rd-story-col h4 {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.rd-story-col ul {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 4px;
+}
+.rd-caveats {
+  margin: 0;
+  padding-left: 1.1em;
+}
+.pc-new {
+  color: var(--accent);
+  font-weight: 600;
+}

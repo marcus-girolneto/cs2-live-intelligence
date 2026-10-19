@@ -51,6 +51,7 @@ export function uploadLimitBytes(account: unknown, cap: number): number {
     v && typeof v === "object" ? (v as Record<string, unknown>) : {};
   const a = o(account);
   for (const v of [
+    a.uploadMaxBytes,
     a.maxUploadBytes,
     o(a.limits).maxUploadBytes,
     o(o(a.plan).limits).maxUploadBytes,

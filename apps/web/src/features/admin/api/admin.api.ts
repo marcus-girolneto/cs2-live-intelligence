@@ -41,6 +41,12 @@ export interface AdminApi {
   saveProvider(id: string | null, body: Record<string, unknown>): Promise<void>;
   deleteProvider(id: string): Promise<void>;
   testProvider(id: string, model?: string): Promise<TestResult>;
+  /** The purpose's own check (admin/ai/test), optionally on another provider/model. */
+  testPurpose(
+    purpose: Purpose,
+    providerId?: string,
+    model?: string,
+  ): Promise<TestResult>;
   listModels(id: string): Promise<ModelList>;
   getPlans(): Promise<Plan[]>;
   /** PUT admin/plans takes one plan per request ({id, …partial}). */
@@ -85,6 +91,16 @@ export function createAdminApi(http: HttpClient = platformHttp): AdminApi {
       http.post<TestResult>(
         `admin/ai/providers/${seg(id)}/test`,
         model ? { model } : {},
+        { timeoutMs: AI_TIMEOUT },
+      ),
+    testPurpose: (purpose, providerId, model) =>
+      http.post<TestResult>(
+        "admin/ai/test",
+        {
+          purpose,
+          ...(providerId ? { providerId } : {}),
+          ...(providerId && model ? { model } : {}),
+        },
         { timeoutMs: AI_TIMEOUT },
       ),
     listModels: (id) =>

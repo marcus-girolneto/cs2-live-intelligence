@@ -87,7 +87,7 @@ export function parseStoredReviews(raw: unknown): StoredReview[] {
   return list(raw, "reviews")
     .flatMap((r): StoredReview[] => {
       const o = r as Record<string, unknown> | null;
-      const id = o && text(o.id);
+      const id = o && (text(o.reviewId) ?? text(o.id));
       const createdAt = o && text(o.createdAt);
       if (!o || !id || !createdAt) return [];
       const tier = o.tier === "quick" || o.tier === "deep" ? o.tier : null;
@@ -101,8 +101,14 @@ export function parseReel(raw: unknown): ReelClip[] {
       const o = c as Record<string, unknown> | null;
       const clip = parseClip(o);
       if (!o || !clip) return [];
+      // The reel names each clip with `title`; `label` is the optional short tag.
+      const label = clip.label ?? text(o.title);
       return [
-        { ...clip, kind: o.kind === "highlight" ? "highlight" : "mistake" },
+        {
+          ...clip,
+          ...(label ? { label } : {}),
+          kind: o.kind === "highlight" ? "highlight" : "mistake",
+        },
       ];
     })
     .sort((a, b) => a.round - b.round || a.from - b.from)

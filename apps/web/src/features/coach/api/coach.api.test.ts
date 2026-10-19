@@ -36,7 +36,7 @@ describe("CoachApi", () => {
           coaching: {},
         },
         {
-          id: "d",
+          reviewId: "d",
           tier: "deep",
           createdAt: "2026-10-02T00:00:00Z",
           coaching: {},
@@ -57,14 +57,21 @@ describe("CoachApi", () => {
     const http = new FakeHttpClient().on("GET", "analyses/a/reel", {
       clips: [
         { round: 5, from: 10, to: 20, kind: "highlight", label: "Ace" },
-        { round: 2, from: 30, to: 38, kind: "mistake" },
+        {
+          round: 2,
+          from: 30,
+          to: 38,
+          kind: "mistake",
+          title: "Dry peek",
+          score: 3,
+        },
         { round: "x" },
       ],
     });
     const clips = await createCoachApi(http).getReel("a", "765");
-    expect(clips.map((c) => [c.round, c.kind])).toEqual([
-      [2, "mistake"],
-      [5, "highlight"],
+    expect(clips.map((c) => [c.round, c.kind, c.label])).toEqual([
+      [2, "mistake", "Dry peek"],
+      [5, "highlight", "Ace"],
     ]);
   });
 });

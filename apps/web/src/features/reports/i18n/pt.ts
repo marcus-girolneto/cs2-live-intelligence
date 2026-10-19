@@ -39,4 +39,8 @@ export const pt: Record<string, string> = {
   "Pre-aim offset": "Desvio de pré-mira",
   "Duels well pre-aimed": "Duelos bem pré-mirados",
   "Monthly reports are a Pro feature": "Relatórios mensais são um recurso Pro",
+  Strengths: "Pontos fortes",
+  Focus: "Foco",
+  "This month's report is already ready.":
+    "O relatório deste mês já está pronto.",
 };

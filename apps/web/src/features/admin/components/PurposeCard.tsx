@@ -83,8 +83,8 @@ export function PurposeCard({
   const { t, locale } = useI18n();
   const Icon = ICON[p];
   const check = draft.providerId ? checkModel(draft.model, catalog) : "ok";
-  const price =
-    catalog?.models.find((m) => m.id === draft.model.trim())?.price ?? null;
+  const info = catalog?.models.find((m) => m.id === draft.model.trim());
+  const price = info?.price ?? null;
   const cost = estimateCost(p, price);
   const canSave =
     dirty &&
@@ -183,6 +183,20 @@ export function PurposeCard({
                     cost: `$${formatNumber(cost, cost < 0.01 ? 4 : 3, locale) ?? "0"}`,
                   })
                 : t("Price not published by this provider.")}
+              {info?.contextLength && (
+                <span className="muted">
+                  {" · "}
+                  {t("{n}k context", {
+                    n: Math.round(info.contextLength / 1000),
+                  })}
+                </span>
+              )}
+              {info?.structuredOutputs === false && (
+                <span className="pa-warn">
+                  {" · "}
+                  {t("no structured outputs")}
+                </span>
+              )}
             </p>
           )}
         </div>

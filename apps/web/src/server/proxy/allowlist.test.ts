@@ -113,6 +113,7 @@ describe("authenticated proxy boundary", () => {
       ["DELETE", "admin/ai/providers/3f2c-a1"],
       ["POST", "admin/ai/providers/3f2c-a1/test"],
       ["GET", "admin/ai/providers/3f2c-a1/models"],
+      ["POST", "admin/ai/test"],
       ["GET", "admin/ai/assignments"],
       ["PUT", "admin/ai/assignments"],
       ["GET", "admin/settings"],

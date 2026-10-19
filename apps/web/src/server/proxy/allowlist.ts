@@ -44,6 +44,7 @@ const routes: [string, RegExp][] = [
   ["GET", /^demos\/sample$/],
   ["POST", /^demos\/sample$/],
   ["POST", /^ai\/test$/],
+  ["POST", /^admin\/ai\/test$/],
   ["POST", /^feedback$/],
   ["GET", /^auth\/steam\/start$/],
   ["POST", /^me\/refresh-profile$/],

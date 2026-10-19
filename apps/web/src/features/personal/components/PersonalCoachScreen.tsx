@@ -28,8 +28,17 @@ export function PersonalCoachScreen() {
   const { account } = useAccount();
   const known = !!account;
   const pro = isAdmin || !!limits?.personalCoach;
-  const p = usePersonalCoach(pro);
-  const counts = useTeaserCounts();
+  const p = usePersonalCoach(pro, known && !pro);
+  const listed = useTeaserCounts();
+  // The API's teaser counts win; the match list fills in the map count.
+  const counts =
+    p.teaser?.analyzedMatches != null
+      ? {
+          matches: p.teaser.analyzedMatches,
+          maps: listed?.maps ?? 0,
+          reviews: p.teaser.reviews,
+        }
+      : listed;
   const [since, setSince] = useState(0);
   useEffect(() => {
     if (p.generating) setSince(Date.now());
@@ -89,6 +98,8 @@ export function PersonalCoachScreen() {
           <PersonalHero
             plan={plan}
             nextAllowedAt={p.state.nextAllowedAt}
+            newMatches={p.state.newMatchesSinceLast}
+            autoAfter={p.state.autoRegenerateAfterMatches}
             cooling={coolingDown(p.state)}
             busy={p.generating}
             onRegenerate={() => void p.generate()}
@@ -103,6 +114,13 @@ export function PersonalCoachScreen() {
             planKey={plan.generatedAt ?? plan.headline.slice(0, 40)}
           />
           <PerMapNotes maps={plan.perMap} />
+          {plan.caveats.length > 0 && (
+            <ul className="rd-caveats muted small">
+              {plan.caveats.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          )}
           {plan.nextReviewSuggestion && (
             <Callout tone="info">
               <b>{t("Next check-in")}:</b> {plan.nextReviewSuggestion}

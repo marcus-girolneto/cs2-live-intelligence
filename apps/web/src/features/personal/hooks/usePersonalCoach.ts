@@ -2,34 +2,46 @@
 import { useCallback, useEffect, useState } from "react";
 import { planLimitFrom, useUpgrade } from "@/features/billing";
 import { usePersonalApi } from "../api/context";
-import type { PersonalState } from "../model/personal";
+import {
+  EMPTY_PERSONAL,
+  generateErrorMessage,
+  teaserFrom,
+  type PersonalState,
+  type PersonalTeaserCounts,
+} from "../model/personal";
 
 const msg = (e: unknown) =>
   e instanceof Error ? e.message : "Request failed.";
 
-/** Latest Personal Coach plan + "regenerate" (Pro). */
-export function usePersonalCoach(enabled: boolean) {
+/**
+ * Latest Personal Coach plan + "regenerate" (Pro). With `withTeaser`, non-Pro accounts also
+ * ask (the 402 carries their real counts for the locked teaser).
+ */
+export function usePersonalCoach(enabled: boolean, withTeaser = false) {
   const api = usePersonalApi();
   const upgrade = useUpgrade();
   const [state, setState] = useState<PersonalState | null>(null);
   const [error, setError] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [teaser, setTeaser] = useState<PersonalTeaserCounts | null>(null);
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled && !withTeaser) return;
     let alive = true;
     api
       .get()
       .then((s) => alive && setState(s))
       .catch((e: unknown) => {
         if (!alive) return;
-        setState({ latest: null, history: [], nextAllowedAt: null });
-        // A 402 here only means "not on Pro" — the screen shows the teaser instead.
-        if (!planLimitFrom(e)) setError(msg(e));
+        setState(EMPTY_PERSONAL);
+        // A 402 here only means "not on Pro": it carries the real counts for the teaser.
+        const counts = teaserFrom(e);
+        if (counts) setTeaser(counts);
+        else if (enabled && !planLimitFrom(e)) setError(msg(e));
       });
     return () => {
       alive = false;
     };
-  }, [api, enabled]);
+  }, [api, enabled, withTeaser]);
   const generate = useCallback(async () => {
     setGenerating(true);
     setError("");
@@ -37,18 +49,26 @@ export function usePersonalCoach(enabled: boolean) {
       const fresh = await api.generate();
       // The POST may return only the new plan: keep the known history/cooldown then.
       const full = await api.get().catch(() => null);
-      setState((prev) => ({
-        latest: full?.latest ?? fresh.latest ?? prev?.latest ?? null,
-        history: full?.history.length ? full.history : (prev?.history ?? []),
-        nextAllowedAt: full?.nextAllowedAt ?? fresh.nextAllowedAt ?? null,
-      }));
+      setState((prev) =>
+        full?.latest
+          ? full
+          : {
+              ...(prev ?? EMPTY_PERSONAL),
+              ...fresh,
+              latest: fresh.latest ?? prev?.latest ?? null,
+            },
+      );
     } catch (e) {
       const limit = planLimitFrom(e);
       if (limit) upgrade.open({ ...limit, feature: "personal_coach" });
-      else setError(msg(e));
+      else {
+        setError(generateErrorMessage(e) ?? msg(e));
+        // Cooldown / data errors: refresh so the screen shows the real next date.
+        api.get().then(setState, () => undefined);
+      }
     } finally {
       setGenerating(false);
     }
   }, [api, upgrade]);
-  return { state, error, generating, generate };
+  return { state, error, generating, generate, teaser };
 }

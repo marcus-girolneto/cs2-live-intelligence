@@ -94,4 +94,24 @@ describe("plans", () => {
       checkoutErrorText(new ApiError("x", 503, "billing_disabled")),
     ).toMatch(/Coming soon/);
   });
+  it("maps plan_feature / plan_required errors to upgrade topics", () => {
+    const e = (code: string, body: Record<string, unknown>) => ({
+      status: 402,
+      code,
+      body: { code, ...body },
+    });
+    expect(
+      planLimitFrom(e("plan_feature", { feature: "reel", upgradeTo: "pro" })),
+    ).toMatchObject({
+      feature: "match_reel",
+      upgradeTo: "pro",
+    });
+    expect(
+      planLimitFrom(e("plan_feature", { feature: "monthlyReport" }))!.feature,
+    ).toBe("monthly_report");
+    expect(planLimitFrom(e("plan_required", { teaser: {} }))!.feature).toBe(
+      "personal_coach",
+    );
+    expect(planLimitFrom(e("insufficient_credits", {}))).toBeNull();
+  });
 });

@@ -126,9 +126,11 @@ export function AssignmentsPanel({
     setTestErr((r) => ({ ...r, [p]: "" }));
     try {
       // No own provider: test what the purpose actually runs on (fallback or .env).
-      const r = d.providerId
-        ? await api.testProvider(d.providerId, d.model.trim())
-        : await api.testActive(p);
+      const r = await api.testPurpose(
+        p,
+        d.providerId || undefined,
+        d.model.trim() || undefined,
+      );
       setResults((x) => ({ ...x, [p]: r }));
     } catch (e) {
       setTestErr((x) => ({ ...x, [p]: errorText(e, "Request failed.") }));

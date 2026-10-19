@@ -62,4 +62,5 @@ export const SAMPLE_PLAN: PersonalPlan = {
   nextReviewSuggestion: null,
   generatedAt: null,
   basedOnMatches: 12,
+  caveats: [],
 };

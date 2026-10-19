@@ -4,14 +4,20 @@
  */
 import { finite, text } from "@/shared/format";
 
-export type SeriesPoint = { label: string; value: number };
-export type Series = {
-  key: string;
-  label: string;
-  unit: string;
-  better: "higher" | "lower";
-  points: SeriesPoint[];
-};
+import {
+  arr,
+  first,
+  num,
+  obj,
+  parseEvolution,
+  parseSeries,
+  pct,
+  type Evolution,
+  type Series,
+} from "./series";
+
+export type { Evolution, Series, SeriesPoint } from "./series";
+export { seriesDelta } from "./series";
 export type MapRow = {
   map: string;
   matches: number | null;
@@ -36,7 +42,6 @@ export type MatchCard = {
   score: number | null;
   headline?: string;
 };
-export type Evolution = { summary?: string; series: Series[] };
 export type ReportSummary = {
   matches: number | null;
   rounds: number | null;
@@ -60,29 +65,15 @@ export type Report = {
   worstMatch: MatchCard | null;
   plan: string[];
   narrative: string[];
+  strengths: string[];
+  focus: string[];
+  caveats: string[];
 };
 export type ReportListItem = {
   id: string;
   period: string;
   createdAt: string | null;
   summary: ReportSummary;
-};
-
-const obj = (v: unknown): Record<string, unknown> | null =>
-  v && typeof v === "object" && !Array.isArray(v)
-    ? (v as Record<string, unknown>)
-    : null;
-const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
-const first = (o: Record<string, unknown>, keys: string[]) => {
-  for (const k of keys) if (o[k] !== undefined && o[k] !== null) return o[k];
-  return undefined;
-};
-const num = (o: Record<string, unknown>, keys: string[]) =>
-  finite(first(o, keys));
-const pct = (v: unknown) => {
-  const n = finite(v);
-  if (n === null) return null;
-  return Math.max(0, Math.min(100, n > 0 && n < 1 ? n * 100 : n));
 };
 
 /** "2026-10" → a label in the viewer's locale ("October 2026"); anything else as is. */
@@ -102,77 +93,6 @@ function periodOf(v: unknown): string {
   return text(v) ?? "";
 }
 
-const KNOWN: Record<
-  string,
-  { label: string; unit: string; better: "higher" | "lower" }
-> = {
-  adr: { label: "ADR", unit: "", better: "higher" },
-  kast: { label: "KAST", unit: "%", better: "higher" },
-  kd: { label: "K/D", unit: "", better: "higher" },
-  rating: { label: "Rating", unit: "", better: "higher" },
-  headshotPercentage: { label: "Headshot %", unit: "%", better: "higher" },
-  hs: { label: "Headshot %", unit: "%", better: "higher" },
-  winRate: { label: "Win rate", unit: "%", better: "higher" },
-  efficiency: { label: "Utility efficiency", unit: "%", better: "higher" },
-  enemiesFlashed: {
-    label: "Enemies flashed / match",
-    unit: "",
-    better: "higher",
-  },
-  utilityDamage: {
-    label: "Utility damage / match",
-    unit: "",
-    better: "higher",
-  },
-  medianOffset: { label: "Pre-aim offset", unit: "°", better: "lower" },
-  wellPreAimed: { label: "Duels well pre-aimed", unit: "%", better: "higher" },
-};
-
-function parsePoints(v: unknown): SeriesPoint[] {
-  return arr(v)
-    .map((p, i): SeriesPoint | null => {
-      const o = obj(p);
-      const value = o ? num(o, ["value", "v", "y"]) : finite(p);
-      if (value === null) return null;
-      const label =
-        (o && text(first(o, ["label", "date", "week", "x"]))) ?? String(i + 1);
-      return { label, value };
-    })
-    .filter((x): x is SeriesPoint => !!x)
-    .slice(-40);
-}
-function parseSeries(raw: unknown): Series[] {
-  const o = obj(raw);
-  const entries: [string, unknown][] = o
-    ? Object.entries(o).filter(([k]) => k !== "summary")
-    : arr(raw).map((s) => [String(obj(s)?.key ?? ""), s]);
-  return entries
-    .map(([key, v]): Series | null => {
-      const s = obj(v);
-      const points = parsePoints(Array.isArray(v) ? v : s?.points);
-      if (points.length < 2) return null;
-      const known = KNOWN[key];
-      return {
-        key: key || String(text(s?.label) ?? "series"),
-        label: text(s?.label) ?? known?.label ?? key,
-        unit: text(s?.unit) ?? known?.unit ?? "",
-        better: s?.better === "lower" ? "lower" : (known?.better ?? "higher"),
-        points,
-      };
-    })
-    .filter((x): x is Series => !!x)
-    .slice(0, 6);
-}
-function parseEvolution(raw: unknown): Evolution | null {
-  const o = obj(raw);
-  if (!o) return null;
-  const series = parseSeries(
-    obj(o.series) || Array.isArray(o.series) ? o.series : o,
-  );
-  const summary = text(o.summary);
-  if (!series.length && !summary) return null;
-  return { ...(summary ? { summary } : {}), series };
-}
 function parseMatch(raw: unknown): MatchCard | null {
   const o = obj(raw);
   if (!o) return null;
@@ -186,7 +106,10 @@ function parseMatch(raw: unknown): MatchCard | null {
     adr: num(o, ["adr"]),
     score: num(o, ["score", "rating", "overall"]),
   };
-  const headline = text(first(o, ["headline", "why", "summary"]));
+  const won = o.won === true ? "Won" : o.won === false ? "Lost" : null;
+  const headline =
+    text(first(o, ["headline", "why", "summary"])) ??
+    [won, text(o.filename)].filter(Boolean).join(" · ");
   if (headline) card.headline = headline;
   return card.analysisId || card.map || headline ? card : null;
 }
@@ -205,19 +128,58 @@ function parseSummary(raw: unknown): ReportSummary {
   return s;
 }
 
+const strings = (v: unknown, max = 8) =>
+  arr(v)
+    .map((p) => text(p) ?? text(obj(p)?.text))
+    .filter((x): x is string => !!x)
+    .slice(0, max);
+const CROSSHAIR_KEY = /aim|offset|crosshair/i;
+/** KPI tiles: explicit summary first, else the period means of the trend metrics. */
+function summaryOf(o: Record<string, unknown>, top: Record<string, unknown>) {
+  const s = parseSummary(o.summary ?? o);
+  const mean = (re: RegExp) => {
+    for (const t of arr(o.trends)) {
+      const x = obj(t);
+      if (x && re.test(String(x.key ?? ""))) return finite(x.value);
+    }
+    return null;
+  };
+  s.matches ??= num(top, ["matches"]);
+  s.adr ??= mean(/^adr$/i);
+  s.kd ??= mean(/^kd$/i);
+  s.winRate ??= pct(mean(/^win/i));
+  const headline =
+    s.headline ??
+    text(obj(o.narrative)?.headline) ??
+    text(first(top, ["headline"]));
+  if (headline) s.headline = headline;
+  return s;
+}
+
 export function normalizeReport(raw: unknown): Report | null {
   const top = obj(raw);
+  // ReportDto: summary fields at the top, the MonthlyReport under `report`.
   const o = obj(top?.report) ?? top;
-  const id = o && text(o.id);
-  if (!o || !id) return null;
-  const narrative = text(o.narrative);
+  const id = top && text(top.id);
+  if (!o || !top || !id) return null;
+  const story = obj(o.narrative);
+  const narrative = text(o.narrative) ?? text(story?.summary);
+  const evo = arr(o.utilityCrosshair);
+  const split = (cross: boolean) =>
+    evo.length
+      ? parseEvolution({
+          series: evo.filter(
+            (t) => CROSSHAIR_KEY.test(String(obj(t)?.key ?? "")) === cross,
+          ),
+        })
+      : parseEvolution(cross ? o.crosshair : o.utility);
   return {
     id,
-    period: periodOf(o.period),
-    createdAt: text(o.createdAt),
-    summary: parseSummary(o.summary),
+    period: periodOf(o.period ?? top.period),
+    createdAt: text(top.createdAt) ?? text(o.createdAt),
+    summary: summaryOf(o, top),
     trends: parseSeries(o.trends),
-    perMap: arr(o.perMap)
+    perMap: arr(o.maps ?? o.perMap)
       .map((m): MapRow | null => {
         const x = obj(m);
         const map = x && text(x.map);
@@ -232,13 +194,14 @@ export function normalizeReport(raw: unknown): Report | null {
           : null;
       })
       .filter((x): x is MapRow => !!x),
-    recurring: arr(o.recurring)
+    recurring: arr(o.recurringMistakes ?? o.recurring)
       .map((r): Recurring | null => {
         const x = obj(r);
-        const title = x && text(first(x, ["title", "pattern", "mistake"]));
+        const title =
+          x && text(first(x, ["label", "title", "pattern", "mistake"]));
         if (!x || !title) return null;
         const tr = x.trend;
-        const tip = text(first(x, ["tip", "fix", "advice"]));
+        const tip = text(first(x, ["detail", "tip", "fix", "advice"]));
         return {
           title,
           count: num(x, ["count", "matches"]),
@@ -248,14 +211,14 @@ export function normalizeReport(raw: unknown): Report | null {
       })
       .filter((x): x is Recurring => !!x)
       .slice(0, 8),
-    utility: parseEvolution(o.utility),
-    crosshair: parseEvolution(o.crosshair),
-    bestMatch: parseMatch(o.bestMatch),
-    worstMatch: parseMatch(o.worstMatch),
-    plan: arr(o.plan)
-      .map((p) => text(p) ?? text(obj(p)?.text))
-      .filter((x): x is string => !!x)
-      .slice(0, 8),
+    utility: split(false),
+    crosshair: split(true),
+    bestMatch: parseMatch(o.best ?? o.bestMatch),
+    worstMatch: parseMatch(o.worst ?? o.worstMatch),
+    plan: strings(story?.plan ?? o.plan),
+    strengths: strings(story?.strengths, 4),
+    focus: strings(story?.focus, 4),
+    caveats: strings(o.caveats, 10),
     narrative: narrative
       ? narrative
           .split(/\n{2,}/)
@@ -266,7 +229,7 @@ export function normalizeReport(raw: unknown): Report | null {
 }
 
 export function normalizeReportList(raw: unknown): ReportListItem[] {
-  return arr(obj(raw)?.reports)
+  return arr(Array.isArray(raw) ? raw : obj(raw)?.reports)
     .flatMap((r): ReportListItem[] => {
       const o = obj(r);
       const id = o && text(o.id);
@@ -276,17 +239,9 @@ export function normalizeReportList(raw: unknown): ReportListItem[] {
           id,
           period: periodOf(o.period),
           createdAt: text(o.createdAt),
-          summary: parseSummary(o.summary),
+          summary: parseSummary(o.summary ?? o),
         },
       ];
     })
     .sort((a, b) => b.period.localeCompare(a.period));
-}
-
-/** Change from the first to the last point, signed so that positive = improvement. */
-export function seriesDelta(s: Series) {
-  const a = s.points[0]!.value;
-  const b = s.points.at(-1)!.value;
-  const d = b - a;
-  return { delta: d, good: s.better === "lower" ? d < 0 : d > 0, last: b };
 }

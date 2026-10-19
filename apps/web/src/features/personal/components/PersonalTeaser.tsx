@@ -11,7 +11,7 @@ import { PointColumns } from "./PointColumns";
 export function PersonalTeaser({
   counts,
 }: {
-  counts: { matches: number; maps: number } | null;
+  counts: { matches: number; maps: number; reviews?: number | null } | null;
 }) {
   const { t } = useI18n();
   const upgrade = useUpgrade();
@@ -35,6 +35,13 @@ export function PersonalTeaser({
               {counts.maps === 1
                 ? t("on 1 map")
                 : t("on {n} maps", { n: counts.maps })}
+            </small>
+          )}
+          {counts?.reviews != null && counts.reviews > 0 && (
+            <small>
+              {counts.reviews === 1
+                ? t("1 AI review to learn from")
+                : t("{n} AI reviews to learn from", { n: counts.reviews })}
             </small>
           )}
         </div>

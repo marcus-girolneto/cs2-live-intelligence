@@ -56,7 +56,16 @@ export function useReports(enabled: boolean) {
       if (r.report) setReport(r.report);
       if (r.id) setSelected(r.id);
     } catch (e) {
-      if (!upgrade.handle(e)) setError(msg(e));
+      if (upgrade.handle(e)) return;
+      if ((e as { code?: unknown }).code === "report_exists") {
+        // Once per month: open the report that already exists.
+        const l = await api.list().catch(() => null);
+        if (l?.length) {
+          setList(l);
+          setSelected(l[0]!.id);
+        }
+        setError("This month's report is already ready.");
+      } else setError(msg(e));
     } finally {
       setGenerating(false);
     }

@@ -8,12 +8,16 @@ import type { PersonalPlan } from "../model/personal";
 export function PersonalHero({
   plan,
   nextAllowedAt,
+  newMatches = null,
+  autoAfter = null,
   cooling,
   busy,
   onRegenerate,
 }: {
   plan: PersonalPlan;
   nextAllowedAt: string | null;
+  newMatches?: number | null;
+  autoAfter?: number | null;
   cooling: boolean;
   busy: boolean;
   onRegenerate: () => void;
@@ -55,6 +59,18 @@ export function PersonalHero({
         >
           <Refresh size={16} /> {t("Rewrite my plan")}
         </button>
+        {newMatches !== null && newMatches > 0 && (
+          <small className="pc-new">
+            {newMatches === 1
+              ? t("1 new match since this plan")
+              : t("{n} new matches since this plan", { n: newMatches })}
+          </small>
+        )}
+        {autoAfter !== null && autoAfter > 0 && (
+          <small className="muted">
+            {t("Rewrites itself after {n} new matches", { n: autoAfter })}
+          </small>
+        )}
         {cooling && next && (
           <small className="muted">
             {t("Next rewrite available {date}", { date: next })}

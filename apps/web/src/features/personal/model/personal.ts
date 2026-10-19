@@ -29,6 +29,7 @@ export type PersonalPlan = {
   nextReviewSuggestion: string | null;
   generatedAt: string | null;
   basedOnMatches: number | null;
+  caveats: string[];
 };
 export type PersonalHistoryItem = {
   id: string;
@@ -39,7 +40,19 @@ export type PersonalState = {
   latest: PersonalPlan | null;
   history: PersonalHistoryItem[];
   nextAllowedAt: string | null;
+  analyzedMatches: number | null;
+  newMatchesSinceLast: number | null;
+  /** The plan rewrites itself after this many new matches (null = unknown). */
+  autoRegenerateAfterMatches: number | null;
 };
+/** 402 plan_required teaser: real counts for the locked screen. */
+export type PersonalTeaserCounts = {
+  analyzedMatches: number | null;
+  reviews: number | null;
+  plansGiven: number | null;
+};
+/** Fact ids the plan cites → readable "label: value" evidence. */
+type Facts = Map<string, string>;
 
 const obj = (v: unknown): Record<string, unknown> | null =>
   v && typeof v === "object" && !Array.isArray(v)
@@ -56,7 +69,24 @@ function lines(v: unknown): string[] {
 const date = (v: unknown) =>
   typeof v === "string" && Number.isFinite(Date.parse(v)) ? v : null;
 
-function points(v: unknown): Point[] {
+function factsOf(v: unknown): Facts {
+  const out: Facts = new Map();
+  for (const x of arr(v)) {
+    const f = obj(x);
+    const id = text(f?.id);
+    const label = text(f?.label);
+    const value = finite(f?.value);
+    if (!f || !id || !label) continue;
+    const shown =
+      value === null
+        ? label
+        : `${label}: ${Number.isInteger(value) ? value : value.toFixed(1)}${text(f.unit) ?? ""}`;
+    out.set(id, text(f.map) ? `${shown} (${text(f.map)})` : shown);
+  }
+  return out;
+}
+
+function points(v: unknown, facts: Facts): Point[] {
   return arr(v)
     .map((x): Point | null => {
       if (typeof x === "string")
@@ -64,7 +94,10 @@ function points(v: unknown): Point[] {
       const o = obj(x);
       const t = text(o?.text) ?? text(o?.title);
       if (!o || !t) return null;
-      const ev = lines(o.evidence);
+      // Evidence cites fact ids; unknown ids are dropped, plain strings are kept.
+      const ev = lines(o.evidence)
+        .map((id) => facts.get(id) ?? (facts.size ? null : id))
+        .filter((e): e is string => !!e);
       return { text: t, evidence: ev.length ? ev.join(" · ") : null };
     })
     .filter((p): p is Point => p !== null);
@@ -83,7 +116,7 @@ export function focusProgress(
 }
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
 
-function focusAreas(v: unknown): FocusArea[] {
+function focusAreas(v: unknown, facts: Facts): FocusArea[] {
   return arr(v)
     .map((x): FocusArea | null => {
       const o = obj(x);
@@ -94,7 +127,10 @@ function focusAreas(v: unknown): FocusArea[] {
       return {
         area,
         why: text(o.why),
-        targetMetric: text(o.targetMetric) ?? text(o.metric),
+        targetMetric: metricLabel(
+          text(o.targetMetric) ?? text(o.metric),
+          facts,
+        ),
         current,
         target,
         progress: focusProgress(current, target),
@@ -140,20 +176,32 @@ function perMap(v: unknown): MapNote[] {
     .filter((m): m is MapNote => m !== null);
 }
 
+/** The fact's label without its value ("Traded deaths %"), else the raw metric name. */
+function metricLabel(id: string | null, facts: Facts) {
+  if (!id) return null;
+  const f = facts.get(id);
+  return f ? (f.split(":")[0] ?? f) : id;
+}
+
 /** One generated plan; null when it has nothing to show. */
-export function normalizePersonalPlan(raw: unknown): PersonalPlan | null {
+export function normalizePersonalPlan(
+  raw: unknown,
+  createdAt?: unknown,
+): PersonalPlan | null {
   const o = obj(raw);
   if (!o) return null;
+  const facts = factsOf(o.facts);
   const plan: PersonalPlan = {
     headline: text(o.headline) ?? "",
-    workingWell: points(o.workingWell),
-    notWorking: points(o.notWorking),
-    focusAreas: focusAreas(o.focusAreas),
+    workingWell: points(o.workingWell, facts),
+    notWorking: points(o.notWorking, facts),
+    focusAreas: focusAreas(o.focusAreas, facts),
     weeklyProgram: program(o.weeklyProgram),
     perMap: perMap(o.perMap),
     nextReviewSuggestion: text(o.nextReviewSuggestion),
-    generatedAt: date(o.generatedAt),
+    generatedAt: date(o.generatedAt) ?? date(createdAt),
     basedOnMatches: finite(o.basedOnMatches),
+    caveats: lines(o.caveats).slice(0, 8),
   };
   const empty =
     !plan.headline &&
@@ -167,10 +215,12 @@ export function normalizePersonalPlan(raw: unknown): PersonalPlan | null {
 /** GET coach/personal → latest plan, history and the regenerate cooldown. */
 export function normalizePersonal(raw: unknown): PersonalState {
   const o = obj(raw) ?? {};
-  // POST generate may answer with the plan itself instead of the envelope.
-  const latestRaw = o.latest ?? (o.headline !== undefined ? o : null);
+  // {latest: {id, createdAt, trigger, plan}}; older shapes put the plan itself in latest.
+  const latest = obj(o.latest);
+  const latestRaw =
+    obj(latest?.plan) ?? latest ?? (o.headline !== undefined ? o : null);
   return {
-    latest: normalizePersonalPlan(latestRaw),
+    latest: normalizePersonalPlan(latestRaw, latest?.createdAt),
     history: arr(o.history)
       .map((x, i): PersonalHistoryItem | null => {
         const h = obj(x);
@@ -178,13 +228,48 @@ export function normalizePersonal(raw: unknown): PersonalState {
         if (!h || !headline) return null;
         return {
           id: text(h.id) ?? `h${i}`,
-          generatedAt: date(h.generatedAt),
+          generatedAt: date(h.generatedAt) ?? date(h.createdAt),
           headline,
         };
       })
       .filter((h): h is PersonalHistoryItem => h !== null),
-    nextAllowedAt: date(o.nextAllowedAt),
+    nextAllowedAt: date(o.nextAvailableAt) ?? date(o.nextAllowedAt),
+    analyzedMatches: finite(o.analyzedMatches),
+    newMatchesSinceLast: finite(o.newMatchesSinceLast),
+    autoRegenerateAfterMatches: finite(o.autoRegenerateAfterMatches),
   };
+}
+
+export const EMPTY_PERSONAL: PersonalState = {
+  latest: null,
+  history: [],
+  nextAllowedAt: null,
+  analyzedMatches: null,
+  newMatchesSinceLast: null,
+  autoRegenerateAfterMatches: null,
+};
+
+/** The counts a 402 plan_required carries for the locked teaser. */
+export function teaserFrom(e: unknown): PersonalTeaserCounts | null {
+  const err = e as { status?: unknown; body?: unknown } | null;
+  if (!err || err.status !== 402) return null;
+  const t = obj(obj(err.body)?.teaser);
+  if (!t) return null;
+  return {
+    analyzedMatches: finite(t.analyzedMatches),
+    reviews: finite(t.reviews),
+    plansGiven: finite(t.plansGiven),
+  };
+}
+
+/** Generate errors the screen explains in its own words. */
+export function generateErrorMessage(e: unknown): string | null {
+  const code = (e as { code?: unknown } | null)?.code;
+  if (code === "personal_coach_cooldown")
+    return "Your plan was written recently. A new one unlocks soon.";
+  if (code === "not_enough_data")
+    return "Your Personal Coach needs a few more analyzed matches first.";
+  return null;
 }
 
 /** True while the regenerate cooldown is running. */

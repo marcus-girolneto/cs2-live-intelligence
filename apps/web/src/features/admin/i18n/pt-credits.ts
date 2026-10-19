@@ -74,4 +74,6 @@ export const ptCredits: Record<string, string> = {
     "Planos do Coach Pessoal a partir de todas as partidas do jogador (Pro). Seu modelo mais forte com contexto longo.",
   "We prefilled Extra body with provider.data_collection = \"deny\": OpenRouter then only routes to upstream providers that don't store or train on your prompts (players' match data). Remove it only if you accept that.":
     'Preenchemos o Extra body com provider.data_collection = "deny": assim o OpenRouter só usa provedores que não armazenam nem treinam com seus prompts (dados das partidas dos jogadores). Remova só se você aceitar isso.',
+  "{n}k context": "contexto de {n}k",
+  "no structured outputs": "sem saída estruturada",
 };

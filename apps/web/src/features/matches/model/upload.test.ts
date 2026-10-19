@@ -48,6 +48,7 @@ describe("upload progress math", () => {
 describe("uploadLimitBytes", () => {
   it("reads the API limit and never exceeds the proxy cap", () => {
     expect(uploadLimitBytes(null, 500)).toBe(500);
+    expect(uploadLimitBytes({ uploadMaxBytes: 200 }, 500)).toBe(200);
     expect(uploadLimitBytes({ maxUploadBytes: 200 }, 500)).toBe(200);
     expect(uploadLimitBytes({ limits: { maxUploadBytes: 300 } }, 500)).toBe(
       300,

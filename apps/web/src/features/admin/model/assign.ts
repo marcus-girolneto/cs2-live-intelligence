@@ -8,7 +8,13 @@ import {
 
 /** Price per 1M tokens in USD, when the provider publishes it. */
 export type ModelPrice = { input: number; output: number };
-export type ModelInfo = { id: string; price: ModelPrice | null };
+export type ModelInfo = {
+  id: string;
+  price: ModelPrice | null;
+  name?: string;
+  contextLength?: number;
+  structuredOutputs?: boolean;
+};
 export type ModelCatalog = {
   /** False when the provider has no model list (manual entry). */
   listed: boolean;
@@ -25,6 +31,9 @@ const num = (v: unknown) => {
  * tokens (`inputPer1M`). Normalised to USD per 1M tokens.
  */
 function priceOf(o: Record<string, unknown>): ModelPrice | null {
+  const inM = num(o.pricePerMTokIn);
+  const outM = num(o.pricePerMTokOut);
+  if (inM !== null && outM !== null) return { input: inM, output: outM };
   const p = (o.pricing ?? o.price ?? null) as Record<string, unknown> | null;
   if (p && typeof p === "object") {
     const perM = num(p.inputPer1M) !== null || num(p.outputPer1M) !== null;
@@ -45,6 +54,12 @@ export function normalizeModels(raw: unknown): ModelCatalog {
     unknown
   >;
   const list = Array.isArray(o.models) ? o.models : [];
+  // `details` (optional) carries name, context and price per id.
+  const details = new Map<string, Record<string, unknown>>();
+  for (const d of Array.isArray(o.details) ? o.details : []) {
+    const dd = (d && typeof d === "object" ? d : {}) as Record<string, unknown>;
+    if (typeof dd.id === "string") details.set(dd.id, dd);
+  }
   const seen = new Set<string>();
   const models: ModelInfo[] = [];
   for (const m of list) {
@@ -53,7 +68,19 @@ export function normalizeModels(raw: unknown): ModelCatalog {
       typeof m === "string" ? m : typeof mo.id === "string" ? mo.id : null;
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    models.push({ id, price: typeof m === "string" ? null : priceOf(mo) });
+    const info = { ...mo, ...(details.get(id) ?? {}) };
+    const ctx = num(info.contextLength);
+    models.push({
+      id,
+      price: priceOf(info),
+      ...(typeof info.name === "string" && info.name !== id
+        ? { name: info.name }
+        : {}),
+      ...(ctx ? { contextLength: ctx } : {}),
+      ...(typeof info.structuredOutputs === "boolean"
+        ? { structuredOutputs: info.structuredOutputs }
+        : {}),
+    });
   }
   return {
     listed: o.supported !== false && models.length > 0,
