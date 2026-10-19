@@ -1,0 +1,23 @@
+FRAGMIND (cs2-live-intelligence) — Proprietary License
+
+Copyright (c) 2026 Marcus Vinicius Girolneto Sousa. All rights reserved.
+
+This software and its source code, documentation, designs, logos and associated files
+(the "Software") are proprietary and confidential. No license, express or implied, is
+granted to any person to use, copy, modify, merge, publish, distribute, sublicense,
+sell or create derivative works of the Software, in whole or in part, except with the
+prior written permission of the copyright holder.
+
+Access to this repository does not grant any rights to the Software. Contributors
+assign to the copyright holder all rights in their contributions unless otherwise
+agreed in writing.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Counter-Strike 2, CS2 and Steam are trademarks of Valve Corporation. This project is
+not affiliated with or endorsed by Valve Corporation. Third-party components remain
+under their own licenses (see each package's license in node_modules / go.mod).
