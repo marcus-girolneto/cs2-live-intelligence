@@ -15,6 +15,33 @@ export const MAX_PARSER_OUTPUT_BYTES = 480 * 1024 * 1024;
 /** The parser accepts inputs up to 1 GiB (uploads are capped before reaching it). */
 export const PARSER_MAX_INPUT_BYTES = 1024 * 1024 * 1024;
 const MB = 1024 * 1024;
+/**
+ * User-safe message for a failed parse, from the parser's stderr. `detail` is the first line of
+ * the parser's own error (no stack trace, no paths) for operator logs only.
+ */
+export function classifyParserFailure(stderr: string): {
+  message: string;
+  detail: string;
+} {
+  const first =
+    stderr
+      .split("\n")
+      .map((l) => l.trim())
+      .find(
+        (l) =>
+          l.startsWith("demo-parser:") && !/warning|replay written/.test(l),
+      ) ?? "";
+  const detail = first.replace(/(\/[\w.-]+)+/g, "<path>").slice(0, 200);
+  const message = /invalid CS2 demo header/i.test(first)
+    ? "Demo parser: this is not a CS2 demo file"
+    : /no fully observed valid live rounds/i.test(first)
+      ? "Demo parser: no complete rounds were found in this demo"
+      : /exceeds|too large|max-bytes/i.test(first)
+        ? "Demo parser: the demo is larger than the allowed size"
+        : "Demo parser could not read this demo (unsupported or corrupted file)";
+  return { message, detail };
+}
+
 /** Deadline grows with the demo: base + 1 s per MB, at most 30 minutes. */
 export function parserDeadlineMs(baseMs: number, demoBytes: number): number {
   return Math.min(
@@ -26,7 +53,7 @@ export function parserDeadlineMs(baseMs: number, demoBytes: number): number {
 /**
  * Adapter over the Go demo-parser binary: no shell, minimal env, hard deadline (SIGKILL) scaled
  * by demo size, normalized JSON written to a private temp file (bounded read, then removed).
- * Error messages never echo parser output.
+ * Error messages never echo parser output; the parser's own error line only goes to diagnostics.
  */
 export class ProcessDemoParser implements DemoParser {
   constructor(
@@ -35,6 +62,9 @@ export class ProcessDemoParser implements DemoParser {
     /** PATH for the child process (the API process PATH, injected by the container). */
     private readonly path: () => string | undefined = () => undefined,
     private readonly maxOutputBytes = MAX_PARSER_OUTPUT_BYTES,
+    /** Receives the parser's own error line (operator diagnostics; never shown to users). */
+    private readonly diagnose: (detail: string) => void = (detail) =>
+      console.warn(JSON.stringify({ event: "demo_parser_failed", detail })),
   ) {}
 
   async parse(demoPath: string, replayPath?: string): Promise<unknown> {
@@ -83,15 +113,13 @@ export class ProcessDemoParser implements DemoParser {
           killSignal: "SIGKILL",
           env: { PATH: this.path() ?? "/usr/bin:/bin" },
         },
-        (error) => {
+        (error, _stdout, stderr) => {
           if (!error) return resolveRun();
-          reject(
-            new Error(
-              error.killed
-                ? "Demo parser deadline exceeded"
-                : "Demo parser rejected input or exceeded output limit",
-            ),
-          );
+          if (error.killed)
+            return reject(new Error("Demo parser deadline exceeded"));
+          const { message, detail } = classifyParserFailure(String(stderr));
+          if (detail) this.diagnose(detail);
+          reject(new Error(message));
         },
       );
     });
