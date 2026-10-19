@@ -17,7 +17,14 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/features/*": ["src/features/*"],
+      "@/shared/*": ["src/shared/*"],
+      "@/server/*": ["src/server/*"],
+      "@/composition/*": ["src/composition/*"]
+    }
   },
   "include": [
     "**/*.ts",

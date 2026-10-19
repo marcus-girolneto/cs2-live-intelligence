@@ -1,0 +1,242 @@
+/* =====================================================================
+   Clip player ("cortes"): 2D tactical replay modal
+   ===================================================================== */
+.dlg.clip-dialog {
+  width: min(1120px, 100%);
+}
+.clip-dialog .dlg-body {
+  padding: var(--s4);
+}
+.clip-loading {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--s3);
+  color: var(--text-2);
+  text-align: center;
+}
+.clip-stage {
+  display: grid;
+  gap: var(--s3);
+}
+.clip-canvas {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--line-2);
+  background: #070a0e;
+  outline: none;
+}
+.clip-canvas:focus-visible {
+  box-shadow: var(--focus);
+}
+.clip-canvas canvas {
+  display: block;
+  cursor: pointer;
+}
+.clip-rec {
+  position: absolute;
+  top: 60px;
+  left: 12px;
+  padding: 2px 8px;
+  background: rgba(255, 93, 93, 0.9);
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.5;
+  }
+}
+.clip-controls {
+  display: grid;
+  gap: var(--s3);
+}
+.clip-timeline {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--s3);
+}
+.clip-time {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-3);
+  min-width: 34px;
+}
+.clip-track {
+  position: relative;
+  height: 28px;
+  display: grid;
+  align-items: center;
+}
+.clip-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.clip-ticks .tick {
+  position: absolute;
+  top: 2px;
+  width: 3px;
+  height: 8px;
+  margin-left: -1.5px;
+  background: var(--text-3);
+  border-radius: 1px;
+}
+.clip-ticks .tick-kill {
+  background: var(--bad);
+  height: 10px;
+}
+.clip-ticks .tick-kill.hs {
+  background: var(--accent);
+}
+.clip-ticks .tick-bomb {
+  background: #ff3b3b;
+  width: 6px;
+  margin-left: -3px;
+}
+.clip-ticks .tick-key {
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: var(--accent-2);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.clip-track input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  margin: 10px 0 0;
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 / var(--p, 0%) 100%
+      no-repeat,
+    var(--panel-3);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.clip-track input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.clip-track input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  border: 2px solid var(--bg);
+}
+.clip-track input[type="range"]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+.clip-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+}
+.clip-play {
+  min-width: 52px;
+  justify-content: center;
+}
+.clip-buttons .btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-2);
+  background: var(--accent-soft);
+}
+.clip-export {
+  margin-left: auto;
+}
+.clip-export.locked {
+  color: var(--text-3);
+}
+.clip-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  font-size: 12px;
+  color: var(--text-3);
+}
+.clip-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.clip-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.clip-legend .lg-ct {
+  background: var(--ct);
+}
+.clip-legend .lg-t {
+  background: var(--t);
+}
+.clip-legend .lg-you {
+  border: 2px solid var(--accent-2);
+}
+.clip-legend .lg-kill {
+  border-radius: 0;
+  background:
+    linear-gradient(
+      45deg,
+      transparent 42%,
+      var(--bad) 42% 58%,
+      transparent 58%
+    ),
+    linear-gradient(
+      -45deg,
+      transparent 42%,
+      var(--bad) 42% 58%,
+      transparent 58%
+    );
+}
+.clip-legend .lg-smoke {
+  background: #b9c2cf;
+}
+.clip-legend .lg-fire {
+  background: #ff8a3d;
+}
+@media (max-width: 640px) {
+  .clip-dialog .dlg-body {
+    padding: var(--s2) 0;
+  }
+  .clip-canvas {
+    border-left: 0;
+    border-right: 0;
+  }
+  .clip-controls,
+  .clip-legend {
+    padding: 0 var(--s3);
+  }
+  .clip-export {
+    margin-left: 0;
+  }
+  .clip-speed button {
+    padding: 0 8px;
+  }
+}
+.clip-track input[type="range"] {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}

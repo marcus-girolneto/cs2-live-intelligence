@@ -1,0 +1,422 @@
+/* =====================================================================
+   Page-specific: upload, settings, coach form, progress, feedback
+   ===================================================================== */
+.upload-form {
+  display: grid;
+  gap: var(--s4);
+}
+.dropzone {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--s2);
+  padding: var(--s7) var(--s5);
+  text-align: center;
+  border: 2px dashed var(--line-2);
+  background:
+    linear-gradient(var(--accent), var(--accent)) top left / 18px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) top left / 2px 18px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom right / 18px 2px
+      no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom right / 2px 18px
+      no-repeat,
+    rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+  color: var(--text);
+  font-size: 15px;
+}
+.dropzone:hover,
+.dropzone.dragging {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+.dropzone:focus-within {
+  box-shadow: var(--focus);
+}
+.dropzone.has-file {
+  border-style: solid;
+  border-color: rgba(79, 209, 139, 0.5);
+}
+.dz-icon {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-bottom: var(--s2);
+}
+.has-file .dz-icon {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.dz-title {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.upload-form > .btn {
+  justify-self: start;
+}
+.upload-tips {
+  display: grid;
+  gap: var(--s3);
+}
+.upload-tips > div {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text-2);
+  font-size: 14px;
+}
+.upload-tips > div > svg {
+  color: var(--accent);
+}
+.tip-text {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+.sample-import.compact {
+  justify-items: start;
+}
+
+/* settings */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+}
+.settings-nav {
+  position: sticky;
+  top: calc(var(--topbar) + 16px);
+  display: grid;
+  gap: 2px;
+}
+.settings-nav a {
+  padding: 10px 12px;
+  color: var(--text-2);
+  border-left: 2px solid var(--line);
+  font-size: 14px;
+  font-weight: 500;
+}
+.settings-nav a:hover {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+.settings-body {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+}
+@media (max-width: 860px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-nav {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+    gap: var(--s2);
+    scrollbar-width: none;
+  }
+  .settings-nav a {
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}
+.settings-body .identity {
+  animation: none;
+}
+.narrow-field {
+  max-width: 220px;
+}
+.secret-box {
+  display: grid;
+  gap: var(--s2);
+  justify-items: start;
+  padding: var(--s4);
+  border: 1px dashed rgba(242, 169, 59, 0.5);
+  background: var(--accent-soft);
+}
+.secret-box strong {
+  font-family: var(--mono);
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  overflow-wrap: anywhere;
+}
+.devices-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+}
+.devices-head h3 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.device-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s2);
+}
+.device-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+.device-list li > svg {
+  color: var(--text-3);
+}
+.device-list li > div:first-of-type {
+  flex: 1;
+  min-width: 160px;
+  display: grid;
+}
+.device-list small {
+  color: var(--text-3);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* coach preferences */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+}
+@media (max-width: 640px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.choice {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: var(--s4);
+  border: 1px solid var(--line-2);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.choice strong {
+  font-family: var(--display);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.choice small {
+  color: var(--text-3);
+  font-weight: 400;
+  font-size: 13px;
+}
+.choice:hover {
+  border-color: rgba(242, 169, 59, 0.5);
+}
+.choice.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.choice:focus-within {
+  box-shadow: var(--focus);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.chips .chip {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.chips .chip input {
+  width: 14px;
+  height: 14px;
+}
+.chips .chip.on {
+  color: var(--accent);
+  border-color: rgba(242, 169, 59, 0.5);
+  background: var(--accent-soft);
+}
+
+/* progress */
+.recurring {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.recurring li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--s3);
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.recurring li:last-child {
+  border-bottom: 0;
+}
+.recurring b {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.rec-dots {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  max-width: 120px;
+}
+.rec-dots i {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(45deg);
+}
+.rec-dots i.on {
+  background: var(--accent);
+}
+@media (max-width: 480px) {
+  .rec-dots {
+    display: none;
+  }
+  .recurring li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+.line-chart svg {
+  width: 100%;
+  height: auto;
+}
+.lc-grid {
+  stroke: rgba(160, 180, 205, 0.1);
+}
+.lc-tick {
+  fill: var(--text-3);
+  font-size: 11px;
+}
+.lc-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-dasharray: 2000;
+  animation: draw 1.2s var(--ease) both;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 2000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.lc-area {
+  animation: fade 1s var(--ease) both;
+}
+.lc-dot {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  transition: r 0.15s;
+}
+.line-chart a:hover .lc-dot,
+.line-chart a:focus .lc-dot {
+  r: 7;
+  fill: var(--accent);
+}
+.lc-val {
+  fill: var(--text);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+}
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s3);
+}
+.review-list > li {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.review-list header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+.review-list .stars button {
+  width: 26px;
+  height: 26px;
+}
+
+/* feedback */
+.feedback-form {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: start;
+}
+.feedback-form .form-actions {
+  grid-column: 1 / -1;
+}
+@media (max-width: 600px) {
+  .feedback-form {
+    grid-template-columns: 1fr;
+  }
+}
+.privacy-page .panel h2 {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}

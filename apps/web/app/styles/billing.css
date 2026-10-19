@@ -1,0 +1,549 @@
+/* =====================================================================
+   Plans, pricing, usage meters, upgrade sheet, per-map views
+   ===================================================================== */
+.usage {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.usage-bar {
+  height: 6px;
+  background: var(--panel-3);
+  overflow: hidden;
+}
+.usage-bar i {
+  display: block;
+  height: 100%;
+  background: var(--good);
+}
+.usage.tone-warn .usage-bar i {
+  background: var(--warn);
+}
+.usage.tone-bad .usage-bar i {
+  background: var(--bad);
+}
+.usage.tone-bad .usage-text {
+  color: #ffb3b3;
+}
+.usage.compact {
+  font-size: 12px;
+}
+.usage-stack {
+  display: grid;
+  gap: var(--s3);
+}
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--line-2);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.plan-badge.plan-basic {
+  color: var(--ct);
+  border-color: rgba(93, 156, 236, 0.5);
+}
+.plan-badge.plan-pro {
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  border-color: transparent;
+}
+
+/* pricing */
+.pricing {
+  display: grid;
+  gap: var(--s5);
+}
+.pricing .ls-head {
+  justify-items: center;
+  text-align: center;
+}
+.pricing-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  justify-content: center;
+  align-items: center;
+}
+.interval-toggle .chip {
+  padding: 0 6px;
+  font-size: 11px;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4);
+  align-items: stretch;
+}
+.price-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s4);
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.price-card.popular {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 24px 60px -30px rgba(242, 169, 59, 0.7);
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(242, 169, 59, 0.16),
+      transparent 60%
+    ),
+    linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.price-card.current {
+  border-color: var(--good);
+}
+.price-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: var(--accent-ink);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.price-card h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 26px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.price-card h3 svg {
+  color: var(--accent);
+}
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: var(--s2) 0 0;
+}
+.price b {
+  font-family: var(--display);
+  font-size: 44px;
+  line-height: 1;
+}
+.price small {
+  color: var(--text-3);
+}
+.price-note {
+  margin: 4px 0 0;
+  color: var(--text-3);
+  font-size: 13px;
+  min-height: 2.6em;
+}
+.plan-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  font-size: 14px;
+}
+.plan-features li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: var(--s2);
+  align-items: start;
+}
+.plan-features li.on svg {
+  color: var(--good);
+}
+.plan-features li.off {
+  color: var(--text-3);
+}
+.plan-features li.off svg {
+  color: var(--text-3);
+}
+.is-current {
+  justify-content: center;
+  color: var(--good);
+  cursor: default;
+}
+.soon-note {
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  border: 1px dashed var(--line-2);
+  color: var(--text-2);
+  font-size: 13px;
+  text-align: center;
+}
+.pricing-sub {
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: var(--s4) 0 0;
+}
+.table.compare th,
+.table.compare td {
+  text-align: center;
+}
+.table.compare th[scope="row"],
+.table.compare thead th:first-child {
+  text-align: left;
+}
+.table.compare .hl {
+  background: rgba(242, 169, 59, 0.06);
+}
+.table.compare .yes {
+  color: var(--good);
+  display: inline-block;
+}
+.table.compare .no {
+  color: var(--text-3);
+  display: inline-block;
+}
+.form-error.center {
+  text-align: center;
+}
+.pricing-page .pricing {
+  padding-top: var(--s4);
+}
+
+/* upgrade sheet */
+.upgrade-sheet .dlg-head h2 svg {
+  color: var(--accent);
+}
+.upsell-card {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--accent);
+  background:
+    radial-gradient(
+      ellipse at 100% 0%,
+      rgba(242, 169, 59, 0.18),
+      transparent 60%
+    ),
+    var(--panel);
+}
+.upsell-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+}
+.upsell-plan {
+  display: inline-flex;
+  gap: var(--s2);
+  align-items: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-2);
+}
+.upsell-price b {
+  font-family: var(--display);
+  font-size: 30px;
+}
+.upsell-price small {
+  color: var(--text-3);
+}
+.upsell-card > p {
+  margin: 0;
+}
+.upsell-actions {
+  display: grid;
+  gap: var(--s2);
+}
+.upsell-actions .btn {
+  justify-content: center;
+}
+
+/* billing page */
+.billing-result {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--s3);
+  padding: var(--s6) var(--s4);
+}
+.br-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid var(--text-3);
+  color: var(--text-3);
+}
+.billing-result.good .br-icon {
+  border-color: var(--good);
+  color: var(--good);
+  box-shadow: 0 0 40px -6px rgba(79, 209, 139, 0.6);
+}
+.br-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  justify-content: center;
+}
+.billing-plan {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.billing-plan .plan-badge {
+  margin: 0;
+  font-size: 15px;
+  padding: 3px 12px;
+}
+
+/* live: locked IGL teaser */
+.hud-ai.locked {
+  border-style: dashed;
+}
+.hud-ai.locked h3 svg {
+  color: var(--accent);
+}
+
+/* admin plans */
+.adm-plans {
+  display: grid;
+  gap: var(--s4);
+}
+.adm-plan {
+  display: grid;
+  gap: var(--s3);
+  border: 1px solid var(--line);
+  padding: var(--s4);
+  margin: 0;
+}
+.adm-plan legend {
+  padding: 0 var(--s2);
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.adm-plan label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.adm-plan label.check {
+  display: flex;
+}
+.adm-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s3);
+}
+.adm-plan-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.adm-plan-cell input[type="date"] {
+  width: 140px;
+}
+
+/* maps */
+.map-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.map-switch {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.map-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--line-2);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.map-switch button:first-child {
+  padding-left: 10px;
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.map-switch button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-2);
+  background: var(--accent-soft);
+}
+.map-plan {
+  display: grid;
+  gap: var(--s3);
+}
+.mp-all {
+  display: grid;
+  gap: var(--s4);
+}
+.mp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s3);
+}
+.mp-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s3);
+  align-items: center;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mp-card:hover {
+  border-color: var(--accent);
+}
+.mp-card > span:nth-child(2) {
+  display: grid;
+}
+.mp-card strong {
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 17px;
+}
+.mp-card small {
+  color: var(--text-3);
+}
+.mp-card .chip {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
+.mp-num {
+  display: grid;
+  justify-items: end;
+  line-height: 1.1;
+}
+.mp-num b {
+  font-family: var(--display);
+  font-size: 22px;
+}
+.mp-map {
+  display: grid;
+  gap: var(--s4);
+}
+.mp-metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s2);
+}
+.mp-metrics li {
+  display: grid;
+  gap: 2px;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.mp-metrics span {
+  font-size: 12px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mp-metrics b {
+  font-family: var(--display);
+  font-size: 24px;
+}
+.mp-metrics small {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.mp-metrics small.up {
+  color: var(--good);
+}
+.mp-metrics small.down {
+  color: #ff9c9c;
+}
+.mp-lock {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px dashed rgba(242, 169, 59, 0.5);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.plan-reminder {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.plan-reminder h3 {
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+  font-size: 18px;
+}
+.plan-reminder h3 svg {
+  color: var(--accent);
+}
+
+@media (max-width: 960px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .price-card.popular {
+    order: -1;
+  }
+}
+.hud-ai.locked > .btn {
+  justify-self: start;
+  align-self: flex-start;
+  width: auto;
+}
