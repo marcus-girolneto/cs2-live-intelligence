@@ -21,6 +21,10 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 - Layered architecture: API modules (routes/controller/service/repository/DTO) and web feature
   modules (api/hooks/components/model).
 
+### Fixed
+
+- Recent CS2 demos failed with "Demo parser rejected input": the parser now uses demoinfocs-golang v5.2.0 (`cs2live.4`), and the API logs the parser's own error message.
+
 ### Planned
 
 - Real 3D clips rendered from the demo in the CS2 client (self-hosted GPU render worker or a render API); v1 ships 2D replay clips.
