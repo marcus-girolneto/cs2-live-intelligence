@@ -105,6 +105,12 @@ export function createPlatformContext(
     new EnvironmentSource(factory),
   ]);
   const aiGateway = config.aiGateway ?? new CoachingAiGateway();
+  const aiAccess = new AiAccessService(
+    aiSettings,
+    aiRepository,
+    aiGateway,
+    logger,
+  );
   const uploadLimits = new UploadLimits(
     aiSettings,
     config.jobs?.maxUploadBytes ?? MAX_UPLOAD_CAP,
@@ -160,7 +166,7 @@ export function createPlatformContext(
     aiGateway,
     uploadLimits,
     audit: adminRepository,
-    aiAccess: new AiAccessService(aiSettings, aiRepository, aiGateway, logger),
+    aiAccess,
     authController: new AuthController(
       new AuthService(
         authRepository,
@@ -208,6 +214,7 @@ export function createPlatformContext(
         adminRepository,
         () => !!env.sampleDemoFile(),
       ),
+      aiAccess,
     ),
   };
 }

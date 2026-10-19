@@ -1,7 +1,17 @@
 import type { AiConfig } from "@cs2/coaching";
 
+/** Extra model facts when the provider exposes them (OpenRouter-style /models). */
+export type ModelDetail = {
+  id: string;
+  name?: string;
+  contextLength?: number;
+  /** USD per million input/output tokens. */
+  pricePerMTokIn?: number;
+  pricePerMTokOut?: number;
+  structuredOutputs?: boolean;
+};
 export type ModelListing =
-  | { supported: true; models: string[] }
+  | { supported: true; models: string[]; details?: ModelDetail[] }
   | { supported: false; models: []; error: string };
 
 /** Port: the model ids an OpenAI-compatible provider offers (GET {baseUrl}/models). */
@@ -38,6 +48,63 @@ export function modelIds(list: unknown[]): string[] {
     .slice(0, 2000);
 }
 
+const perMillion = (v: unknown): number | undefined => {
+  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) && n >= 0
+    ? Math.round(n * 1_000_000 * 10_000) / 10_000
+    : undefined;
+};
+const short = (v: unknown, max: number): string | undefined =>
+  typeof v === "string" && v.length > 0 && v.length <= max ? v : undefined;
+
+/**
+ * Pricing, context length and structured-output support when entries carry them (OpenRouter:
+ * pricing.prompt/completion in USD per token, context_length, supported_parameters). Undefined
+ * when no entry has any of them (plain OpenAI-compatible lists).
+ */
+export function modelDetails(list: unknown[]): ModelDetail[] | undefined {
+  const details = new Map<string, ModelDetail>();
+  let rich = false;
+  for (const m of list) {
+    if (typeof m !== "object" || m === null) continue;
+    const e = m as Record<string, unknown>;
+    const id = short(e.id, 200);
+    if (!id || details.has(id)) continue;
+    const pricing = (e.pricing ?? {}) as Record<string, unknown>;
+    const params = Array.isArray(e.supported_parameters)
+      ? e.supported_parameters
+      : undefined;
+    const ctx = Number(e.context_length);
+    const d: ModelDetail = {
+      id,
+      ...(short(e.name, 200) && e.name !== id
+        ? { name: e.name as string }
+        : {}),
+      ...(Number.isInteger(ctx) && ctx > 0 ? { contextLength: ctx } : {}),
+      ...(perMillion(pricing.prompt) !== undefined
+        ? { pricePerMTokIn: perMillion(pricing.prompt) }
+        : {}),
+      ...(perMillion(pricing.completion) !== undefined
+        ? { pricePerMTokOut: perMillion(pricing.completion) }
+        : {}),
+      ...(params
+        ? {
+            structuredOutputs:
+              params.includes("structured_outputs") ||
+              params.includes("response_format"),
+          }
+        : {}),
+    };
+    if (Object.keys(d).length > 1) rich = true;
+    details.set(id, d);
+  }
+  return rich
+    ? [...details.values()]
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .slice(0, 2000)
+    : undefined;
+}
+
 /** HTTP adapter; never throws (failures become `supported: false` with a safe message). */
 export class HttpModelCatalog implements ModelCatalog {
   constructor(private readonly fetchImpl: typeof fetch = fetch) {}
@@ -67,7 +134,12 @@ export class HttpModelCatalog implements ModelCatalog {
           : null;
       if (!list)
         return unsupported("The provider did not return a model list.");
-      return { supported: true, models: modelIds(list) };
+      const details = modelDetails(list);
+      return {
+        supported: true,
+        models: modelIds(list),
+        ...(details ? { details } : {}),
+      };
     } catch (error) {
       const timeout =
         error instanceof Error &&

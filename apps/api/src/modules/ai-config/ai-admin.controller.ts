@@ -14,19 +14,53 @@ import {
   assignmentsSchema,
   createProviderSchema,
   providerTestSchema,
+  purposeOf,
+  purposeTestSchema,
+  type AiPurpose,
   updateProviderSchema,
 } from "./ai-config.dto.js";
 import type { AiProviderAdminService } from "./ai-provider-admin.service.js";
 import type { AppSettingsService } from "./app-settings.service.js";
 
 type ById = FastifyRequest<{ Params: { id: string } }>;
+/** Port (AiAccessService): a purpose's real connectivity check with its resolved config. */
+export interface PurposeTester {
+  test(
+    adminId: string,
+    purpose: AiPurpose,
+  ): Promise<ConnectivityResult & { purpose: AiPurpose }>;
+}
 
 /** Admin-only AI providers, purpose assignments and app settings. */
 export class AiAdminController {
   constructor(
     private readonly providers: AiProviderAdminService,
     private readonly appSettings: AppSettingsService,
+    private readonly purposes: PurposeTester,
   ) {}
+
+  /** POST /v1/admin/ai/test {purpose, providerId?, model?}. */
+  testPurpose = async (
+    request: FastifyRequest,
+  ): Promise<ConnectivityResult & { purpose: AiPurpose }> => {
+    const body = parseDto(
+      purposeTestSchema,
+      request.body,
+      (e) => `Invalid test request: ${describeIssues(e)}`,
+    );
+    const purpose = purposeOf(body.purpose);
+    if (!body.providerId && !body.model)
+      return this.purposes.test(ownerOf(request), purpose);
+    return {
+      ...(await this.providers.testFor(
+        ownerOf(request),
+        purpose,
+        body.providerId,
+        body.model,
+      )),
+      purpose,
+    };
+  };
 
   list = async (): Promise<{
     providers: ProviderViewDto[];

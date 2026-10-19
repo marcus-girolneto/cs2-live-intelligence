@@ -77,3 +77,26 @@ export type AppSettingsViewDto = {
     };
   };
 };
+
+/** GET /v1/admin/ai/providers/:id/models. */
+export type ModelListingDto =
+  | {
+      supported: true;
+      models: string[];
+      details?: {
+        id: string;
+        name?: string;
+        contextLength?: number;
+        /** USD per million tokens. */
+        pricePerMTokIn?: number;
+        pricePerMTokOut?: number;
+        structuredOutputs?: boolean;
+      }[];
+    }
+  | { supported: false; models: []; error: string };
+/** POST /v1/admin/ai/test body. */
+export type PurposeTestRequest = {
+  purpose: AiPurpose;
+  providerId?: string;
+  model?: string;
+};

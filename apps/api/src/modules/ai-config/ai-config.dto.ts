@@ -174,6 +174,22 @@ export const providerTestSchema = z
   .nullable()
   .optional();
 
+/** POST /v1/admin/ai/test: the purpose's connectivity check, optionally on another provider/model. */
+export const purposeTestSchema = z
+  .object({
+    purpose: z.enum([
+      "review",
+      "review_quick",
+      "review_deep",
+      "live",
+      "report",
+      "personal_coach",
+    ]),
+    providerId: z.string().uuid().optional(),
+    model: modelName.optional(),
+  })
+  .strict();
+
 export type AiAssignment = {
   providerId: string;
   model: string;

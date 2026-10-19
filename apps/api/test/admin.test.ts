@@ -78,6 +78,27 @@ describe.skipIf(!databaseUrl)(
           const auth = req.headers.authorization;
           if (req.method === "GET") {
             hits.push({ url: req.url ?? "", auth, body: {} });
+            if (req.url === "/openrouter/v1/models") {
+              res.writeHead(200, { "content-type": "application/json" });
+              return res.end(
+                JSON.stringify({
+                  data: [
+                    {
+                      id: "vendor/big",
+                      name: "Vendor: Big",
+                      context_length: 200000,
+                      pricing: { prompt: "0.000003", completion: "0.000015" },
+                      supported_parameters: ["tools", "structured_outputs"],
+                    },
+                    {
+                      id: "vendor/free",
+                      pricing: { prompt: "0", completion: "0" },
+                      supported_parameters: ["temperature"],
+                    },
+                  ],
+                }),
+              );
+            }
             if (req.url === "/v1/models") {
               res.writeHead(200, { "content-type": "application/json" });
               return res.end(
@@ -265,6 +286,7 @@ describe.skipIf(!databaseUrl)(
         ["GET", `/v1/admin/ai/providers/${id}/models`],
         ["GET", "/v1/admin/ai/assignments"],
         ["PUT", "/v1/admin/ai/assignments"],
+        ["POST", "/v1/admin/ai/test"],
         ["GET", "/v1/admin/settings"],
         ["PUT", "/v1/admin/settings"],
         ["GET", "/v1/admin/users"],
@@ -601,6 +623,69 @@ describe.skipIf(!databaseUrl)(
         models: ["alpha-model", "zeta-model"],
       });
       expect(hits.at(-1)!.auth).toBe(`Bearer ${SECRET}`);
+      // OpenRouter-style lists also return pricing per million tokens and capabilities.
+      const router = await createProvider({
+        name: "Router",
+        baseUrl: `${base}/openrouter/v1`,
+      });
+      expect(
+        (
+          await call("GET", `/v1/admin/ai/providers/${router.id}/models`)
+        ).json(),
+      ).toEqual({
+        supported: true,
+        models: ["vendor/big", "vendor/free"],
+        details: [
+          {
+            id: "vendor/big",
+            name: "Vendor: Big",
+            contextLength: 200000,
+            pricePerMTokIn: 3,
+            pricePerMTokOut: 15,
+            structuredOutputs: true,
+          },
+          {
+            id: "vendor/free",
+            pricePerMTokIn: 0,
+            pricePerMTokOut: 0,
+            structuredOutputs: false,
+          },
+        ],
+      });
+      // Per-purpose connectivity checks: resolved config, or another model/provider.
+      const purposeTest = await call(
+        "POST",
+        "/v1/admin/ai/test",
+        adminHeaders,
+        {
+          purpose: "personal_coach",
+        },
+      );
+      expect(purposeTest.statusCode).toBe(200);
+      expect(purposeTest.json()).toMatchObject({
+        ok: true,
+        purpose: "personal_coach",
+      });
+      expect(
+        (
+          await call("POST", "/v1/admin/ai/test", adminHeaders, {
+            purpose: "review_deep",
+            providerId: p.id,
+            model: "candidate-model",
+          })
+        ).json(),
+      ).toMatchObject({
+        ok: true,
+        model: "candidate-model",
+        purpose: "review_deep",
+      });
+      expect(
+        (
+          await call("POST", "/v1/admin/ai/test", adminHeaders, {
+            purpose: "nope",
+          })
+        ).statusCode,
+      ).toBe(400);
       // Providers without /models are tolerated.
       const noList = await createProvider({
         name: "No list",

@@ -158,8 +158,14 @@ export const productPaths = {
   },
   "/v1/admin/ai/providers/{id}/models": {
     get: operation(
-      "Admin only: model ids from the provider's /models endpoint",
+      "Admin only: {supported, models: string[], details?: [{id, name?, contextLength?, pricePerMTokIn?, pricePerMTokOut? (USD per million tokens), structuredOutputs?}]} from the provider's /models endpoint (details when the provider exposes them, e.g. OpenRouter); {supported: false, models: [], error} otherwise",
       { parameters: id },
+    ),
+  },
+  "/v1/admin/ai/test": {
+    post: operation(
+      "Admin only: a purpose's real connectivity check {purpose: review_quick|review_deep|live|report|personal_coach (review = review_quick), providerId?, model?} → {ok, provider, model, latencyMs, reply, purpose}; without providerId/model the purpose's resolved config (assignment, fallback chain or env) is used, otherwise the given provider (default: the purpose's assigned one) and model",
+      { requestBody: body({ type: "object" }) },
     ),
   },
   "/v1/admin/ai/assignments": {

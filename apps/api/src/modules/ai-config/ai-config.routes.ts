@@ -20,6 +20,7 @@ export function registerAiAdminRoutes(
   app.get<ById>("/v1/admin/ai/providers/:id/models", adminOnly, admin.models);
   app.get("/v1/admin/ai/assignments", adminOnly, admin.assignments);
   app.put("/v1/admin/ai/assignments", adminOnly, admin.assign);
+  app.post("/v1/admin/ai/test", adminOnly, admin.testPurpose);
   app.get("/v1/admin/settings", adminOnly, admin.settings);
   app.put("/v1/admin/settings", adminOnly, admin.updateSettings);
 }

@@ -18,6 +18,7 @@ import type { AuditTrail } from "../../shared/ports/audit-trail.js";
 import {
   AI_PURPOSES,
   PROVIDER_OPTION_KEYS,
+  type AiPurpose,
   type AssignmentMap,
   type AssignmentMapView,
   type AssignmentsDto,
@@ -228,6 +229,30 @@ export class AiProviderAdminService {
     } catch (error) {
       throw providerTestError(error);
     }
+  }
+
+  /**
+   * Purpose test on an explicit provider and/or model: defaults to the purpose's assignment
+   * (provider and model), so admins can try a model before assigning it.
+   */
+  async testFor(
+    adminId: string,
+    purpose: AiPurpose,
+    providerId?: string,
+    model?: string,
+  ): Promise<ConnectivityResult> {
+    const assigned = (await this.repository.assignments())[purpose];
+    const id = providerId ?? assigned?.providerId;
+    if (!id)
+      throw new ValidationError(
+        `Pass a providerId: ${purpose} has no assigned provider.`,
+      );
+    const sameProvider = assigned?.providerId === id;
+    return this.test(
+      adminId,
+      id,
+      model ?? (sameProvider ? assigned?.model : undefined),
+    );
   }
 
   async models(id: string): Promise<ModelListing> {
