@@ -1,4 +1,5 @@
 import type { PersonalCoachPlan } from "../personal-coach.js";
+import type { LobbyComparison, TeamReview } from "../team.js";
 import { z } from "zod";
 
 export type CoachPreferencesDto = Record<string, unknown>;
@@ -7,7 +8,57 @@ export type CoachProfileDto = {
   preferences: CoachPreferencesDto;
   playerSteamId: string | null;
   linkedToSteam: boolean;
+  /** Review my demos automatically after processing (absent on older servers). */
+  autoReview?: AutoReviewSettingsDto;
 };
+export type AutoReviewSettingsDto = {
+  enabled: boolean;
+  tier: "quick" | "deep";
+  lang: "en" | "pt";
+};
+/** GET /v1/matches/auto-reviews?ids= item (jobs without an item were not considered). */
+export type AutoReviewStatusDto = {
+  jobId: string;
+  status: "queued" | "running" | "done" | "skipped" | "failed";
+  reason?:
+    | "not_in_demo"
+    | "insufficient_credits"
+    | "disabled"
+    | "daily_cap"
+    | "ai_unavailable"
+    | "error";
+  reviewId?: string;
+};
+export type AutoReviewStatusListDto = { items: AutoReviewStatusDto[] };
+/** POST /v1/analyses/:id/team-review body. */
+export type TeamReviewRequest = { steamId: string; lang?: "en" | "pt" };
+/** POST /v1/analyses/:id/team-review. */
+export type TeamReviewResponseDto = {
+  reviewId: string;
+  creditsSpent: number;
+  balance: number;
+  call: { latencyMs: number; attempts: number } & Record<string, unknown>;
+  teamReview: TeamReview;
+};
+/** GET /v1/analyses/:id/team-reviews?steamId=. */
+export type TeamReviewListDto = {
+  analysisId: string;
+  steamId: string;
+  reviews: {
+    reviewId: string;
+    steamId: string;
+    createdAt: string;
+    creditsSpent: number;
+    promptVersion: string;
+    lang: string;
+    rating: number | null;
+    provider?: string;
+    model?: string;
+    teamReview: TeamReview;
+  }[];
+};
+/** GET /v1/analyses/:id/lobby?steamId=. */
+export type LobbyDto = LobbyComparison & { analysisId: string };
 
 export const planItemSchema = z.object({
   text: z.string().max(300),
