@@ -6,6 +6,7 @@ import type {
 import type { FastifyRequest } from "fastify";
 import { ownerOf } from "../../shared/http/principal.js";
 import { parseDto } from "../../shared/http/validation.js";
+import { creditCheckoutSchema } from "../credits/credits.dto.js";
 import { checkoutRequestSchema } from "./billing.dto.js";
 import type { BillingService } from "./billing.service.js";
 
@@ -22,6 +23,16 @@ export class BillingController {
       { code: "invalid_request" },
     );
     return this.billing.checkout(ownerOf(request), body);
+  };
+
+  creditCheckout = async (request: FastifyRequest): Promise<RedirectDto> => {
+    const body = parseDto(
+      creditCheckoutSchema,
+      request.body,
+      "Body must be {packId, currency: BRL|USD}",
+      { code: "invalid_request" },
+    );
+    return this.billing.creditCheckout(ownerOf(request), body);
   };
 
   portal = async (request: FastifyRequest): Promise<RedirectDto> =>

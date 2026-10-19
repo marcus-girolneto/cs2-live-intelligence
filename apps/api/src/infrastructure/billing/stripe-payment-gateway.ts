@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { UpstreamError, ValidationError } from "../../shared/errors/index.js";
 import type {
   CheckoutRequest,
+  PaymentCheckoutRequest,
   PaymentEvent,
   PaymentGateway,
 } from "./payment-gateway.js";
@@ -126,6 +127,30 @@ export class StripePaymentGateway implements PaymentGateway {
       cancel_url: r.cancelUrl,
       metadata: { ownerId: r.ownerId, planId: r.planId },
       subscription_data: { metadata: { ownerId: r.ownerId, planId: r.planId } },
+    });
+  }
+  createPaymentCheckout(r: PaymentCheckoutRequest): Promise<{ url: string }> {
+    return this.post("/checkout/sessions", {
+      mode: "payment",
+      line_items: [
+        r.priceId
+          ? { price: r.priceId, quantity: 1 }
+          : {
+              price_data: {
+                currency: r.currency.toLowerCase(),
+                unit_amount: r.amount,
+                product_data: { name: r.productName },
+              },
+              quantity: 1,
+            },
+      ],
+      payment_method_types: r.paymentMethodTypes,
+      client_reference_id: r.ownerId,
+      ...(r.customerId ? { customer: r.customerId } : {}),
+      success_url: r.successUrl,
+      cancel_url: r.cancelUrl,
+      metadata: r.metadata,
+      payment_intent_data: { metadata: r.metadata },
     });
   }
   createPortal(

@@ -32,13 +32,24 @@ import {
 const plan = (
   id: string,
   sort: number,
-  limits: PlanRecord["limits"],
-  features = { clipExport: id !== "free", perMapLearning: id === "pro" },
+  limits: Omit<PlanRecord["limits"], "monthlyCredits">,
+  features = {
+    clipExport: id !== "free",
+    perMapLearning: id === "pro",
+    cheaperDeep: id === "pro",
+    monthlyReport: id === "pro",
+    reel: id === "pro",
+    deepHistory: id === "pro",
+    priorityQueue: id === "pro",
+  },
 ): PlanRecord => ({
   id,
   name: id[0]!.toUpperCase() + id.slice(1),
   prices: id === "free" ? {} : { BRL: { month: 1490, year: 14900 } },
-  limits,
+  limits: {
+    ...limits,
+    monthlyCredits: id === "pro" ? 45 : id === "basic" ? 15 : 0,
+  },
   features,
   stripePrices: id === "basic" ? { BRL_month: "price_basicbrl" } : {},
   active: true,
@@ -99,6 +110,9 @@ class FakePlans implements PlansRepository {
   }
   async saveSubscription(s: SubscriptionRecord) {
     this.subs.set(s.ownerId, { ...s });
+  }
+  async activeSubscriptions() {
+    return [...this.subs.values()];
   }
   async findSubscriptionByStripe(ref: {
     customerId?: string | null;
@@ -398,6 +412,9 @@ describe("BillingService (in-memory fakes)", () => {
     async createCheckout(r: CheckoutRequest) {
       this.checkouts.push(r);
       return { url: "https://pay.example/c" };
+    }
+    async createPaymentCheckout() {
+      return { url: "https://pay.example/once" };
     }
     async createPortal(customer: string) {
       return { url: `https://pay.example/p/${customer}` };

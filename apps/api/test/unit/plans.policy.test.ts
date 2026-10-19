@@ -65,8 +65,10 @@ describe("PlanPolicy", () => {
   it("admins are unlimited with every feature", () => {
     const admin = PlanPolicy.admin();
     expect(admin.admin).toBe(true);
-    expect(Object.values(admin.limits).every((v) => v === null)).toBe(true);
-    expect(admin.features).toEqual({ clipExport: true, perMapLearning: true });
+    const { monthlyCredits, ...quotas } = admin.limits;
+    expect(Object.values(quotas).every((v) => v === null)).toBe(true);
+    expect(monthlyCredits).toBe(0);
+    expect(Object.values(admin.features).every((v) => v === true)).toBe(true);
   });
   it("upgrades to the next active plan with a higher or unlimited quota", () => {
     const plans = [

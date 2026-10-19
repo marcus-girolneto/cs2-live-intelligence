@@ -1,5 +1,5 @@
 import type { ConnectivityResult } from "../../infrastructure/ai/coaching-ai-gateway.js";
-import type { AiPurpose } from "./ai-config.dto.js";
+import { purposeOf, type AiPurpose } from "./ai-config.dto.js";
 import type { FastifyRequest } from "fastify";
 import type { AuthGuards } from "../../shared/http/guards.js";
 import { ownerOf } from "../../shared/http/principal.js";
@@ -18,8 +18,5 @@ export class AiStatusController {
   test = async (
     request: FastifyRequest<{ Body: { purpose?: unknown } | null }>,
   ): Promise<ConnectivityResult & { purpose: AiPurpose }> =>
-    this.access.test(
-      ownerOf(request),
-      request.body?.purpose === "live" ? "live" : "review",
-    );
+    this.access.test(ownerOf(request), purposeOf(request.body?.purpose));
 }

@@ -541,6 +541,10 @@ describe.skipIf(!databaseUrl)("GET /v1/me Steam profile", () => {
       memberSince: expect.any(String),
       plan: expect.objectContaining({ id: "free", source: "default" }),
       usage: expect.objectContaining({ day: expect.any(String) }),
+      credits: expect.objectContaining({
+        balance: 0,
+        welcome: { status: "ineligible", reason: "not_steam" },
+      }),
     });
     expect(
       (await app.inject({ method: "POST", url: "/v1/me/refresh-profile" }))

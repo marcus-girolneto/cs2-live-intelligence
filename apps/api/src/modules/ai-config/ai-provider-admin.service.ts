@@ -19,6 +19,7 @@ import {
   AI_PURPOSES,
   PROVIDER_OPTION_KEYS,
   type AssignmentMap,
+  type AssignmentMapView,
   type AssignmentsDto,
   type CreateProviderDto,
   type ProviderViewDto,
@@ -44,6 +45,10 @@ function invalid(result: AiConfigResult): ValidationError | undefined {
         details: { missing: result.missing },
       });
 }
+
+/** Adds the legacy "review" key (= review_quick) for older clients. */
+const withLegacyKey = (map: AssignmentMap): AssignmentMapView =>
+  map.review_quick ? { ...map, review: map.review_quick } : map;
 
 /** Admin management of AI provider profiles and purpose assignments. */
 export class AiProviderAdminService {
@@ -166,14 +171,14 @@ export class AiProviderAdminService {
     await this.changed(adminId, "ai.provider.delete", { providerId: id });
   }
 
-  async assignments(): Promise<{ assignments: AssignmentMap }> {
-    return { assignments: await this.repository.assignments() };
+  async assignments(): Promise<{ assignments: AssignmentMapView }> {
+    return { assignments: withLegacyKey(await this.repository.assignments()) };
   }
 
   async assign(
     adminId: string,
     changes: AssignmentsDto,
-  ): Promise<{ assignments: AssignmentMap }> {
+  ): Promise<{ assignments: AssignmentMapView }> {
     const { rows } = await this.snapshot();
     const settings = await this.settings.settings();
     for (const purpose of AI_PURPOSES) {
@@ -189,7 +194,7 @@ export class AiProviderAdminService {
     }
     await this.repository.setAssignments(changes);
     await this.changed(adminId, "ai.assignments.update", changes);
-    return { assignments: await this.repository.assignments() };
+    return { assignments: withLegacyKey(await this.repository.assignments()) };
   }
 
   async test(

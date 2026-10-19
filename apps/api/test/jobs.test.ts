@@ -67,6 +67,10 @@ describe.skipIf(!databaseUrl)(
       // Plan quotas are covered in plans.test.ts; these tests run on the Pro plan.
       await repo.pool.query("delete from usage_counters");
       await repo.pool.query("delete from usage_live_matches");
+      // AI reviews spend credits: start every test with a known balance.
+      await repo.pool.query("delete from credit_ledger");
+      await repo.pool.query("delete from credit_wallets");
+      await repo.grantCredits("owner", 50);
       await repo.pool.query(
         "insert into subscriptions(owner_id,plan_id,status,source) values('owner','pro','active','admin') on conflict(owner_id) do update set plan_id='pro',status='active',current_period_end=null",
       );
@@ -734,7 +738,9 @@ describe.skipIf(!databaseUrl)(
         expect(hits).toHaveLength(1);
         // The capped request did not consume a plan review.
         const me = (await app.inject({ url: "/v1/me", headers })).json();
-        expect(me.usage.aiReviews).toEqual({ used: 1, limit: 8 });
+        expect(me.usage.aiReviews).toEqual({ used: 1, limit: 30 });
+        // ...nor spend its credits (the hold was released).
+        expect(me.credits.balance).toBe(49);
       });
     });
     it("imports the configured public sample demo into the caller's account", async () => {

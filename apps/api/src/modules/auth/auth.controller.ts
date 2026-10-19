@@ -58,6 +58,7 @@ export class AuthController {
     const result = await this.auth.completeSteamLogin(
       query,
       readCookie(request, STATE_COOKIE),
+      request.ip,
     );
     if (result.status === "unavailable")
       throw new AppError(502, "Steam verification unavailable");

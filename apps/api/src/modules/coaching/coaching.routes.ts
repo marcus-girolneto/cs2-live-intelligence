@@ -34,4 +34,14 @@ export function registerCoachingRoutes(
     user,
     controller.review,
   );
+  app.get<{ Params: { id: string } }>(
+    "/v1/analyses/:id/reviews",
+    user,
+    controller.matchReviews,
+  );
+  app.get<{ Params: { id: string } }>(
+    "/v1/analyses/:id/reel",
+    user,
+    controller.reel,
+  );
 }

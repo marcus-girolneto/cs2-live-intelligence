@@ -84,7 +84,7 @@ export const productPaths = {
   },
   "/v1/analyses/{id}/coaching": {
     post: operation(
-      "Per-player AI review {steamId, lang}: real model call within the plan quota (402 plan_limit). Returns {reviewId, steamId, call:{latencyMs, attempts}, coaching (v5: verdict, scores, insights[].clips/scope, keyMoments, drills, planItems), personalization}. Model/provider identity only for admins",
+      "Per-player AI review {steamId, lang, tier: quick|deep (default quick)}. Reserves the tier's credits before the model call (quick 1; deep 3, 2 on Pro; admin-editable), commits after the review is saved, releases on failure. 402 {code: insufficient_credits, tier, needed, balance, packs, upgradeTo}; 402 {code: plan_limit, feature: ai_review} at the per-account daily safety cap. Returns {reviewId, steamId, tier, creditsSpent, balance, call:{latencyMs, attempts}, coaching (quick: igl-review-v6; deep: igl-review-v7-deep with coaching.deep {utility, crosshair, positioning, rounds, history?, caveats}, up to 10 keyMoments and 6 area-tagged drills), personalization}. Model/provider identity only for admins",
       { parameters: id },
     ),
   },
@@ -163,7 +163,7 @@ export const productPaths = {
     ),
   },
   "/v1/admin/ai/assignments": {
-    get: operation("Admin only: provider + model per purpose (review, live)"),
+    get: operation("Admin only: provider + model per purpose (review_quick, review_deep, live, report; legacy key review = both review tiers)"),
     put: operation(
       "Admin only: set or clear (null) the provider + model per purpose",
     ),
@@ -193,7 +193,7 @@ export const productPaths = {
   },
   "/v1/plans": {
     get: operation(
-      "Active plans {plans:[{id,name,prices:{BRL?,USD?:{month,year}} (cents),limits:{aiReviewsPerDay,liveAiMatchesPerDay,uploadsPerDay,retentionDaysMax} (null = unlimited),features:{clipExport,perMapLearning}}]}",
+      "Active plans {plans:[{id,name,prices:{BRL?,USD?:{month,year}} (cents),limits:{aiReviewsPerDay,liveAiMatchesPerDay,uploadsPerDay,retentionDaysMax (null = unlimited),monthlyCredits},features:{clipExport,perMapLearning,cheaperDeep,monthlyReport,reel,deepHistory,priorityQueue},credits:{monthly,quickCost,deepCost},benefits:[enabled feature keys]}]}",
     ),
   },
   "/v1/admin/plans": {

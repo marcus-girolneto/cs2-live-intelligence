@@ -66,6 +66,34 @@ export class PlanLimitError extends AppError {
     );
   }
 }
+/**
+ * 402: not enough credits for the review tier. The body says what it costs, the balance, the
+ * packs on sale and the plan to upgrade to.
+ */
+export class InsufficientCreditsError extends AppError {
+  constructor(details: {
+    tier: "quick" | "deep";
+    needed: number;
+    balance: number;
+    packs: unknown[];
+    upgradeTo: string | null;
+  }) {
+    super(
+      402,
+      `This ${details.tier} review costs ${details.needed} credit${details.needed === 1 ? "" : "s"}; your balance is ${details.balance}.`,
+      { code: "insufficient_credits", details },
+    );
+  }
+}
+/** 402: a feature of a higher plan (e.g. the Pro reel or monthly reports). */
+export class PlanFeatureError extends AppError {
+  constructor(feature: string, upgradeTo: string | null, message: string) {
+    super(402, message, {
+      code: "plan_feature",
+      details: { feature, upgradeTo },
+    });
+  }
+}
 export class ForbiddenError extends AppError {
   constructor(
     message = "Administrator role required",

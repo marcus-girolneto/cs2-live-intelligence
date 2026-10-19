@@ -12,6 +12,7 @@ export async function registerBillingRoutes(
   app.get("/v1/billing/status", user, controller.status);
   app.post("/v1/billing/checkout", user, controller.checkout);
   app.post("/v1/billing/portal", user, controller.portal);
+  app.post("/v1/billing/credits/checkout", user, controller.creditCheckout);
   await app.register(async (scope) => {
     scope.removeContentTypeParser("application/json");
     scope.addContentTypeParser(

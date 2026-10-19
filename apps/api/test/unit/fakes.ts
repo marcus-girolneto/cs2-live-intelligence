@@ -64,9 +64,18 @@ export const plan = (
     liveAiMatchesPerDay: 0,
     uploadsPerDay: 2,
     retentionDaysMax: 30,
+    monthlyCredits: 0,
     ...limits,
   },
-  features: { clipExport: false, perMapLearning: id === "pro" },
+  features: {
+    clipExport: false,
+    perMapLearning: id === "pro",
+    cheaperDeep: id === "pro",
+    monthlyReport: id === "pro",
+    reel: id === "pro",
+    deepHistory: id === "pro",
+    priorityQueue: id === "pro",
+  },
   stripePrices: {},
   active,
   sort,
@@ -109,6 +118,9 @@ export class FakePlansRepository implements PlansRepository {
   }
   async saveSubscription(s: SubscriptionRecord) {
     this.subs.set(s.ownerId, s);
+  }
+  async activeSubscriptions() {
+    return [...this.subs.values()];
   }
   async findSubscriptionByStripe() {
     return undefined;

@@ -2,6 +2,7 @@ import type { AiConfigResult } from "@cs2/coaching";
 import {
   appSettingsSchema,
   DEFAULT_APP_SETTINGS,
+  PURPOSE_FALLBACK,
   type AiPurpose,
   type AppSettings,
   type AssignmentMap,
@@ -36,7 +37,10 @@ export interface AiConfigSource {
 export class AssignedProviderSource implements AiConfigSource {
   constructor(private readonly factory: AiConfigFactory) {}
   resolve(purpose: AiPurpose, snap: AiSnapshot): ResolvedAi | undefined {
-    const assignment = snap.assignments[purpose];
+    const fallback = PURPOSE_FALLBACK[purpose];
+    const assignment =
+      snap.assignments[purpose] ??
+      (fallback ? snap.assignments[fallback] : undefined);
     const row = assignment
       ? snap.providers.find((p) => p.id === assignment.providerId)
       : undefined;

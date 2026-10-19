@@ -464,6 +464,9 @@ describe.skipIf(!databaseUrl)(
         keyConfigured: true,
         purposes: {
           review: { source: "database", model: "review-model" },
+          review_quick: { source: "database", model: "review-model" },
+          review_deep: { source: "database", model: "review-model" },
+          report: { source: "database", model: "review-model" },
           live: { source: "database", model: "live-model" },
         },
       });
@@ -476,7 +479,10 @@ describe.skipIf(!databaseUrl)(
         configured: true,
         purposes: {
           review: { configured: true },
+          review_quick: { configured: true },
+          review_deep: { configured: true },
           live: { configured: true },
+          report: { configured: true },
         },
       });
       expect((await call("POST", "/v1/ai/test", userHeaders)).statusCode).toBe(
@@ -486,7 +492,11 @@ describe.skipIf(!databaseUrl)(
       hits = [];
       expect(
         (await call("POST", "/v1/ai/test", adminHeaders)).json(),
-      ).toMatchObject({ ok: true, model: "review-model", purpose: "review" });
+      ).toMatchObject({
+        ok: true,
+        model: "review-model",
+        purpose: "review_quick",
+      });
       expect(
         (
           await call("POST", "/v1/ai/test", adminHeaders, { purpose: "live" })
@@ -497,6 +507,7 @@ describe.skipIf(!databaseUrl)(
         "insert into subscriptions(owner_id,plan_id,status,source) values('user-1','pro','active','admin') on conflict(owner_id) do update set plan_id='pro'",
       );
       const { id, steamId } = await completedAnalysis("user-1");
+      await repo.grantCredits("user-1", 1);
       const review = await call(
         "POST",
         `/v1/analyses/${id}/coaching`,

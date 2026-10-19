@@ -38,6 +38,8 @@ export interface PlansRepository {
   userExists(ownerId: string): Promise<boolean>;
   subscription(ownerId: string): Promise<SubscriptionRecord | undefined>;
   subscriptions(ownerIds: string[]): Promise<SubscriptionRecord[]>;
+  /** Subscriptions that may currently grant their plan (status and period end checked by PlanPolicy). */
+  activeSubscriptions(): Promise<SubscriptionRecord[]>;
   saveSubscription(sub: SubscriptionRecord): Promise<void>;
   findSubscriptionByStripe(ref: {
     customerId?: string | null;
@@ -55,6 +57,15 @@ const LIMIT_KEYS = [
   "uploadsPerDay",
   "retentionDaysMax",
 ] as const;
+const FEATURES = [
+  "clipExport",
+  "perMapLearning",
+  "cheaperDeep",
+  "monthlyReport",
+  "reel",
+  "deepHistory",
+  "priorityQueue",
+] as const;
 const quota = (v: unknown): number | null =>
   typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;
 /** Stored limits jsonb holds both quotas and feature flags. */
@@ -67,13 +78,16 @@ export function splitLimits(raw: unknown): {
     unknown
   >;
   return {
-    limits: Object.fromEntries(
-      LIMIT_KEYS.map((k) => [k, quota(v[k])]),
-    ) as PlanLimits,
-    features: {
-      clipExport: v.clipExport === true,
-      perMapLearning: v.perMapLearning === true,
+    limits: {
+      ...(Object.fromEntries(LIMIT_KEYS.map((k) => [k, quota(v[k])])) as Omit<
+        PlanLimits,
+        "monthlyCredits"
+      >),
+      monthlyCredits: quota(v.monthlyCredits) ?? 0,
     },
+    features: Object.fromEntries(
+      FEATURES.map((k) => [k, v[k] === true]),
+    ) as PlanFeatures,
   };
 }
 const iso = (v: unknown): string | null =>
@@ -147,6 +161,12 @@ export class PgPlansRepository implements PlansRepository {
     if (!ownerIds.length) return [];
     const r = await this.db.execute(
       sql`select * from subscriptions where owner_id in (select jsonb_array_elements_text(${JSON.stringify(ownerIds)}::jsonb))`,
+    );
+    return r.rows.map((row) => this.sub(row));
+  }
+  async activeSubscriptions(): Promise<SubscriptionRecord[]> {
+    const r = await this.db.execute(
+      sql`select * from subscriptions where status in ('active','trialing','past_due') and (current_period_end is null or current_period_end>now()) order by owner_id limit 100000`,
     );
     return r.rows.map((row) => this.sub(row));
   }

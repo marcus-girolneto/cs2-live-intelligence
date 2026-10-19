@@ -1,7 +1,31 @@
 import { z } from "zod";
 
-export type AiPurpose = "review" | "live";
-export const AI_PURPOSES: AiPurpose[] = ["review", "live"];
+/**
+ * What a model call is for. Quick and deep reviews can use different models (the admin assigns
+ * a stronger one to deep); "report" writes the Pro monthly report narrative. Resolution falls
+ * back review_deep → review_quick and report → review_quick, then to the AI_* environment.
+ */
+export type AiPurpose = "review_quick" | "review_deep" | "live" | "report";
+export const AI_PURPOSES: AiPurpose[] = [
+  "review_quick",
+  "review_deep",
+  "live",
+  "report",
+];
+/** Assignment fallbacks (a purpose without its own assignment uses the next one). */
+export const PURPOSE_FALLBACK: Partial<Record<AiPurpose, AiPurpose>> = {
+  review_deep: "review_quick",
+  report: "review_quick",
+};
+/** Legacy purpose names accepted on input ("review" = both review tiers). */
+export function purposeOf(value: unknown): AiPurpose {
+  return value === "live" ||
+    value === "review_deep" ||
+    value === "report" ||
+    value === "review_quick"
+    ? value
+    : "review_quick";
+}
 
 /** Stored per-provider options (mirrors the AI_* knobs of @cs2/coaching). */
 export const providerOptionsSchema = z
@@ -97,14 +121,34 @@ const modelName = z
 const assignment = z
   .object({ providerId: z.string().uuid(), model: modelName })
   .strict();
-/** PUT /v1/admin/ai/assignments — null unassigns a purpose. */
+/**
+ * PUT /v1/admin/ai/assignments — null unassigns a purpose. The legacy "review" key sets both
+ * review_quick and review_deep (explicit keys win).
+ */
 export const assignmentsSchema = z
   .object({
     review: assignment.nullable().optional(),
+    review_quick: assignment.nullable().optional(),
+    review_deep: assignment.nullable().optional(),
     live: assignment.nullable().optional(),
+    report: assignment.nullable().optional(),
   })
-  .strict();
-export type AssignmentsDto = z.infer<typeof assignmentsSchema>;
+  .strict()
+  .transform(({ review, ...rest }) => ({
+    ...(review !== undefined
+      ? { review_quick: review, review_deep: review }
+      : {}),
+    ...Object.fromEntries(
+      Object.entries(rest).filter(([, v]) => v !== undefined),
+    ),
+  })) as unknown as z.ZodType<
+  Partial<Record<AiPurpose, z.infer<typeof assignment> | null>>,
+  z.ZodTypeDef,
+  unknown
+>;
+export type AssignmentsDto = Partial<
+  Record<AiPurpose, { providerId: string; model: string } | null>
+>;
 /** POST /v1/admin/ai/providers/:id/test. */
 export const providerTestSchema = z
   .object({ model: modelName.optional() })
@@ -118,6 +162,8 @@ export type AiAssignment = {
   updatedAt: string;
 };
 export type AssignmentMap = Partial<Record<AiPurpose, AiAssignment>>;
+/** GET/PUT assignments response: also the legacy "review" key (= review_quick). */
+export type AssignmentMapView = AssignmentMap & { review?: AiAssignment };
 
 /** Provider profile as shown to admins (secrets never leave the server). */
 export type ProviderViewDto = {

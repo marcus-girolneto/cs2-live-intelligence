@@ -1,4 +1,5 @@
-import { analysisSchema } from "@cs2/contracts";
+import { analysisSchema, type Analysis } from "@cs2/contracts";
+import { computeDeep, type DeepResult } from "@cs2/coaching";
 import type {
   AiGateway,
   CoachLanguage,
@@ -9,29 +10,38 @@ import { aiRequestError } from "../ai-config/ai-errors.js";
 import type {
   AiAccess,
   AnalysisHistory,
+  CoachingCredits,
   CoachingFeatures,
   CoachingQuota,
+  DeepReplaySource,
 } from "./coaching.ports.js";
 import type { CoachingRepository } from "./coaching.repository.js";
 import type { PersonalizationService } from "./personalization.service.js";
 import type { ViewerPolicy } from "./viewer.policy.js";
 
+/** Previous deep reviews on the same map fed to a Pro deep review. */
+export const DEEP_HISTORY_MATCHES = 5;
+export type ReviewTier = "quick" | "deep";
+export type ReviewDependencies = {
+  coaching: CoachingRepository;
+  history: AnalysisHistory;
+  personalization: PersonalizationService;
+  quota: CoachingQuota;
+  credits: CoachingCredits;
+  features: CoachingFeatures;
+  ai: AiAccess;
+  gateway: AiGateway;
+  replays: DeepReplaySource;
+  logger: Logger;
+};
+
 /**
- * AI player reviews (POST /v1/analyses/:id/coaching). The plan quota is reserved before the
- * model call and given back on any failure, so only successful reviews count (a
- * reserve/confirm/release sequence instead of a transaction held open across a slow call).
+ * AI player reviews (POST /v1/analyses/:id/coaching), quick or deep. The daily safety cap and
+ * the tier's credits are reserved before the model call and released on any failure; credits
+ * are committed (ledger spend, ref = review id) only after the review is saved.
  */
 export class ReviewService {
-  constructor(
-    private readonly coaching: CoachingRepository,
-    private readonly history: AnalysisHistory,
-    private readonly personalization: PersonalizationService,
-    private readonly quota: CoachingQuota,
-    private readonly features: CoachingFeatures,
-    private readonly ai: AiAccess,
-    private readonly gateway: AiGateway,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private readonly deps: ReviewDependencies) {}
 
   async review(
     ownerId: string,
@@ -39,41 +49,63 @@ export class ReviewService {
     steamId: string,
     lang: CoachLanguage,
     viewer: ViewerPolicy,
+    tier: ReviewTier = "quick",
   ): Promise<Record<string, unknown>> {
-    const stored = await this.history.analysis(ownerId, analysisId);
+    const { coaching, history, quota, credits, ai, gateway, logger } =
+      this.deps;
+    const stored = await history.analysis(ownerId, analysisId);
     if (!stored) throw new NotFoundError("Analysis not found");
     const analysis = analysisSchema.parse(stored.analysis);
     if (!analysis.players.some((p) => p.steamId === steamId))
       throw new NotFoundError("Player not found");
-    const reserved = await this.quota.reserveReview(ownerId);
-    const config = await this.ai
-      .acquire(ownerId, "review")
+    const daily = await quota.reserveReview(ownerId);
+    const hold = await credits
+      .reserve(ownerId, tier)
       .catch(async (error: unknown) => {
-        await reserved.release();
+        await daily.release();
+        throw error;
+      });
+    const release = async () => {
+      await hold.release();
+      await daily.release();
+    };
+    const config = await ai
+      .acquire(ownerId, tier === "deep" ? "review_deep" : "review_quick")
+      .catch(async (error: unknown) => {
+        await release();
         throw error;
       });
     try {
-      const personal = await this.personalization.forPlayer(
+      const personal = await this.deps.personalization.forPlayer(
         ownerId,
         steamId,
         analysisId,
-        await this.features.perMapLearning(ownerId),
+        await this.deps.features.perMapLearning(ownerId),
       );
-      const { coaching, call } = await this.gateway.review(analysis, config, {
+      const deep =
+        tier === "deep"
+          ? await this.deepModules(ownerId, analysisId, analysis, steamId)
+          : undefined;
+      const result = await gateway.review(analysis, config, {
         focusSteamId: steamId,
         lang,
         personal,
+        tier,
+        ...(deep ? { deep } : {}),
       });
-      const reviewId = await this.coaching.saveReview({
+      const { call } = result;
+      const reviewId = await coaching.saveReview({
         ownerId,
         analysisId,
         steamId,
+        tier,
+        creditsSpent: hold.cost,
         provider: call.provider,
         model: call.model,
-        promptVersion: coaching.provenance?.promptVersion ?? "unknown",
+        promptVersion: result.coaching.provenance?.promptVersion ?? "unknown",
         lang,
         preferences: personal.preferences,
-        coaching,
+        coaching: result.coaching,
         latencyMs: call.latencyMs,
         ...(call.usage?.inputTokens !== undefined
           ? { inputTokens: call.usage.inputTokens }
@@ -82,20 +114,26 @@ export class ReviewService {
           ? { outputTokens: call.usage.outputTokens }
           : {}),
       });
-      this.logger.info(
+      const creditsSpent = await hold.commit(reviewId);
+      logger.info(
         {
           provider: call.provider,
           model: call.model,
           latencyMs: call.latencyMs,
           usage: call.usage,
+          tier,
+          creditsSpent,
         },
         "ai player review",
       );
       return {
         reviewId,
         steamId,
+        tier,
+        creditsSpent,
+        balance: await credits.balance(ownerId),
         call: viewer.callMeta(call),
-        coaching: viewer.coaching(coaching),
+        coaching: viewer.coaching(result.coaching),
         personalization: {
           preferences: personal.preferences,
           learnedFromMatches: personal.history?.matches ?? 0,
@@ -103,9 +141,64 @@ export class ReviewService {
         },
       };
     } catch (error) {
-      await reserved.release();
+      await release();
       throw aiRequestError(error, viewer.admin);
     }
+  }
+
+  /** Deterministic deep modules (+ Pro history on the same map). */
+  private async deepModules(
+    ownerId: string,
+    analysisId: string,
+    analysis: Analysis,
+    steamId: string,
+  ): Promise<DeepResult> {
+    const replay = await this.deps.replays.read(analysisId);
+    const previous =
+      analysis.map && (await this.deps.features.deepHistory(ownerId))
+        ? await this.deps.coaching.previousDeep(
+            ownerId,
+            steamId,
+            analysis.map,
+            analysisId,
+            DEEP_HISTORY_MATCHES,
+          )
+        : [];
+    return computeDeep(analysis, steamId, replay, previous);
+  }
+
+  /** GET /v1/analyses/:id/reviews: saved reviews of the match/player per tier (no cost). */
+  async matchReviews(
+    ownerId: string,
+    analysisId: string,
+    steamId: string,
+    viewer: ViewerPolicy,
+  ): Promise<Record<string, unknown>> {
+    if (!(await this.deps.history.analysis(ownerId, analysisId)))
+      throw new NotFoundError("Analysis not found");
+    const reviews = await this.deps.coaching.matchReviews(
+      ownerId,
+      analysisId,
+      steamId,
+    );
+    const latest = (tier: ReviewTier) =>
+      reviews.find((r) => r.tier === tier)?.id ?? null;
+    return {
+      analysisId,
+      steamId,
+      latest: { quick: latest("quick"), deep: latest("deep") },
+      reviews: reviews.map((r) => ({
+        reviewId: r.id,
+        tier: r.tier,
+        createdAt: r.createdAt,
+        creditsSpent: r.creditsSpent,
+        promptVersion: r.promptVersion,
+        lang: r.lang,
+        rating: r.rating,
+        ...(viewer.admin ? { provider: r.provider, model: r.model } : {}),
+        coaching: viewer.coaching(r.coaching),
+      })),
+    };
   }
 
   async rate(
@@ -113,7 +206,7 @@ export class ReviewService {
     reviewId: string,
     rating: number,
   ): Promise<{ ok: true }> {
-    if (!(await this.coaching.rateReview(ownerId, reviewId, rating)))
+    if (!(await this.deps.coaching.rateReview(ownerId, reviewId, rating)))
       throw new NotFoundError("Review not found");
     return { ok: true };
   }

@@ -241,12 +241,36 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         USD: { month: 499, year: 4990 },
       },
       limits: {
-        aiReviewsPerDay: 3,
+        aiReviewsPerDay: null,
         liveAiMatchesPerDay: 1,
         uploadsPerDay: 5,
         retentionDaysMax: 90,
+        monthlyCredits: 15,
       },
-      features: { clipExport: true, perMapLearning: false },
+      features: {
+        clipExport: true,
+        perMapLearning: false,
+        cheaperDeep: false,
+        monthlyReport: false,
+        reel: false,
+        deepHistory: false,
+        priorityQueue: false,
+      },
+      credits: { monthly: 15, quickCost: 1, deepCost: 3 },
+      benefits: ["clipExport"],
+    });
+    expect(plans[2]).toMatchObject({
+      id: "pro",
+      credits: { monthly: 45, quickCost: 1, deepCost: 2 },
+      benefits: [
+        "clipExport",
+        "perMapLearning",
+        "cheaperDeep",
+        "monthlyReport",
+        "reel",
+        "deepHistory",
+        "priorityQueue",
+      ],
     });
     const me = (await app.inject({ url: "/v1/me", headers: user })).json();
     expect(me.plan).toMatchObject({
@@ -255,10 +279,18 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
       source: "default",
       features: { clipExport: false, perMapLearning: false },
     });
+    expect(me.credits).toEqual({
+      balance: 0,
+      buckets: { plan: 0, bonus: 0, purchased: 0 },
+      // Seeded dev accounts never signed in through Steam.
+      welcome: { status: "ineligible", reason: "not_steam" },
+      costs: { quick: 1, deep: 3 },
+    });
     expect(me.usage).toEqual({
       day: "2026-10-19",
       resetsAt: "2026-10-20T03:00:00.000Z",
-      aiReviews: { used: 0, limit: 1 },
+      // The per-account daily safety cap (credits are the main limit).
+      aiReviews: { used: 0, limit: 30 },
       liveAiMatches: { used: 0, limit: 0 },
       uploads: { used: 0, limit: 2 },
     });
@@ -323,19 +355,74 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         headers: user,
         payload: { steamId },
       });
+    // Free accounts start without credits: 402 with the price, packs and upgrade path.
+    const broke = await review();
+    expect(broke.statusCode).toBe(402);
+    expect(broke.json()).toMatchObject({
+      code: "insufficient_credits",
+      tier: "quick",
+      needed: 1,
+      balance: 0,
+      upgradeTo: "basic",
+      packs: [
+        { id: "starter", credits: 10, prices: { BRL: 990, USD: 299 } },
+        { id: "standard", credits: 30 },
+        { id: "pro-pack", credits: 100 },
+      ],
+    });
+    expect(hits).toBe(0);
+    const granted = await app.inject({
+      method: "POST",
+      url: "/v1/admin/users/user/credits",
+      headers: boss,
+      payload: { delta: 1, note: "test" },
+    });
+    expect(granted.statusCode).toBe(200);
+    expect(granted.json().credits.balance).toBe(1);
     mode = "error";
     expect((await review()).statusCode).toBe(502);
     mode = "ok";
-    expect((await review()).statusCode).toBe(200);
+    const ok = await review();
+    expect(ok.statusCode).toBe(200);
+    expect(ok.json()).toMatchObject({
+      tier: "quick",
+      creditsSpent: 1,
+      balance: 0,
+    });
     const limited = await review();
     expect(limited.statusCode).toBe(402);
     expect(limited.json()).toMatchObject({
+      code: "insufficient_credits",
+      balance: 0,
+    });
+    expect(hits).toBe(2);
+    // The per-account daily safety cap still applies whatever the balance.
+    await app.inject({
+      method: "PUT",
+      url: "/v1/admin/credits/settings",
+      headers: boss,
+      payload: { dailySafetyCap: 1 },
+    });
+    await app.inject({
+      method: "POST",
+      url: "/v1/admin/users/user/credits",
+      headers: boss,
+      payload: { delta: 5, note: "cap test" },
+    });
+    const capped = await review();
+    expect(capped.statusCode).toBe(402);
+    expect(capped.json()).toMatchObject({
       code: "plan_limit",
       feature: "ai_review",
       limit: 1,
-      upgradeTo: "basic",
+      upgradeTo: null,
     });
-    expect(hits).toBe(2);
+    await app.inject({
+      method: "PUT",
+      url: "/v1/admin/credits/settings",
+      headers: boss,
+      payload: { dailySafetyCap: 30 },
+    });
     const live = (payload: Record<string, unknown>) =>
       app.inject({
         method: "POST",
@@ -368,7 +455,10 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
     });
     const me = (await app.inject({ url: "/v1/me", headers: user })).json();
     expect(me.usage.liveAiMatches).toEqual({ used: 1, limit: 1 });
-    expect(me.usage.aiReviews).toEqual({ used: 1, limit: 3 });
+    expect(me.usage.aiReviews).toEqual({ used: 1, limit: 30 });
+    // The admin grant of Basic also granted this period's 15 plan credits.
+    expect(me.credits.buckets).toEqual({ plan: 15, bonus: 5, purchased: 0 });
+    expect(me.credits.planExpiresAt).toBe("2026-11-01T03:00:00.000Z");
   });
 
   it("reserves atomically under concurrency", async () => {

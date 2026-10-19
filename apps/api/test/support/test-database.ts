@@ -2,6 +2,7 @@ import { PgAiConfigRepository } from "../../src/modules/ai-config/ai-config.repo
 import { DevAccountSeeder } from "../../src/modules/auth/identity.js";
 import { PgAuthRepository } from "../../src/modules/auth/auth.repository.js";
 import { PgDevicesRepository } from "../../src/modules/devices/devices.repository.js";
+import { PgCreditsRepository } from "../../src/modules/credits/credits.repository.js";
 import {
   PgJobQueueRepository,
   type JobOutcome,
@@ -30,6 +31,15 @@ export class TestDatabase extends Database {
   private readonly queue = new PgJobQueueRepository(this.db);
   private readonly retention = new PgRetentionRepository(this.db);
   private readonly ai = new PgAiConfigRepository(this.db);
+  readonly credits = new PgCreditsRepository(this.db);
+
+  /** Bonus credits for a test account (ledger admin_adjust, like the admin endpoint). */
+  async grantCredits(ownerId: string, delta: number) {
+    return this.credits.credit(
+      { ownerId, delta, reason: "admin_adjust", bucket: "bonus", note: "test" },
+      new Date(),
+    );
+  }
 
   seedDev(
     ownerId: string,

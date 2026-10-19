@@ -52,19 +52,24 @@ export class AiAccessService {
 
   /** GET /v1/ai/status: provider details for admins, only "configured" for everyone else. */
   async status(admin: boolean): Promise<Record<string, unknown>> {
-    const [review, live] = await Promise.all(
-      AI_PURPOSES.map((p) => this.purposeStatus(p)),
+    const statuses = await Promise.all(
+      AI_PURPOSES.map(async (p) => [p, await this.purposeStatus(p)] as const),
     );
+    const by = Object.fromEntries(statuses) as Record<AiPurpose, PurposeStatus>;
+    const review = by.review_quick;
     if (!admin)
       return {
-        configured: review!.configured,
+        configured: review.configured,
         purposes: {
-          review: { configured: review!.configured },
-          live: { configured: live!.configured },
+          // "review" (legacy) is the quick review purpose.
+          review: { configured: review.configured },
+          ...Object.fromEntries(
+            AI_PURPOSES.map((p) => [p, { configured: by[p].configured }]),
+          ),
         },
       };
-    // Top-level fields describe the post-match review purpose (backwards compatible).
-    return { ...review!, purposes: { review: review!, live: live! } };
+    // Top-level fields describe the quick review purpose (backwards compatible).
+    return { ...review, purposes: { review, ...by } };
   }
 
   /** POST /v1/ai/test (admin): one real call through the purpose's configuration. */

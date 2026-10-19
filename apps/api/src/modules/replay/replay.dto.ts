@@ -9,7 +9,11 @@ export const replayTrackSchema = z.object({
   team: z.string().max(16).optional(),
   x: z.array(num),
   y: z.array(num),
+  /** Parser cs2live.3+: height (units), view pitch (degrees, + = down) and crouch flags. */
+  z: z.array(int).optional(),
   yaw: z.array(int),
+  pitch: z.array(int).optional(),
+  duck: z.array(int).optional(),
   hp: z.array(int),
   armor: z.array(int),
   w: z.array(int),

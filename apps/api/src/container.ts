@@ -95,7 +95,12 @@ export async function startContainerWorkers(
   options: JobOptions,
 ): Promise<WorkerHandle> {
   await jobs.workers.storage.ensureReady();
-  return startWorkers(jobs.workers.demos, jobs.workers.retention, options);
+  return startWorkers(
+    jobs.workers.demos,
+    jobs.workers.retention,
+    options,
+    jobs.daily,
+  );
 }
 
 /**

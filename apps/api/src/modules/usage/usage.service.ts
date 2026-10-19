@@ -13,6 +13,10 @@ export interface PlanLookup {
     current: number,
   ): Promise<string | null>;
 }
+/** Port (credits settings): the per-account daily AI review safety cap. */
+export interface SafetyCap {
+  dailySafetyCap(): Promise<number>;
+}
 /** A consumed unit that can be given back when the operation fails. */
 export interface Reservation {
   release(): Promise<void>;
@@ -48,7 +52,16 @@ export class QuotaService {
     private readonly plans: PlanLookup,
     private readonly clock: Clock,
     private readonly liveCallsPerMatch = LIVE_CALLS_PER_MATCH,
+    private readonly cap?: SafetyCap,
   ) {}
+
+  /** Daily AI review limit: the plan's own limit (if any) and the global safety cap. */
+  private async reviewLimit(plan: EffectivePlan): Promise<number | null> {
+    const own = plan.limits.aiReviewsPerDay;
+    const cap = this.cap ? await this.cap.dailySafetyCap() : null;
+    if (own === null) return cap;
+    return cap === null ? own : Math.min(own, cap);
+  }
 
   private async limitError(
     plan: EffectivePlan,
@@ -74,14 +87,25 @@ export class QuotaService {
     kind: CounterKind,
   ): Promise<Reservation> {
     const plan = await this.plans.effective(ownerId);
-    const limit = plan.limits[FEATURE_KEY[feature]];
     if (plan.admin) return noop;
+    const limit =
+      feature === "ai_review"
+        ? await this.reviewLimit(plan)
+        : plan.limits[FEATURE_KEY[feature]];
     const day = this.clock.day();
     if (!(await this.usage.reserve(ownerId, day, kind, limit)))
-      throw await this.limitError(plan, feature, limit ?? 0);
+      throw feature === "ai_review" && plan.limits.aiReviewsPerDay === null
+        ? new PlanLimitError({
+            feature,
+            limit: limit ?? 0,
+            resetsAt: this.clock.nextMidnight(),
+            upgradeTo: null,
+            message: `You reached the daily safety limit of ${limit ?? 0} AI reviews. It resets at midnight.`,
+          })
+        : await this.limitError(plan, feature, limit ?? 0);
     return { release: () => this.usage.release(ownerId, day, kind) };
   }
-  /** One AI player review; throws PlanLimitError (402) when the daily quota is used up. */
+  /** One AI player review; throws PlanLimitError (402) at the daily safety cap / plan limit. */
   reserveReview(ownerId: string): Promise<Reservation> {
     return this.counter(ownerId, "ai_review", "ai_review");
   }
@@ -131,7 +155,10 @@ export class QuotaService {
     return {
       day,
       resetsAt: this.clock.nextMidnight(),
-      aiReviews: { used: reviews, limit: plan.limits.aiReviewsPerDay },
+      aiReviews: {
+        used: reviews,
+        limit: plan.admin ? null : await this.reviewLimit(plan),
+      },
       liveAiMatches: { used: live, limit: plan.limits.liveAiMatchesPerDay },
       uploads: { used: uploads, limit: plan.limits.uploadsPerDay },
     };

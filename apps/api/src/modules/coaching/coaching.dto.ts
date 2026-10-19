@@ -17,11 +17,14 @@ export type CoachProfileRequestDto = {
 export const ratingRequestSchema = z.object({
   rating: z.number().int().min(1).max(5),
 });
-/** POST /v1/analyses/:id/coaching. */
+/** POST /v1/analyses/:id/coaching: tier defaults to quick. */
 export const reviewRequestSchema = z.object({
   steamId: playerIdSchema,
   lang: langSchema,
+  tier: z.enum(["quick", "deep"]).default("quick"),
 });
+/** GET /v1/analyses/:id/reviews and /reel query. */
+export const playerQuerySchema = z.object({ steamId: playerIdSchema });
 /** POST /v1/ai/live-call: a live session id, or a replayed frame's state. */
 export type LiveCallRequestDto = {
   sessionId?: unknown;
@@ -46,6 +49,8 @@ export type NewReview = {
   ownerId: string;
   analysisId: string;
   steamId: string;
+  tier: "quick" | "deep";
+  creditsSpent: number;
   provider: string;
   model: string;
   promptVersion: string;
@@ -67,6 +72,20 @@ export type ReviewRecord = {
   coaching: { summary?: string; plan?: string[] };
   rating: number | null;
   latencyMs: number;
+  createdAt: string;
+  tier: "quick" | "deep";
+};
+/** One saved review of a match/player (GET /v1/analyses/:id/reviews item). */
+export type MatchReviewRecord = {
+  id: string;
+  tier: "quick" | "deep";
+  provider: string;
+  model: string;
+  promptVersion: string;
+  lang: string;
+  coaching: unknown;
+  rating: number | null;
+  creditsSpent: number;
   createdAt: string;
 };
 export type NewLiveCall = {

@@ -92,9 +92,9 @@ describe("AI configuration resolution (Strategy chain + Factory)", () => {
   it("uses the assigned provider over the environment", async () => {
     const { repo, settings } = setup(ENV);
     repo.assigned = {
-      review: { providerId: "p1", model: "db-model", updatedAt: "" },
+      review_quick: { providerId: "p1", model: "db-model", updatedAt: "" },
     };
-    const review = await settings.resolve("review");
+    const review = await settings.resolve("review_quick");
     expect(review).toMatchObject({
       source: "database",
       providerId: "p1",
@@ -107,20 +107,38 @@ describe("AI configuration resolution (Strategy chain + Factory)", () => {
     const live = await settings.resolve("live");
     expect(live.source).toBe("env");
     expect(live.result.ok && live.result.config.model).toBe("env-model");
+    // Deep reviews and reports fall back to the quick review assignment.
+    const deep = await settings.resolve("review_deep");
+    expect(deep.source).toBe("database");
+    expect(deep.result.ok && deep.result.config.model).toBe("db-model");
+    expect((await settings.resolve("report")).source).toBe("database");
+  });
+  it("a deep review assignment overrides the quick one", async () => {
+    const { repo, settings } = setup(ENV);
+    repo.assigned = {
+      review_quick: { providerId: "p1", model: "small", updatedAt: "" },
+      review_deep: { providerId: "p1", model: "large", updatedAt: "" },
+    };
+    const deep = await settings.resolve("review_deep");
+    expect(deep.result.ok && deep.result.config.model).toBe("large");
+    const quick = await settings.resolve("review_quick");
+    expect(quick.result.ok && quick.result.config.model).toBe("small");
   });
   it("falls back to env when the assigned provider row is gone; reports missing env", async () => {
     const { repo, settings } = setup({});
     repo.assigned = {
-      review: { providerId: "missing", model: "m", updatedAt: "" },
+      review_quick: { providerId: "missing", model: "m", updatedAt: "" },
     };
-    const resolved = await settings.resolve("review");
+    const resolved = await settings.resolve("review_quick");
     expect(resolved.source).toBe("env");
     expect(resolved.result.ok).toBe(false);
   });
   it("reports undecryptable credentials instead of throwing", async () => {
     const { repo, settings } = setup(ENV, true);
-    repo.assigned = { review: { providerId: "p1", model: "m", updatedAt: "" } };
-    expect((await settings.resolve("review")).result).toEqual({
+    repo.assigned = {
+      review_quick: { providerId: "p1", model: "m", updatedAt: "" },
+    };
+    expect((await settings.resolve("review_quick")).result).toEqual({
       ok: false,
       reason: UNDECRYPTABLE,
       missing: [],
@@ -129,7 +147,7 @@ describe("AI configuration resolution (Strategy chain + Factory)", () => {
   it("admin settings override env limits; the snapshot is cached until TTL or invalidate()", async () => {
     const { repo, settings, tick } = setup({ ...ENV, AI_DAILY_LIMIT: "5" });
     const limit = async () => {
-      const r = await settings.resolve("review");
+      const r = await settings.resolve("review_quick");
       return r.result.ok ? r.result.config.dailyLimit : "x";
     };
     expect(await limit()).toBe(5);
@@ -150,6 +168,7 @@ describe("AiAccessService", () => {
   const gateway = {
     review: () => Promise.reject(new Error("unused")),
     liveCall: () => Promise.reject(new Error("unused")),
+    monthlyReport: () => Promise.reject(new Error("unused")),
     connectivityCheck: async (c: AiConfig) => ({
       ok: true as const,
       provider: c.provider,
@@ -184,7 +203,7 @@ describe("AiAccessService", () => {
       gateway,
       silentLogger,
     );
-    expect(await appError(limited.acquire("o", "review"))).toMatchObject({
+    expect(await appError(limited.acquire("o", "review_quick"))).toMatchObject({
       status: 429,
       body: {
         error: "Daily AI limit of 3 requests reached.",
@@ -197,7 +216,9 @@ describe("AiAccessService", () => {
       gateway,
       silentLogger,
     );
-    expect((await unlimited.acquire("o", "review")).model).toBe("env-model");
+    expect((await unlimited.acquire("o", "review_quick")).model).toBe(
+      "env-model",
+    );
     expect(calls).toBe(1);
   });
   it("hides provider details from non-admins in status and runs the admin test", async () => {
@@ -209,7 +230,13 @@ describe("AiAccessService", () => {
     );
     expect(await access.status(false)).toEqual({
       configured: true,
-      purposes: { review: { configured: true }, live: { configured: true } },
+      purposes: {
+        review: { configured: true },
+        review_quick: { configured: true },
+        review_deep: { configured: true },
+        live: { configured: true },
+        report: { configured: true },
+      },
     });
     expect(await access.status(true)).toMatchObject({
       model: "env-model",

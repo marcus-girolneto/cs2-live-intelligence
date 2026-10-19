@@ -19,11 +19,29 @@ export const limitsSchema = z
     liveAiMatchesPerDay: quota,
     uploadsPerDay: quota,
     retentionDaysMax: z.number().int().min(1).max(365).nullable(),
+    /** Plan credits granted each billing period (expire at period end, no rollover). */
+    monthlyCredits: z.number().int().min(0).max(100_000),
   })
   .strict();
 export const featuresSchema = z
-  .object({ clipExport: z.boolean(), perMapLearning: z.boolean() })
+  .object({
+    clipExport: z.boolean(),
+    perMapLearning: z.boolean(),
+    /** Deep reviews cost the "proDeepCost" credit setting instead of "deepCost". */
+    cheaperDeep: z.boolean(),
+    /** Monthly performance report (scheduled on the 1st + once on demand per period). */
+    monthlyReport: z.boolean(),
+    /** Full-match highlight/mistake reel (GET /v1/analyses/:id/reel). */
+    reel: z.boolean(),
+    /** Deep reviews compare with previous deep reviews on the same map. */
+    deepHistory: z.boolean(),
+    /** Demo processing jobs are claimed before other plans' jobs. */
+    priorityQueue: z.boolean(),
+  })
   .strict();
+export const FEATURE_KEYS = Object.keys(
+  featuresSchema.shape,
+) as (keyof PlanFeatures)[];
 export const stripePricesSchema = z.record(
   z.string().regex(/^(BRL|USD)_(month|year)$/),
   z.string().regex(/^price_[A-Za-z0-9]{1,200}$/),
@@ -61,6 +79,12 @@ export type SubscriptionStatus =
   "active" | "trialing" | "past_due" | "canceled";
 export type SubscriptionSource = "admin" | "stripe";
 
+/** Credit economics of a plan, for the comparison table. */
+export type PlanCreditsView = {
+  monthly: number;
+  quickCost: number;
+  deepCost: number;
+};
 /** Public plan shape (GET /v1/plans). */
 export type PlanView = {
   id: string;
@@ -68,6 +92,9 @@ export type PlanView = {
   prices: Prices;
   limits: PlanLimits;
   features: PlanFeatures;
+  credits: PlanCreditsView;
+  /** Enabled feature keys in display order (for the comparison table). */
+  benefits: (keyof PlanFeatures)[];
 };
 /** Admin plan shape (GET /v1/admin/plans). */
 export type AdminPlanView = PlanView & {

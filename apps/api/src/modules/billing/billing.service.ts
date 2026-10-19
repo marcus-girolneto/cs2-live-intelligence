@@ -13,6 +13,7 @@ import type {
   PlanRecord,
   SubscriptionRecord,
 } from "../plans/plans.repository.js";
+import type { CreditCheckoutRequest } from "../credits/credits.dto.js";
 import type {
   BillingStatusDto,
   CheckoutRequestDto,
@@ -39,6 +40,27 @@ export interface BillingPlans {
     stripeCustomerId: string | null;
     stripeSubscriptionId: string | null;
   }): Promise<void>;
+}
+/** Port (credits): packs on sale, paid pack grants and plan-period credit grants. */
+export interface BillingCredits {
+  pack(id: string): Promise<
+    | {
+        id: string;
+        name: string;
+        credits: number;
+        prices: Partial<Record<Currency, number>>;
+        stripePrices: Partial<Record<Currency, string>>;
+        active: boolean;
+      }
+    | undefined
+  >;
+  purchase(
+    ownerId: string,
+    packId: string,
+    credits: number,
+    sessionId: string,
+  ): Promise<unknown>;
+  syncPlanCredits(ownerId: string): Promise<unknown>;
 }
 export type BillingConfig = {
   webOrigin: string;
@@ -78,6 +100,7 @@ export class BillingService {
     private readonly plans: BillingPlans,
     private readonly events: BillingRepository,
     private readonly config: BillingConfig,
+    private readonly credits?: BillingCredits,
   ) {
     this.gateway = gateway ?? new NullPaymentGateway();
   }
@@ -137,6 +160,42 @@ export class BillingService {
       cancelUrl: `${this.config.webOrigin}/billing?status=cancel`,
     });
   }
+  /** POST /v1/billing/credits/checkout: one-time Checkout for a credit pack. */
+  async creditCheckout(
+    ownerId: string,
+    request: CreditCheckoutRequest,
+  ): Promise<RedirectDto> {
+    const gateway = this.gw();
+    const pack = await this.credits?.pack(request.packId);
+    if (!pack || !pack.active)
+      throw new NotFoundError("Credit pack not available", NOT_FOUND);
+    const amount = pack.prices[request.currency];
+    const priceId = pack.stripePrices[request.currency] ?? null;
+    if (!priceId && !amount)
+      throw new ValidationError(
+        "This pack has no price in the selected currency.",
+        INVALID,
+      );
+    const existing = await this.plans.subscription(ownerId);
+    return gateway.createPaymentCheckout({
+      ownerId,
+      customerId: existing?.stripeCustomerId ?? null,
+      priceId,
+      currency: request.currency,
+      amount: amount ?? 0,
+      productName: `${pack.name} — ${pack.credits} credits`,
+      metadata: {
+        kind: "credits",
+        packId: pack.id,
+        ownerId,
+        credits: String(pack.credits),
+      },
+      paymentMethodTypes: this.config.paymentMethods[request.currency],
+      successUrl: `${this.config.webOrigin}/billing?credits=success`,
+      cancelUrl: `${this.config.webOrigin}/billing?credits=cancel`,
+    });
+  }
+
   async portal(ownerId: string): Promise<RedirectDto> {
     const gateway = this.gw();
     const customer = (await this.plans.subscription(ownerId))?.stripeCustomerId;
@@ -176,24 +235,79 @@ export class BillingService {
     return null;
   }
 
+  /** A paid one-time Checkout for a credit pack (async methods: when the payment succeeds). */
+  private async creditPurchase(
+    o: Record<string, unknown>,
+    metadata: Record<string, unknown>,
+  ): Promise<void> {
+    if (metadata.kind !== "credits" || o.payment_status !== "paid") return;
+    const ownerId = str(metadata.ownerId) ?? str(o.client_reference_id);
+    const packId = str(metadata.packId);
+    const sessionId = id(o.id);
+    if (!ownerId || !packId || !sessionId || !this.credits) return;
+    // Credits as sold at checkout time (the pack may have been edited since).
+    const sold = Number(str(metadata.credits));
+    const credits =
+      Number.isInteger(sold) && sold > 0
+        ? sold
+        : ((await this.credits.pack(packId))?.credits ?? 0);
+    await this.credits.purchase(ownerId, packId, credits, sessionId);
+  }
+
   private async apply(event: PaymentEvent): Promise<void> {
     const o = event.object;
     const metadata = (o.metadata ?? {}) as Record<string, unknown>;
     switch (event.type) {
-      case "checkout.session.completed": {
-        if (o.mode !== "subscription") return;
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        if (o.mode === "payment") return this.creditPurchase(o, metadata);
+        if (
+          o.mode !== "subscription" ||
+          event.type !== "checkout.session.completed"
+        )
+          return;
         const ownerId = str(o.client_reference_id) ?? str(metadata.ownerId);
         const planId = str(metadata.planId);
         if (!ownerId || !planId) return;
+        const known = await this.plans.subscription(ownerId);
         await this.plans.applyProviderState({
           ownerId,
           planId,
           status: "active",
           source: "stripe",
-          currentPeriodEnd: null,
+          // Keep a period end already reported by subscription/invoice events.
+          currentPeriodEnd:
+            known?.stripeSubscriptionId === id(o.subscription)
+              ? known.currentPeriodEnd
+              : null,
           stripeCustomerId: id(o.customer),
           stripeSubscriptionId: id(o.subscription),
         });
+        await this.credits?.syncPlanCredits(ownerId);
+        return;
+      }
+      case "invoice.paid": {
+        const parent = o.parent as
+          { subscription_details?: { subscription?: unknown } } | undefined;
+        const subscriptionId =
+          id(o.subscription) ?? id(parent?.subscription_details?.subscription);
+        const known = await this.plans.findSubscriptionByStripe({
+          subscriptionId,
+          customerId: id(o.customer),
+        });
+        if (!known || known.source !== "stripe") return;
+        const line = (o.lines as { data?: { period?: { end?: unknown } }[] })
+          ?.data?.[0];
+        await this.plans.applyProviderState({
+          ownerId: known.ownerId,
+          planId: known.planId,
+          status: "active",
+          source: "stripe",
+          currentPeriodEnd: unix(line?.period?.end) ?? known.currentPeriodEnd,
+          stripeCustomerId: known.stripeCustomerId,
+          stripeSubscriptionId: known.stripeSubscriptionId,
+        });
+        await this.credits?.syncPlanCredits(known.ownerId);
         return;
       }
       case "customer.subscription.created":
@@ -227,6 +341,7 @@ export class BillingService {
           stripeCustomerId: customerId,
           stripeSubscriptionId: subscriptionId,
         });
+        await this.credits?.syncPlanCredits(ownerId);
         return;
       }
       case "invoice.payment_failed": {

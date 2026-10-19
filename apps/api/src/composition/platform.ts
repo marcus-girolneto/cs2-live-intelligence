@@ -39,7 +39,10 @@ import { PrivacyController } from "../modules/privacy/privacy.controller.js";
 import { PgPrivacyRepository } from "../modules/privacy/privacy.repository.js";
 import { PrivacyService } from "../modules/privacy/privacy.service.js";
 import { PgUsageRepository } from "../modules/usage/usage.repository.js";
-import { QuotaService } from "../modules/usage/usage.service.js";
+import {
+  LIVE_CALLS_PER_MATCH,
+  QuotaService,
+} from "../modules/usage/usage.service.js";
 import { UsersController } from "../modules/users/users.controller.js";
 import { PgUsersRepository } from "../modules/users/users.repository.js";
 import { UsersService } from "../modules/users/users.service.js";
@@ -48,6 +51,7 @@ import type { Db } from "../shared/db/database.js";
 import { PgUnitOfWork } from "../shared/db/unit-of-work.js";
 import { AuthGuards } from "../shared/http/guards.js";
 import type { Logger } from "../shared/logging/logger.js";
+import { createCreditSettings, createCreditsContext } from "./credits.js";
 import type { LiveContext } from "./live.js";
 
 /**
@@ -72,13 +76,48 @@ export function createPlatformContext(
   const apiPublicUrl = config.apiPublicUrl ?? "http://127.0.0.1:4000";
 
   const clock = config.clock ?? new ZonedClock(env.timeZone());
+  const adminRepository = new PgAdminRepository(db);
+  const creditSettings = createCreditSettings(db, adminRepository);
   const plans = new PlansService(
     new PgPlansRepository(db),
     clock,
     new PgUnitOfWork(db, (tx) => new PgPlansRepository(tx)),
+    creditSettings,
   );
-  const quota = new QuotaService(new PgUsageRepository(db), plans, clock);
+  const quota = new QuotaService(
+    new PgUsageRepository(db),
+    plans,
+    clock,
+    LIVE_CALLS_PER_MATCH,
+    creditSettings,
+  );
   const accountExtras = new PlanAccountExtras(plans, quota);
+
+  const aiRepository = new PgAiConfigRepository(db);
+  const cipher = new AesGcmSecretCipher(() => env.raw());
+  const factory = new AiConfigFactory(cipher, env);
+  const aiSettings = new AiSettingsService(aiRepository, [
+    new AssignedProviderSource(factory),
+    new EnvironmentSource(factory),
+  ]);
+  const aiGateway = config.aiGateway ?? new CoachingAiGateway();
+
+  const steam = new HttpSteamClient(config.steamFetch, () =>
+    env.steamWebApiKey(),
+  );
+  const users = new UsersService(usersRepository, steam, accountExtras);
+  const credits = createCreditsContext(
+    db,
+    creditSettings,
+    plans,
+    clock,
+    adminRepository,
+    env,
+    users,
+    logger,
+  );
+  accountExtras.useCredits(credits.credits);
+  users.onProfileRefreshed(credits.welcome);
   const raw = env.raw();
   const billing = new BillingService(
     createPaymentGateway(raw, config.paymentGateway),
@@ -92,28 +131,21 @@ export function createPlatformContext(
       },
       env: raw,
     },
+    {
+      pack: (id) => creditSettings.pack(id),
+      purchase: (ownerId, packId, amount, sessionId) =>
+        credits.credits.purchase(ownerId, packId, amount, sessionId),
+      syncPlanCredits: (ownerId) => credits.credits.syncPlanCredits(ownerId),
+    },
   );
-
-  const aiRepository = new PgAiConfigRepository(db);
-  const cipher = new AesGcmSecretCipher(() => env.raw());
-  const factory = new AiConfigFactory(cipher, env);
-  const aiSettings = new AiSettingsService(aiRepository, [
-    new AssignedProviderSource(factory),
-    new EnvironmentSource(factory),
-  ]);
-  const aiGateway = config.aiGateway ?? new CoachingAiGateway();
-  const adminRepository = new PgAdminRepository(db);
-
-  const steam = new HttpSteamClient(config.steamFetch, () =>
-    env.steamWebApiKey(),
-  );
-  const users = new UsersService(usersRepository, steam, accountExtras);
   const privacy = new PgPrivacyRepository(db);
   return {
     guards,
     users,
     plans,
     quota,
+    clock,
+    credits,
     privacy,
     aiSettings,
     aiGateway,
@@ -127,6 +159,8 @@ export function createPlatformContext(
         live.invalidation,
         env,
         apiPublicUrl,
+        Date.now,
+        credits.welcome,
       ),
       config.webOrigin,
       apiPublicUrl,

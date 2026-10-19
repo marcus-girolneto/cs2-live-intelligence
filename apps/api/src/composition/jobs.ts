@@ -15,7 +15,12 @@ import { PgCoachingRepository } from "../modules/coaching/coaching.repository.js
 import { LiveCallService } from "../modules/coaching/live-call.service.js";
 import { PersonalizationService } from "../modules/coaching/personalization.service.js";
 import { ProgressService } from "../modules/coaching/progress.service.js";
+import { ReelService } from "../modules/coaching/reel.service.js";
 import { ReviewService } from "../modules/coaching/review.service.js";
+import { ReportsController } from "../modules/reports/reports.controller.js";
+import { PgReportsRepository } from "../modules/reports/reports.repository.js";
+import { ReportsService } from "../modules/reports/reports.service.js";
+import { DailyJobsWorker } from "../workers/daily-jobs.worker.js";
 import { FeedbackController } from "../modules/feedback/feedback.controller.js";
 import { PgFeedbackRepository } from "../modules/feedback/feedback.repository.js";
 import { FeedbackService } from "../modules/feedback/feedback.service.js";
@@ -87,8 +92,17 @@ export function createJobsContext(
   env: RuntimeEnv,
   logger: Logger,
 ) {
-  const { guards, quota, plans, privacy, aiAccess, aiGateway, aiSettings } =
-    platform;
+  const {
+    guards,
+    quota,
+    plans,
+    privacy,
+    aiAccess,
+    aiGateway,
+    aiSettings,
+    credits,
+    clock,
+  } = platform;
   const maxBytes = options.maxUploadBytes ?? 64 * 1024 * 1024;
   const workers = createWorkers(
     db,
@@ -122,7 +136,27 @@ export function createJobsContext(
     matches,
     coachPlans,
   );
-  const features = { perMapLearning: (id: string) => plans.perMapLearning(id) };
+  const features = {
+    perMapLearning: (id: string) => plans.feature(id, "perMapLearning"),
+    deepHistory: (id: string) => plans.feature(id, "deepHistory"),
+    reel: (id: string) => plans.feature(id, "reel"),
+  };
+  const reports = new ReportsService(
+    new PgReportsRepository(db),
+    matches,
+    {
+      playerSteamId: async (ownerId) =>
+        (await coaching.profile(ownerId)).playerSteamId,
+      deepReviewsBetween: (ownerId, steamId, from, to) =>
+        coaching.deepReviewsBetween(ownerId, steamId, from, to),
+      monthlyReport: (ownerId) => plans.feature(ownerId, "monthlyReport"),
+    },
+    aiAccess,
+    aiGateway,
+    clock,
+    logger,
+  );
+  const daily = new DailyJobsWorker(plans, credits.credits, reports, logger);
   return {
     maxBytes,
     workers,
@@ -140,16 +174,18 @@ export function createJobsContext(
     coachingController: new CoachingController(
       new CoachProfileService(coaching),
       new ProgressService(coaching, matches, coachPlans),
-      new ReviewService(
+      new ReviewService({
         coaching,
-        matches,
+        history: matches,
         personalization,
         quota,
+        credits: credits.credits,
         features,
-        aiAccess,
-        aiGateway,
+        ai: aiAccess,
+        gateway: aiGateway,
+        replays: workers.replays,
         logger,
-      ),
+      }),
       new LiveCallService(
         coaching,
         live.store,
@@ -161,7 +197,10 @@ export function createJobsContext(
         logger,
       ),
       guards,
+      new ReelService(matches, features),
     ),
+    reportsController: new ReportsController(reports, guards),
+    daily,
     feedbackController: new FeedbackController(
       new FeedbackService(new PgFeedbackRepository(db)),
     ),

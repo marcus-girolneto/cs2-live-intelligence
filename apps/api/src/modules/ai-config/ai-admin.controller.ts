@@ -1,6 +1,10 @@
 import type { ConnectivityResult } from "../../infrastructure/ai/coaching-ai-gateway.js";
 import type { ModelListing } from "../../infrastructure/ai/model-catalog.js";
-import type { AssignmentMap, ProviderViewDto } from "./ai-config.dto.js";
+import type {
+  AssignmentMap,
+  AssignmentMapView,
+  ProviderViewDto,
+} from "./ai-config.dto.js";
 import type { AppSettingsViewDto } from "./app-settings.service.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { ownerOf } from "../../shared/http/principal.js";
@@ -76,12 +80,12 @@ export class AiAdminController {
   models = async (request: ById): Promise<ModelListing> =>
     this.providers.models(request.params.id);
 
-  assignments = async (): Promise<{ assignments: AssignmentMap }> =>
+  assignments = async (): Promise<{ assignments: AssignmentMapView }> =>
     this.providers.assignments();
 
   assign = async (
     request: FastifyRequest,
-  ): Promise<{ assignments: AssignmentMap }> => {
+  ): Promise<{ assignments: AssignmentMapView }> => {
     const body = parseDto(
       assignmentsSchema,
       request.body,

@@ -20,6 +20,7 @@ import { ReviewService } from "../../src/modules/coaching/review.service.js";
 import { ViewerPolicy } from "../../src/modules/coaching/viewer.policy.js";
 import type { StoredSession } from "../../src/modules/telemetry/telemetry.repository.js";
 import { silentLogger } from "../../src/shared/logging/logger.js";
+import { InsufficientCreditsError } from "../../src/shared/errors/index.js";
 import { analysisWith, appError, CountingReservation } from "./fakes.js";
 
 class FakeCoaching implements CoachingRepository {
@@ -50,6 +51,59 @@ class FakeCoaching implements CoachingRepository {
   }
   async liveCalls() {
     return [];
+  }
+  async matchReviews() {
+    return this.savedReviews.map((r, i) => ({
+      id: `rev-${i + 1}`,
+      tier: r.tier,
+      provider: r.provider,
+      model: r.model,
+      promptVersion: r.promptVersion,
+      lang: r.lang,
+      coaching: r.coaching,
+      rating: null,
+      creditsSpent: r.creditsSpent,
+      createdAt: "2026-10-19T00:00:00.000Z",
+    }));
+  }
+  async previousDeep() {
+    return [];
+  }
+  async deepReviewsBetween() {
+    return [];
+  }
+}
+/** Credits fake: a hold that records commits/releases; `balance` limits reservations. */
+class FakeCredits {
+  balanceLeft = 10;
+  commits: string[] = [];
+  releases = 0;
+  async reserve(_ownerId: string, tier: "quick" | "deep") {
+    const cost = tier === "deep" ? 3 : 1;
+    if (this.balanceLeft < cost)
+      throw new InsufficientCreditsError({
+        tier,
+        needed: cost,
+        balance: this.balanceLeft,
+        packs: [],
+        upgradeTo: "basic",
+      });
+    this.balanceLeft -= cost;
+    return {
+      tier,
+      cost,
+      commit: async (ref: string) => {
+        this.commits.push(ref);
+        return cost;
+      },
+      release: async () => {
+        this.releases++;
+        this.balanceLeft += cost;
+      },
+    };
+  }
+  async balance() {
+    return this.balanceLeft;
   }
 }
 const noPlans: CoachPlansRepository = {
@@ -82,11 +136,16 @@ function setup(gatewayError?: Error, acquireError?: Error) {
   const coaching = new FakeCoaching();
   const review = new CountingReservation();
   const live = new CountingReservation();
+  const sent: Parameters<AiGateway["review"]>[2][] = [];
+  const credits = new FakeCredits();
+  const replayReads: string[] = [];
   const gateway: AiGateway = {
-    review: async () => {
+    review: async (_a, _c, options) => {
+      sent.push(options);
       if (gatewayError) throw gatewayError;
       return { coaching: COACHING, call: META };
     },
+    monthlyReport: () => Promise.reject(new Error("unused")),
     liveCall: async () => {
       if (gatewayError) throw gatewayError;
       return { call: { promptVersion: "live-1" } as LiveCall, meta: META };
@@ -95,7 +154,11 @@ function setup(gatewayError?: Error, acquireError?: Error) {
   };
   const deps = [
     { reserveReview: async () => review, reserveLiveCall: async () => live },
-    { perMapLearning: async () => true },
+    {
+      perMapLearning: async () => true,
+      deepHistory: async () => true,
+      reel: async () => false,
+    },
     {
       acquire: async () => {
         if (acquireError) throw acquireError;
@@ -132,7 +195,26 @@ function setup(gatewayError?: Error, acquireError?: Error) {
     coaching,
     review,
     live,
-    reviews: new ReviewService(coaching, history, personalization, ...deps),
+    credits,
+    sent,
+    replayReads,
+    reviews: new ReviewService({
+      coaching,
+      history,
+      personalization,
+      quota: deps[0],
+      credits,
+      features: deps[1],
+      ai: deps[2],
+      gateway,
+      replays: {
+        read: async (id: string) => {
+          replayReads.push(id);
+          return undefined;
+        },
+      },
+      logger: silentLogger,
+    }),
     calls: new LiveCallService(
       coaching,
       { session: async (id) => sessions.get(id) },
@@ -188,6 +270,51 @@ describe("ReviewService", () => {
       unavailable.reviews.review("o", "a1", "p1", "en", user),
     ).rejects.toThrow("not configured");
     expect(unavailable.review.released).toBe(1);
+  });
+  it("charges credits after saving the review and returns the balance", async () => {
+    const s = setup();
+    const result = await s.reviews.review("o", "a1", "p1", "en", user);
+    expect(result).toMatchObject({
+      tier: "quick",
+      creditsSpent: 1,
+      balance: 9,
+    });
+    expect(s.credits.commits).toEqual(["rev-1"]);
+    expect(s.coaching.savedReviews[0]).toMatchObject({
+      tier: "quick",
+      creditsSpent: 1,
+    });
+  });
+  it("deep reviews compute the deep modules from the replay and call the deep tier", async () => {
+    const s = setup();
+    const result = await s.reviews.review("o", "a1", "p1", "en", user, "deep");
+    expect(result).toMatchObject({ tier: "deep", creditsSpent: 3 });
+    expect(s.replayReads).toEqual(["a1"]);
+    expect(s.sent[0]!.tier).toBe("deep");
+    expect(s.sent[0]!.deep?.deep.rounds).toBeDefined();
+    const saved = await s.reviews.matchReviews("o", "a1", "p1", user);
+    expect(saved).toMatchObject({ latest: { quick: null, deep: "rev-1" } });
+  });
+  it("402 insufficient_credits releases the daily reservation; model failures release credits", async () => {
+    const poor = setup();
+    poor.credits.balanceLeft = 0;
+    expect(
+      await appError(poor.reviews.review("o", "a1", "p1", "en", user)),
+    ).toMatchObject({
+      status: 402,
+      body: {
+        code: "insufficient_credits",
+        needed: 1,
+        balance: 0,
+        upgradeTo: "basic",
+      },
+    });
+    expect(poor.review.released).toBe(1);
+    const failed = setup(new Error("boom"));
+    await appError(failed.reviews.review("o", "a1", "p1", "en", user, "deep"));
+    expect(failed.credits.releases).toBe(1);
+    expect(failed.credits.balanceLeft).toBe(10);
+    expect(failed.credits.commits).toEqual([]);
   });
   it("rates only existing reviews", async () => {
     const s = setup();

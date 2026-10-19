@@ -24,6 +24,8 @@ import {
 } from "./modules/auth/static-auth.routes.js";
 import { registerBillingRoutes } from "./modules/billing/billing.routes.js";
 import { registerCoachingRoutes } from "./modules/coaching/coaching.routes.js";
+import { registerCreditsRoutes } from "./modules/credits/credits.routes.js";
+import { registerReportsRoutes } from "./modules/reports/reports.routes.js";
 import { registerDevicesRoutes } from "./modules/devices/devices.routes.js";
 import { registerFeedbackRoutes } from "./modules/feedback/feedback.routes.js";
 import { registerLiveRoutes } from "./modules/live/live.routes.js";
@@ -56,7 +58,10 @@ function registerPlatform(
   registerUsersRoutes(app, platform.usersController, guards);
   registerPrivacyRoutes(app, platform.privacyController, guards);
   registerDevicesRoutes(app, platform.devicesController, guards);
-  app.addHook("onClose", async () => platform.users.drain());
+  app.addHook("onClose", async () => {
+    await platform.users.drain();
+    await platform.credits.welcome.drain();
+  });
   registerAdminRoutes(app, platform.adminController, guards);
 }
 
@@ -72,6 +77,7 @@ async function registerJobs(
   registerFeedbackRoutes(app, jobs.feedbackController, guards);
   registerAiStatusRoutes(app, jobs.aiStatusController, guards);
   registerReplayRoutes(app, jobs.replayController, guards.withStyle("coded"));
+  registerReportsRoutes(app, jobs.reportsController, guards.withStyle("coded"));
   const worker = await startContainerWorkers(jobs, container.config.jobs!);
   app.addHook("onClose", async () => worker.stop());
   container.metrics.addGauge(
@@ -103,6 +109,7 @@ export async function buildHttpApp(
     registerAiAdminRoutes(app, platform.aiAdminController, guards);
     const coded = guards.withStyle("coded");
     registerPlansRoutes(app, platform.plansController, coded);
+    registerCreditsRoutes(app, platform.credits.creditsController, coded);
     await registerBillingRoutes(app, platform.billingController, coded);
   }
   if (jobs) await registerJobs(app, container, jobs, guards);

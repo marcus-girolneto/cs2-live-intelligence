@@ -7,6 +7,7 @@ import type { CoachProfileService } from "./coach-profile.service.js";
 import {
   coachPlayerIdSchema,
   langSchema,
+  playerQuerySchema,
   ratingRequestSchema,
   reviewRequestSchema,
   type CoachProfileRequestDto,
@@ -14,6 +15,7 @@ import {
 } from "./coaching.dto.js";
 import type { LiveCallService } from "./live-call.service.js";
 import type { ProgressService } from "./progress.service.js";
+import type { ReelService } from "./reel.service.js";
 import type { ReviewService } from "./review.service.js";
 import { ViewerPolicy } from "./viewer.policy.js";
 
@@ -27,6 +29,7 @@ export class CoachingController {
     private readonly reviews: ReviewService,
     private readonly liveCalls: LiveCallService,
     private readonly guards: AuthGuards,
+    private readonly reels: ReelService,
   ) {}
 
   private async viewer(ownerId: string): Promise<ViewerPolicy> {
@@ -82,7 +85,34 @@ export class CoachingController {
       body.steamId,
       body.lang,
       await this.viewer(ownerId),
+      body.tier,
     );
+  };
+
+  /** GET /v1/analyses/:id/reviews?steamId= (saved quick/deep reviews, no cost). */
+  matchReviews = async (request: ById): Promise<Record<string, unknown>> => {
+    const ownerId = ownerOf(request);
+    const query = parseDto(
+      playerQuerySchema,
+      request.query ?? {},
+      "Invalid player",
+    );
+    return this.reviews.matchReviews(
+      ownerId,
+      request.params.id,
+      query.steamId,
+      await this.viewer(ownerId),
+    );
+  };
+
+  /** GET /v1/analyses/:id/reel?steamId= (Pro). */
+  reel = async (request: ById): Promise<Record<string, unknown>> => {
+    const query = parseDto(
+      playerQuerySchema,
+      request.query ?? {},
+      "Invalid player",
+    );
+    return this.reels.reel(ownerOf(request), request.params.id, query.steamId);
   };
 
   liveCall = async (

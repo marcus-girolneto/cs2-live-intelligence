@@ -10,11 +10,13 @@ import {
   PlanPolicy,
   type LimitKey,
 } from "./plan.policy.js";
+import { FEATURE_KEYS } from "./plans.dto.js";
 import type {
   AccountPlanSummary,
   AccountPlanView,
   AdminPlanView,
   EffectivePlan,
+  PlanFeatures,
   PlanGrant,
   PlanUpdate,
   PlanView,
@@ -43,13 +45,38 @@ export type ProviderState = {
   stripeSubscriptionId: string | null;
 };
 
-const view = (p: PlanRecord): PlanView => ({
+/** Port (credits): the admin-editable review costs shown in the plan comparison. */
+export interface CreditCosts {
+  costs(): Promise<{
+    quickCost: number;
+    deepCost: number;
+    proDeepCost: number;
+  }>;
+}
+const DEFAULT_COSTS: CreditCosts = {
+  costs: async () => ({ quickCost: 1, deepCost: 3, proDeepCost: 2 }),
+};
+const view = (
+  p: PlanRecord,
+  costs: { quickCost: number; deepCost: number; proDeepCost: number },
+): PlanView => ({
   id: p.id,
   name: p.name,
   prices: p.prices,
   limits: p.limits,
   features: p.features,
+  credits: {
+    monthly: p.limits.monthlyCredits,
+    quickCost: PlanPolicy.reviewCost(p, "quick", costs),
+    deepCost: PlanPolicy.reviewCost(p, "deep", costs),
+  },
+  benefits: FEATURE_KEYS.filter((k) => p.features[k]),
 });
+
+/** Observer (credits): an admin granted a plan (monthly credits may be due now). */
+export interface PlanGrantListener {
+  planGranted(ownerId: string): Promise<unknown>;
+}
 
 /** Plan catalogue, account entitlements (via PlanPolicy), admin grants and provider state. */
 export class PlansService {
@@ -59,15 +86,27 @@ export class PlansService {
     private readonly transaction: UnitOfWork<PlansRepository> = new DirectUnitOfWork(
       repo,
     ),
+    private credits: CreditCosts = DEFAULT_COSTS,
+    private grantListener?: PlanGrantListener,
   ) {}
+
+  /** Late binding (credits are built after plans). */
+  useCredits(costs: CreditCosts, listener: PlanGrantListener): void {
+    this.credits = costs;
+    this.grantListener = listener;
+  }
 
   /** Active plans for signed-in users, in display order. */
   async publicPlans(): Promise<PlanView[]> {
-    return (await this.repo.listPlans()).filter((p) => p.active).map(view);
+    const costs = await this.credits.costs();
+    return (await this.repo.listPlans())
+      .filter((p) => p.active)
+      .map((p) => view(p, costs));
   }
   async adminPlans(): Promise<AdminPlanView[]> {
+    const costs = await this.credits.costs();
     return (await this.repo.listPlans()).map((p) => ({
-      ...view(p),
+      ...view(p, costs),
       active: p.active,
       sort: p.sort,
       stripePrices: p.stripePrices,
@@ -116,6 +155,19 @@ export class PlansService {
   }
   async perMapLearning(ownerId: string): Promise<boolean> {
     return (await this.effective(ownerId)).features.perMapLearning;
+  }
+  /** Whether the account's plan (or admin role) has a feature switch. */
+  async feature(ownerId: string, key: keyof PlanFeatures): Promise<boolean> {
+    return (await this.effective(ownerId)).features[key];
+  }
+  userExists(ownerId: string): Promise<boolean> {
+    return this.repo.userExists(ownerId);
+  }
+  /** Owners whose subscription currently grants a plan (daily credit/report jobs). */
+  async entitledOwners(): Promise<{ ownerId: string; planId: string }[]> {
+    return (await this.repo.activeSubscriptions())
+      .filter((s) => this.entitled(s))
+      .map((s) => ({ ownerId: s.ownerId, planId: s.planId }));
   }
 
   /** GET /v1/me `plan`. */
@@ -260,6 +312,7 @@ export class PlansService {
         until,
       });
     });
+    await this.grantListener?.planGranted(ownerId);
     return this.accountPlan(ownerId);
   }
 

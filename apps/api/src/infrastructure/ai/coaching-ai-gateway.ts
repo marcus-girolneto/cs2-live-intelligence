@@ -7,10 +7,12 @@ import {
   type AiConfig,
   type LiveCall,
   type LiveCoachInput,
+  aiMonthlyReport,
+  type DeepResult,
   type ModelResult,
   type Personalization,
 } from "@cs2/coaching";
-import type { Analysis, Coaching } from "@cs2/contracts";
+import type { Analysis, Coaching, MonthlyReport } from "@cs2/contracts";
 
 export type CoachLanguage = "en" | "pt";
 export type ModelMeta = Omit<ModelResult, "data">;
@@ -23,6 +25,15 @@ export interface ConnectivityResult {
   usage?: ModelResult["usage"];
 }
 
+export type ReviewOptions = {
+  focusSteamId: string;
+  lang: CoachLanguage;
+  personal: Personalization;
+  /** Review tier (default quick); deep needs the precomputed deep modules. */
+  tier?: "quick" | "deep";
+  deep?: DeepResult;
+};
+
 /**
  * Port: everything the API asks of a language model. The provider wire format (chat vs
  * responses API, JSON mode, retries) is a Strategy selected inside @cs2/coaching from the
@@ -32,11 +43,7 @@ export interface AiGateway {
   review(
     analysis: Analysis,
     config: AiConfig,
-    options: {
-      focusSteamId: string;
-      lang: CoachLanguage;
-      personal: Personalization;
-    },
+    options: ReviewOptions,
   ): Promise<AiCoachingResult>;
   liveCall(
     input: LiveCoachInput,
@@ -45,6 +52,12 @@ export interface AiGateway {
   ): Promise<{ call: LiveCall; meta: ModelMeta }>;
   /** One tiny structured call confirming the provider + model answers. */
   connectivityCheck(config: AiConfig): Promise<ConnectivityResult>;
+  /** Narrative of a deterministic monthly report (purpose "report"). */
+  monthlyReport(
+    report: MonthlyReport,
+    config: AiConfig,
+    lang: CoachLanguage,
+  ): Promise<{ report: MonthlyReport; call: ModelMeta }>;
 }
 
 /** Port: deterministic (model-free) coaching attached to every processed upload. */
@@ -57,11 +70,7 @@ export class CoachingAiGateway implements AiGateway, OfflineCoach {
   review(
     analysis: Analysis,
     config: AiConfig,
-    options: {
-      focusSteamId: string;
-      lang: CoachLanguage;
-      personal: Personalization;
-    },
+    options: ReviewOptions,
   ): Promise<AiCoachingResult> {
     return aiCoaching(analysis, config, options);
   }
@@ -75,6 +84,13 @@ export class CoachingAiGateway implements AiGateway, OfflineCoach {
   coach(analysis: Analysis): Promise<Coaching> {
     // Uploads never spend model tokens; AI reviews are requested explicitly per player.
     return generateCoaching(analysis);
+  }
+  monthlyReport(
+    report: MonthlyReport,
+    config: AiConfig,
+    lang: CoachLanguage,
+  ): Promise<{ report: MonthlyReport; call: ModelMeta }> {
+    return aiMonthlyReport(report, config, lang);
   }
   async connectivityCheck(config: AiConfig): Promise<ConnectivityResult> {
     const result = await callModel(config, {

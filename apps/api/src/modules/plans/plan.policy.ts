@@ -12,12 +12,21 @@ export const FALLBACK_FREE: PlanRecord = {
   name: "Free",
   prices: {},
   limits: {
-    aiReviewsPerDay: 1,
+    aiReviewsPerDay: null,
     liveAiMatchesPerDay: 0,
     uploadsPerDay: 2,
     retentionDaysMax: 30,
+    monthlyCredits: 0,
   },
-  features: { clipExport: false, perMapLearning: false },
+  features: {
+    clipExport: false,
+    perMapLearning: false,
+    cheaperDeep: false,
+    monthlyReport: false,
+    reel: false,
+    deepHistory: false,
+    priorityQueue: false,
+  },
   stripePrices: {},
   active: true,
   sort: 0,
@@ -27,6 +36,7 @@ const UNLIMITED: PlanLimits = {
   liveAiMatchesPerDay: null,
   uploadsPerDay: null,
   retentionDaysMax: null,
+  monthlyCredits: 0,
 };
 /** Statuses that keep paid access (past_due keeps access while the provider retries payment). */
 const ENTITLED: SubscriptionStatus[] = ["active", "trialing", "past_due"];
@@ -67,7 +77,15 @@ export const PlanPolicy = {
       name: "Administrator",
       admin: true,
       limits: { ...UNLIMITED },
-      features: { clipExport: true, perMapLearning: true },
+      features: {
+        clipExport: true,
+        perMapLearning: true,
+        cheaperDeep: true,
+        monthlyReport: true,
+        reel: true,
+        deepHistory: true,
+        priorityQueue: true,
+      },
     };
   },
 
@@ -85,6 +103,16 @@ export const PlanPolicy = {
   clampRetention(plan: EffectivePlan, requested: number): number {
     const max = plan.limits.retentionDaysMax;
     return max === null ? requested : Math.min(requested, max);
+  },
+
+  /** Credits charged for a review tier on this plan. */
+  reviewCost(
+    plan: Pick<EffectivePlan, "features">,
+    tier: "quick" | "deep",
+    costs: { quickCost: number; deepCost: number; proDeepCost: number },
+  ): number {
+    if (tier === "quick") return costs.quickCost;
+    return plan.features.cheaperDeep ? costs.proDeepCost : costs.deepCost;
   },
 
   /** Next active plan in display order with a higher (or unlimited) value for `key`. */

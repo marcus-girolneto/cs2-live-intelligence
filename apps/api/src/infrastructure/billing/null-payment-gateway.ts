@@ -8,6 +8,9 @@ export class NullPaymentGateway implements PaymentGateway {
   createCheckout(): Promise<{ url: string }> {
     return Promise.reject(new BillingDisabledError());
   }
+  createPaymentCheckout(): Promise<{ url: string }> {
+    return Promise.reject(new BillingDisabledError());
+  }
   createPortal(): Promise<{ url: string }> {
     return Promise.reject(new BillingDisabledError());
   }

@@ -24,7 +24,7 @@ export const accountPaths = {
   },
   "/v1/me": {
     get: operation(
-      "Current owner: role, Steam id and cached public Steam profile (refreshed when older than 6 h)",
+      "Current owner: role, Steam id, cached public Steam profile (refreshed when older than 6 h), plan, usage {aiReviews (daily safety cap), liveAiMatches, uploads} and credits {balance, buckets:{plan,bonus,purchased}, planExpiresAt?, welcome:{status: granted|ineligible|pending, reason?}, costs:{quick,deep}}",
     ),
   },
   "/v1/me/refresh-profile": {

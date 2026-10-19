@@ -1,4 +1,5 @@
 import type { SteamProfileProvider } from "../../infrastructure/steam/http-steam-client.js";
+import type { SteamProfile } from "../../infrastructure/steam/steam-profile.types.js";
 import { sanitizeStoredProfile } from "../../infrastructure/steam/sanitize-profile.js";
 import { TooManyRequestsError } from "../../shared/errors/index.js";
 import type { ProfileRefresher } from "../auth/auth.service.js";
@@ -11,9 +12,20 @@ export const PROFILE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 export const PROFILE_REFRESH_INTERVAL_MS = 60 * 1000;
 const MAX_TRACKED = 10000;
 
-/** Port: extra GET /v1/me fields contributed by other modules (plan and usage). */
+/** Port: extra GET /v1/me fields contributed by other modules (plan, usage, credits). */
 export interface AccountExtras {
-  extras(ownerId: string): Promise<Record<string, unknown>>;
+  extras(
+    ownerId: string,
+    account: { steamLinked: boolean },
+  ): Promise<Record<string, unknown>>;
+}
+/** Port (credits): told about every successful profile refresh of a Steam account. */
+export interface ProfileListener {
+  profileRefreshed(
+    ownerId: string,
+    steamId: string,
+    profile: SteamProfile,
+  ): void;
 }
 
 /**
@@ -30,7 +42,25 @@ export class UsersService implements ProfileRefresher {
     private readonly steam: SteamProfileProvider,
     private readonly extras: AccountExtras | undefined,
     private readonly now: () => number = Date.now,
+    private listener?: ProfileListener,
   ) {}
+
+  /** Late binding (the credits module is built after this one). */
+  onProfileRefreshed(listener: ProfileListener): void {
+    this.listener = listener;
+  }
+
+  /** ProfileSource (welcome credits): refreshes now (sharing an in-flight refresh), then reads the cache. */
+  async freshProfile(
+    ownerId: string,
+    steamId: string,
+  ): Promise<SteamProfile | undefined> {
+    await this.refreshProfile(ownerId, steamId);
+    const account = await this.users.account(ownerId);
+    return account.steamId === steamId
+      ? sanitizeStoredProfile(account.steamProfile)
+      : undefined;
+  }
 
   me(ownerId: string): Promise<MeDto> {
     return this.view(ownerId, "auto");
@@ -84,7 +114,9 @@ export class UsersService implements ProfileRefresher {
       ...(account.steamId ? { steamId: account.steamId } : {}),
       ...(account.memberSince ? { memberSince: account.memberSince } : {}),
       ...(profile ? { profile } : {}),
-      ...(this.extras ? await this.extras.extras(ownerId) : {}),
+      ...(this.extras
+        ? await this.extras.extras(ownerId, { steamLinked: !!account.steamId })
+        : {}),
     };
   }
 
@@ -116,6 +148,7 @@ export class UsersService implements ProfileRefresher {
       }
       await this.users.saveSteamProfile(ownerId, profile);
       this.failedAt.delete(ownerId);
+      this.listener?.profileRefreshed(ownerId, steamId, profile);
       return true;
     })()
       .catch(() => false)

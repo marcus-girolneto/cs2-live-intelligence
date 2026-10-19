@@ -11,7 +11,13 @@ export type AppSettingsViewDto = {
     maxInputBytes: number | null;
     sampleDemoEnabled: boolean;
     sampleDemoConfigured: boolean;
-    aiSource: { review: "database" | "env"; live: "database" | "env" };
+    aiSource: {
+      review: "database" | "env";
+      review_quick: "database" | "env";
+      review_deep: "database" | "env";
+      live: "database" | "env";
+      report: "database" | "env";
+    };
   };
 };
 
@@ -27,9 +33,11 @@ export class AppSettingsService {
   async view(): Promise<AppSettingsViewDto> {
     this.ai.invalidate();
     const snap = await this.ai.load();
-    const [review, live] = await Promise.all([
-      this.ai.resolve("review"),
+    const [review, deep, live, report] = await Promise.all([
+      this.ai.resolve("review_quick"),
+      this.ai.resolve("review_deep"),
       this.ai.resolve("live"),
+      this.ai.resolve("report"),
     ]);
     return {
       settings: snap.settings,
@@ -43,7 +51,13 @@ export class AppSettingsService {
           : snap.settings.maxInputBytes,
         sampleDemoEnabled: snap.settings.sampleDemoEnabled,
         sampleDemoConfigured: this.sampleDemoConfigured(),
-        aiSource: { review: review.source, live: live.source },
+        aiSource: {
+          review: review.source,
+          review_quick: review.source,
+          review_deep: deep.source,
+          live: live.source,
+          report: report.source,
+        },
       },
     };
   }
