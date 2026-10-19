@@ -20,3 +20,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 - Plans (Free / Basic / Pro) with daily quotas and Stripe checkout (optional).
 - Layered architecture: API modules (routes/controller/service/repository/DTO) and web feature
   modules (api/hooks/components/model).
+
+### Planned
+- Real 3D clips rendered from the demo in the CS2 client (self-hosted GPU render worker or a render API); v1 ships 2D replay clips.
+- Automatic demo import: Valve share-code sync (game authentication code + match sharing code) with Game Coordinator download via a secondary Steam account, and FACEIT Downloads API (requires FACEIT approval). v1 uses manual uploads up to 500 MB.
