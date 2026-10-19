@@ -27,6 +27,8 @@ const bootSchema = z.object({
   DEVICE_ID: z.string().default("dev-device"),
   OBJECT_STORAGE_DIR: z.string().default(".local/objects"),
   DEMO_PARSER_BIN: z.string().default("demo-parser"),
+  /** `external`: demos are parsed by the sandboxed worker service (src/worker.ts), not the API. */
+  DEMO_WORKER: z.enum(["in-process", "external"]).default("in-process"),
   MAX_UPLOAD_BYTES: z.string().optional(),
   WEB_ORIGIN: z.string().default("http://127.0.0.1:3000"),
   API_PUBLIC_URL: z.string().default("http://127.0.0.1:4000"),
@@ -47,6 +49,8 @@ export interface AppConfig {
   devAuth: DevAuthConfig | undefined;
   storageDir: string;
   parserBin: string;
+  /** Where demos are processed: in this process (dev/tests) or by the dedicated worker. */
+  demoWorker: "in-process" | "external";
   maxUploadBytes: number;
   webOrigin: string;
   apiPublicUrl: string;
@@ -85,6 +89,7 @@ export function loadConfig(env: Env = process.env): AppConfig {
       : undefined,
     storageDir: e.OBJECT_STORAGE_DIR,
     parserBin: e.DEMO_PARSER_BIN,
+    demoWorker: e.DEMO_WORKER,
     maxUploadBytes: Number(e.MAX_UPLOAD_BYTES ?? DEFAULT_MAX_UPLOAD),
     webOrigin: e.WEB_ORIGIN,
     apiPublicUrl: e.API_PUBLIC_URL,

@@ -23,6 +23,7 @@ const app = await buildApp({
         storageDir: config.storageDir,
         parserBin: config.parserBin,
         maxUploadBytes: config.maxUploadBytes,
+        processing: config.demoWorker,
       }
     : undefined,
   devices: dev

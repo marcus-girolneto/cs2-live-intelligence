@@ -42,7 +42,8 @@ import { ReplayController } from "../modules/replay/replay.controller.js";
 import { MatchesReplayRepository } from "../modules/replay/replay.repository.js";
 import { ReplayService } from "../modules/replay/replay.service.js";
 import type { Db } from "../shared/db/database.js";
-import type { Logger } from "../shared/logging/logger.js";
+import { silentLogger, type Logger } from "../shared/logging/logger.js";
+import type { ScheduledJob } from "../workers/worker-scheduler.js";
 import { DemoProcessingWorker } from "../workers/demo-processing.worker.js";
 import { RetentionWorker } from "../workers/retention.worker.js";
 import type { LiveContext } from "./live.js";
@@ -56,6 +57,7 @@ export function createWorkers(
   consent: ConsentLookup,
   coach: OfflineCoach,
   overrides: ApiConfig["overrides"] = {},
+  logger: Logger = silentLogger,
 ) {
   const storage = new FsObjectStorage(options.storageDir);
   const replays = new FileReplayStorage(options.storageDir);
@@ -82,6 +84,8 @@ export function createWorkers(
       storage,
       replays,
     ),
+    maintenance: [] as ScheduledJob[],
+    logger,
   };
 }
 
@@ -114,6 +118,7 @@ export function createJobsContext(
     privacy,
     aiGateway,
     config.overrides,
+    logger,
   );
   const matches = new PgMatchesRepository(db);
   const uploads = new UploadService(

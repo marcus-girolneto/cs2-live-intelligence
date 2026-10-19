@@ -9,6 +9,7 @@ services:
       - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks: [default, parser]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U cs2 -d cs2live"]
       interval: 5s
@@ -16,3 +17,7 @@ services:
       retries: 10
 volumes:
   postgres_data:
+networks:
+  # Internal network shared with the sandboxed demo worker (compose.local.yaml); no internet.
+  parser:
+    internal: true

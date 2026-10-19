@@ -19,8 +19,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 	max := flags.Int64("max-bytes", normalize.DefaultMaxBytes, "input size cap (default 500 MiB, maximum 1 GiB)")
 	output := flags.String("output", "", "optional path for the normalized JSON (default: stdout); large demos produce documents far beyond a pipe buffer")
 	replayPath := flags.String("replay", "", "optional path for the gzipped replay artifact (best effort)")
+	version := flags.Bool("version", false, "print the parser version and exit")
 	if err := flags.Parse(args); err != nil {
 		return 2
+	}
+	if *version {
+		fmt.Fprintln(stdout, normalize.Version)
+		return 0
 	}
 	if *input == "" || flags.NArg() != 0 {
 		fmt.Fprintln(stderr, "usage: demo-parser -input /path/match.dem [-max-bytes 524288000] [-output /path/match.json] [-replay /path/match.replay.json.gz]")

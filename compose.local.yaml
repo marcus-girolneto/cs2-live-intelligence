@@ -26,6 +26,8 @@ services:
       ADMIN_STEAM_IDS: ${ADMIN_STEAM_IDS:-}
       OBJECT_STORAGE_DIR: /data/objects
       DEMO_PARSER_BIN: /usr/local/bin/demo-parser
+      # Demos are parsed by the sandboxed `worker` service below, never inside the API.
+      DEMO_WORKER: external
       # Public sample demo that new accounts can import (admins toggle it in Settings).
       SAMPLE_DEMO_FILE: /data/sample/public-cs2.dem
       # Optional extra trusted CA (EXTRA_CA_CERTS_FILE on the host; empty file by default).
@@ -55,6 +57,58 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
+  # Sandboxed demo worker: parses untrusted uploads with a third-party library. Same image as
+  # the API, different command. No internet (only the internal `parser` network shared with
+  # Postgres), read-only root filesystem with a tmpfs /tmp, non-root, no capabilities, bounded
+  # memory/CPU/processes; the parser itself runs under per-process rlimits
+  # (docker/demo-parser-sandbox.sh). See docs/OPERATIONS.md "Demo worker sandbox".
+  worker:
+    build:
+      context: .
+      target: api
+    command: ["node", "--import", "tsx", "src/worker.ts"]
+    working_dir: /app/apps/api
+    init: true
+    restart: unless-stopped
+    user: node
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      # No development identities or tokens in the worker.
+      ALLOW_DEV_AUTH: "false"
+      DATABASE_URL: <DB_CONNECTION_STRING>/cs2live
+      OBJECT_STORAGE_DIR: /data/objects
+      DEMO_PARSER_BIN: /usr/local/bin/demo-parser-sandbox
+    networks: [parser]
+    volumes:
+      # One flat directory: the worker reads demos and writes replay/events artifacts next to
+      # them (and deletes them under retention), so the volume is mounted read-write.
+      - objects:/data/objects
+    read_only: true
+    tmpfs:
+      # Normalized parser output (≈1 MB per match, capped at 480 MiB) and the tsx cache.
+      - /tmp:size=512m,mode=1777,noexec,nosuid,nodev
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Measured: parser peak RSS ≈160 MB on a 218 MB demo; Go heap soft limit 1 GiB; Node ≈200 MB.
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 2
+    pids_limit: 64
+    stop_grace_period: 150s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const f=require('fs');process.exit(Date.now()-Number(f.readFileSync('/tmp/worker-heartbeat','utf8'))<60000?0:1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 4
   # Real collector pipeline for local demos. Shares the API network namespace, so the
   # collector reaches the API on loopback and binds its GSI listener to 127.0.0.1 only.
   collector:
@@ -134,3 +188,7 @@ services:
       retries: 6
 volumes:
   objects:
+networks:
+  # Internal: no route to the internet. Only Postgres and the demo worker are attached.
+  parser:
+    internal: true

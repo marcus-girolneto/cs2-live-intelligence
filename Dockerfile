@@ -28,9 +28,12 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
+# One image for the API and the sandboxed demo worker (compose `worker` service runs
+# `node --import tsx src/worker.ts` from /app/apps/api with a read-only root filesystem).
 FROM build AS api
 ENV NODE_ENV=production API_HOST=0.0.0.0 API_PORT=4000 DEMO_PARSER_BIN=/usr/local/bin/demo-parser
 COPY --from=parser /out/demo-parser /usr/local/bin/demo-parser
+COPY --chmod=0755 docker/demo-parser-sandbox.sh /usr/local/bin/demo-parser-sandbox
 RUN mkdir -p /data/objects && chown -R node:node /data
 USER node
 EXPOSE 4000

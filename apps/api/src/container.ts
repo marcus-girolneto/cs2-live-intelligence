@@ -20,7 +20,11 @@ import { PgPrivacyRepository } from "./modules/privacy/privacy.repository.js";
 import type { Database } from "./shared/db/database.js";
 import { silentLogger, type Logger } from "./shared/logging/logger.js";
 import { AppMetrics } from "./shared/logging/metrics.js";
-import { startWorkers, type WorkerHandle } from "./workers/worker-scheduler.js";
+import {
+  startAccountJobs,
+  startWorkers,
+  type WorkerHandle,
+} from "./workers/worker-scheduler.js";
 
 /**
  * Composition root. Builds every adapter, repository, service and controller exactly once
@@ -89,28 +93,35 @@ export function createContainer(config: ApiConfig): Container {
   };
 }
 
-/** Starts the demo worker and retention schedule of a jobs-enabled container. */
+/**
+ * Starts the demo worker and retention schedule of a jobs-enabled container, or only the
+ * hourly account jobs when demos are processed by the dedicated worker (`processing: external`).
+ */
 export async function startContainerWorkers(
   jobs: JobsContext,
   options: JobOptions,
 ): Promise<WorkerHandle> {
   await jobs.workers.storage.ensureReady();
+  if (options.processing === "external")
+    return startAccountJobs(jobs.daily, options);
   return startWorkers(
     jobs.workers.demos,
     jobs.workers.retention,
     options,
     jobs.daily,
+    jobs.workers.maintenance,
   );
 }
 
 /**
- * Standalone worker over a database (tests and tooling): same wiring as the app's worker,
- * with its own storage adapters.
+ * Standalone worker over a database: the dedicated worker service (src/worker.ts) and tests.
+ * Same wiring as the app's in-process worker, with its own storage adapters.
  */
 export async function createWorker(
   database: Database,
   options: JobOptions,
   env: RuntimeEnv = new RuntimeEnv(),
+  logger: Logger = silentLogger,
 ): Promise<WorkerHandle> {
   const workers = createWorkers(
     database.db,
@@ -118,7 +129,15 @@ export async function createWorker(
     env,
     new PgPrivacyRepository(database.db),
     new CoachingAiGateway(),
+    {},
+    logger,
   );
   await workers.storage.ensureReady();
-  return startWorkers(workers.demos, workers.retention, options);
+  return startWorkers(
+    workers.demos,
+    workers.retention,
+    options,
+    undefined,
+    workers.maintenance,
+  );
 }

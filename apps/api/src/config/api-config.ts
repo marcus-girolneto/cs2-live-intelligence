@@ -18,6 +18,11 @@ export interface JobOptions extends WorkerOptions {
   parserBin: string;
   maxUploadBytes?: number;
   parserTimeoutMs?: number;
+  /**
+   * `external`: the dedicated worker service parses demos and runs retention; this process
+   * only runs the hourly account jobs. Default `in-process` (development, tests, E2E).
+   */
+  processing?: "in-process" | "external";
 }
 
 /**

@@ -65,3 +65,10 @@ func TestCLISizeLimitsAndOutputFile(t *testing.T) {
 		t.Fatalf("output mode %v", info.Mode().Perm())
 	}
 }
+
+func TestCLIVersion(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"-version"}, &stdout, &stderr); code != 0 || !bytes.Contains(stdout.Bytes(), []byte("cs2live.")) {
+		t.Fatalf("version: code=%d stdout=%q", code, stdout.String())
+	}
+}
