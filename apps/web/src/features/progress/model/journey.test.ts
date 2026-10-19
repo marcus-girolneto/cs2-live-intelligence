@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  adherenceCounts,
-  normalizeJourney,
-  summaryLines,
-  trendOf,
-} from "./journey";
+import { normalizeJourney } from "./journey";
+import { adherenceCounts, summaryLines, trendOf } from "./summary";
 
 const full = {
   identity: {

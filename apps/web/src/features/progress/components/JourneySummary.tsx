@@ -3,12 +3,8 @@ import { formatNumber } from "@/shared/format";
 import { Term } from "@/shared/glossary";
 import { useI18n } from "@/shared/i18n";
 import { ArrowDown, ArrowUp } from "@/shared/icons";
-import {
-  adherenceCounts,
-  summaryLines,
-  trendOf,
-  type JourneyNode,
-} from "../model/journey";
+import type { JourneyNode } from "../model/journey";
+import { adherenceCounts, summaryLines, trendOf } from "../model/summary";
 import { HEADLINE, METRIC_INFO } from "../model/metricInfo";
 import { Sparkline } from "./Sparkline";
 
