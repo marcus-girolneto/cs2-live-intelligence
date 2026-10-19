@@ -82,7 +82,11 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 const mean = (v: number[]) =>
   v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
 
-/** Number grounding of the kept texts of a review against the facts they cite. */
+/**
+ * Number grounding of the kept fact-citing texts (insights, patterns, role points, summary)
+ * against the facts they cite. Key moments/rounds are checked against their own event data
+ * inside the review and are not re-scored here.
+ */
 function grounding(
   texts: { text: string; factIds: string[]; eventIds?: string[] }[],
   ctx: ClaimContext,
@@ -119,11 +123,6 @@ function coachingTexts(c: Coaching) {
   const all = c.insights.flatMap((i) => i.evidenceIds);
   return [
     ...c.insights.map((i) => ({ text: i.observation, factIds: i.evidenceIds })),
-    ...(c.keyMoments ?? []).map((m) => ({
-      text: m.whatHappened,
-      factIds: [],
-      eventIds: [m.eventId],
-    })),
     ...(c.summary ? [{ text: c.summary, factIds: all }] : []),
   ];
 }
@@ -136,11 +135,6 @@ function teamTexts(t: TeamReview) {
         factIds: p.evidenceIds,
       })),
     ),
-    ...t.keyRounds.map((k) => ({
-      text: k.whatHappened,
-      factIds: [],
-      eventIds: k.eventIds,
-    })),
   ];
 }
 function language(texts: string[], lang: "en" | "pt") {

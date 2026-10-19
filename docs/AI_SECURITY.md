@@ -1,8 +1,9 @@
 # AI security (prompt injection, prompt leakage, output handling)
 
-Scope: every model call of FRAGMIND's AI coach — quick review (`igl-review-v7`), deep review
-(`igl-review-v8-deep`), live IGL call (`igl-live-v3`), Pro monthly report (`monthly-report-v2`)
-and Pro Personal Coach (`personal-coach-v2`). Code: `packages/coaching/src/security.ts`
+Scope: every model call of FRAGMIND's AI coach — quick review (`igl-review-v8`), deep review
+(`igl-review-v9-deep`), team review (`igl-team-v1`), claim verifier (`verify-v1`), live IGL call
+(`igl-live-v3`), Pro monthly report (`monthly-report-v2`) and Pro Personal Coach
+(`personal-coach-v2`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
 (sanitiser, injection heuristics, output guard), `prompt-kit.ts` (shared prompt sections and the
 single request pipeline), `provider.ts` (request body), `apps/api/src/modules/coaching`
 (preference pre-check) and `apps/api/src/modules/ai-config` (budgets per purpose).
@@ -146,6 +147,32 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
   a request carrying tools throws. Data never influences request parameters — it is only the
   content of the user message.
 - Existing: per-account daily request cap, credits per review tier, bounded retries and timeouts.
+
+### 5. Grounding: confidence, claim checks and the verifier (v8 / v9-deep / team-v1)
+
+- Every fact sent to a review carries `n` (sample size) and `confidence` (low < 5, medium 5-14,
+  high >= 15; stricter for shot- and round-based facts). Prompts require hedged wording for
+  low-confidence facts and forbid making them the top priority; the validator caps each
+  insight/pattern at the best confidence of the facts it cites and ranks low ones last.
+- Deterministic claim checks (`claims.ts`) run on every review: each number in a claim must match
+  a cited fact (value, numerator/denominator, `n`, a percentage of those, with rounding and
+  PT/EN decimal tolerance), a count/round derivable from the cited events, or a small constant;
+  named rounds must be cited rounds; "consecutive / in a row / seguidos" must match a real run of
+  consecutive rounds (else the wording is removed).
+- The verifier (purpose `verify`, fallback review_quick; admin toggle `verifierEnabled`, default
+  on) sees ONLY each claim and the facts it cites (sealed in the same DATA boundary, same output
+  guard) and returns supported / corrected text. Unsupported claims are replaced by a corrected
+  text that passes the deterministic checks, or dropped; stats go to
+  `provenance.verification` (`verifierModel` is hidden from non-admins).
+- Team reviews never send names or Steam ids: players are aliases P1-P5 mapped back server-side.
+
+### 6. Unusual opponents (analysis.integrity)
+
+Deaths to an opponent with integrity level "high" or banned after the match are removed from the
+events, metrics and facts a review sees (`fairAnalysis`). The model only gets a per-round
+`opponentFlagged` boolean and a `deathsNotCounted` count, never who or why; the app appends one
+fixed neutral caveat. The output guard drops accusations (cheater, hacker, wallhack, aimbot,
+trapaceiro, "de wall", xiter, cheat…) in any AI text; the fixed caveat is added after the guard.
 
 ## Red-team results
 

@@ -315,7 +315,7 @@ function scores(us: SideStats, them: SideStats): TeamReview["teamScores"] {
     s.rounds ? (s.flashChains.length + s.together.length) / s.rounds : 0;
   if (us.rounds >= 8)
     out.utility = score(
-      50 + 100 * (perRound(us) - perRound(them)),
+      50 + 50 * (perRound(us) - perRound(them)),
       `flash-assist chains + coordinated throws per round ${r1(perRound(us))} vs enemy ${r1(perRound(them))}`,
     );
   const econUs = rate(us.underdog.won.length, us.underdog.rounds.length);
