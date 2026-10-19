@@ -114,6 +114,11 @@ describe("authenticated proxy boundary", () => {
       ["POST", "admin/ai/providers/3f2c-a1/test"],
       ["GET", "admin/ai/providers/3f2c-a1/models"],
       ["POST", "admin/ai/test"],
+      ["GET", "admin/integrations"],
+      ["PUT", "admin/integrations/steam"],
+      ["PUT", "admin/integrations/stripe"],
+      ["POST", "admin/integrations/steam/test"],
+      ["POST", "admin/integrations/stripe/test"],
       ["GET", "admin/ai/assignments"],
       ["PUT", "admin/ai/assignments"],
       ["GET", "admin/settings"],
@@ -278,5 +283,11 @@ describe("authenticated proxy boundary", () => {
     expect(
       forwardQuery("analyses/a1/coaching", new URLSearchParams("steamId=1")),
     ).toBe("");
+  });
+  it("rejects unknown integrations and wrong verbs", () => {
+    expect(allowedProxy("PUT", "admin/integrations/github")).toBe(false);
+    expect(allowedProxy("DELETE", "admin/integrations/steam")).toBe(false);
+    expect(allowedProxy("GET", "admin/integrations/stripe/test")).toBe(false);
+    expect(allowedProxy("POST", "admin/integrations")).toBe(false);
   });
 });

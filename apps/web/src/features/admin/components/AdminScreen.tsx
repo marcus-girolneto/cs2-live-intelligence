@@ -7,6 +7,7 @@ import {
   Coin,
   Crown,
   Gear,
+  Key,
   ListIcon,
   Lock,
   Server,
@@ -21,6 +22,7 @@ import { AssignmentsPanel } from "./AssignmentsPanel";
 import { AuditPanel } from "./AuditPanel";
 import { CreditPacksEditor } from "./CreditPacksEditor";
 import { CreditSettingsPanel } from "./CreditSettingsPanel";
+import { IntegrationsPanel } from "./integrations/IntegrationsPanel";
 import { PlansEditor } from "./PlansEditor";
 import { ProvidersList } from "./ProvidersList";
 import { SettingsPanel } from "./SettingsPanel";
@@ -33,6 +35,7 @@ type Tab =
   | "settings"
   | "plans"
   | "credits"
+  | "integrations"
   | "users"
   | "audit";
 const TABS: Tab[] = [
@@ -41,6 +44,7 @@ const TABS: Tab[] = [
   "settings",
   "plans",
   "credits",
+  "integrations",
   "users",
   "audit",
 ];
@@ -84,6 +88,7 @@ export function AdminScreen() {
           { id: "settings", label: t("App settings"), icon: <Gear /> },
           { id: "plans", label: t("Plans"), icon: <Crown /> },
           { id: "credits", label: t("Credits"), icon: <Coin /> },
+          { id: "integrations", label: t("Integrations"), icon: <Key /> },
           { id: "users", label: t("Users & roles"), icon: <Users /> },
           { id: "audit", label: t("Audit log"), icon: <ListIcon /> },
         ]}
@@ -99,6 +104,11 @@ export function AdminScreen() {
       {tab === "plans" && (
         <TabPanel idBase={ID} id="plans">
           <PlansEditor onForbidden={deny} />
+        </TabPanel>
+      )}
+      {tab === "integrations" && (
+        <TabPanel idBase={ID} id="integrations">
+          <IntegrationsPanel onForbidden={deny} />
         </TabPanel>
       )}
       {tab === "credits" && (

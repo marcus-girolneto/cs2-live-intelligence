@@ -112,6 +112,10 @@ export type AppSettings = {
     dailyLimit: number | null;
     maxInputBytes: number | null;
     sampleDemoEnabled: boolean;
+    timezone?: string;
+    personalCoachIntervalDays?: number;
+    personalCoachNewMatches?: number;
+    maxDemoBytes?: number;
   };
   updatedAt?: string | null;
   effective?: {

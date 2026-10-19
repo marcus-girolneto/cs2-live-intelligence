@@ -13,6 +13,13 @@ import {
   PURPOSES,
   type AppSettings,
 } from "../model/types";
+import {
+  productBody,
+  productProblems,
+  productSettingsOf,
+  type ProductSettings,
+} from "../model/settings";
+import { ProductSettingsPanel } from "./ProductSettingsPanel";
 import { ReprocessPanel } from "./ReprocessPanel";
 /* ------------------------------------------------------------ app settings */
 export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
@@ -25,6 +32,10 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
   const [daily, setDaily] = useState("");
   const [bytes, setBytes] = useState("");
   const [sample, setSample] = useState(true);
+  const [product, setProduct] = useState<ProductSettings>(() =>
+    productSettingsOf(undefined),
+  );
+  const known = data?.settings as Record<string, unknown> | undefined;
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -34,9 +45,11 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
     setDaily(s.dailyLimit === null ? "" : String(s.dailyLimit));
     setBytes(s.maxInputBytes === null ? "" : String(s.maxInputBytes));
     setSample(s.sampleDemoEnabled);
+    setProduct(productSettingsOf(s as Record<string, unknown>));
   }, [data]);
   async function save(e: FormEvent) {
     e.preventDefault();
+    if (Object.keys(productProblems(product)).length) return;
     setBusy(true);
     setNotice("");
     setSaveError("");
@@ -45,6 +58,7 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
         dailyLimit: daily.trim() ? Number(daily) : null,
         maxInputBytes: bytes.trim() ? Number(bytes) : null,
         sampleDemoEnabled: sample,
+        ...productBody(product, known),
       });
       setData(next);
       setNotice(t("App settings saved."));
@@ -167,6 +181,11 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
           </p>
         )}
       </Panel>
+      <ProductSettingsPanel
+        value={product}
+        known={known}
+        onChange={setProduct}
+      />
       <ReprocessPanel onForbidden={onForbidden} />
       <div className="adm-span form-actions">
         <button className="btn btn-primary" disabled={busy}>

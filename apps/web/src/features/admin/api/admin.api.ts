@@ -12,6 +12,13 @@ import {
   type AdminPack,
   type CreditSettings,
 } from "../model/credits";
+import {
+  normalizeIntegrations,
+  normalizeIntegrationTest,
+  type IntegrationName,
+  type Integrations,
+  type IntegrationTest,
+} from "../model/integrations";
 import { platformHttp, seg, type HttpClient } from "@/shared/http";
 import type {
   AppSettings,
@@ -35,6 +42,17 @@ export interface AdminApi {
   read<T>(path: string): Promise<T>;
   saveAssignments(body: Record<string, unknown>): Promise<void>;
   saveSettings(body: Record<string, unknown>): Promise<AppSettings>;
+  getIntegrations(): Promise<Integrations>;
+  /** null removes the stored key (the .env bootstrap, if any, applies again). */
+  saveSteam(webApiKey: string | null): Promise<void>;
+  /** Omitted fields keep their value; null clears. */
+  saveStripe(body: {
+    secretKey?: string | null;
+    webhookSecret?: string | null;
+    publishableKey?: string | null;
+    enabled?: boolean;
+  }): Promise<void>;
+  testIntegration(name: IntegrationName): Promise<IntegrationTest>;
   reprocess(): Promise<{ queued?: number }>;
   setRole(userId: string, role: string): Promise<AdminUser>;
   testActive(purpose: Purpose): Promise<TestResult>;
@@ -68,6 +86,24 @@ export function createAdminApi(http: HttpClient = platformHttp): AdminApi {
       await http.put("admin/ai/assignments", body);
     },
     saveSettings: (body) => http.put<AppSettings>("admin/settings", body),
+    getIntegrations: async () =>
+      normalizeIntegrations(await http.get<unknown>("admin/integrations")),
+    saveSteam: async (webApiKey) => {
+      await http.put("admin/integrations/steam", { webApiKey });
+    },
+    saveStripe: async (body) => {
+      await http.put("admin/integrations/stripe", body);
+    },
+    testIntegration: async (name) =>
+      normalizeIntegrationTest(
+        await http.post<unknown>(
+          `admin/integrations/${seg(name)}/test`,
+          {},
+          {
+            timeoutMs: 60000,
+          },
+        ),
+      ),
     reprocess: () =>
       http.post<{ queued?: number }>("admin/analyses/reprocess", {}),
     setRole: (userId, role) =>

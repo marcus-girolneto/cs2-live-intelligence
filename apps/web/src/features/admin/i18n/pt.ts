@@ -1,5 +1,6 @@
 // Portuguese (Brazil) translations of the admin feature, keyed by the English source string.
 import { ptCredits } from "./pt-credits";
+import { ptIntegrations } from "./pt-integrations";
 export const pt: Record<string, string> = {
   Administration: "Administração",
   "Control room": "Sala de controle",
@@ -233,4 +234,5 @@ export const pt: Record<string, string> = {
   "Save packs": "Salvar pacotes",
   "Credit settings saved.": "Configurações de créditos salvas.",
   ...ptCredits,
+  ...ptIntegrations,
 };

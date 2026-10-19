@@ -1999,3 +1999,173 @@ svg.down {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------------------- integrations */
+.integ-panel {
+  display: grid;
+  gap: var(--s4, 16px);
+  min-width: 0;
+}
+.integ-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: var(--s4, 16px);
+  align-items: start;
+}
+.integ-card {
+  display: grid;
+  gap: var(--s3, 12px);
+  padding: var(--s4, 16px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--bad);
+  min-width: 0;
+}
+.integ-card.on {
+  border-left-color: var(--good);
+}
+.integ-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s3, 12px);
+  align-items: start;
+}
+.integ-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.integ-head p {
+  margin: 2px 0 0;
+}
+.integ-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  color: var(--accent);
+  background: var(--bg-2, rgba(255, 255, 255, 0.03));
+}
+.integ-pill {
+  white-space: nowrap;
+}
+.integ-help {
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.integ-help p {
+  margin: 0 0 6px;
+}
+.integ-help p:last-child {
+  margin-bottom: 0;
+}
+.integ-help a {
+  color: var(--accent);
+}
+.integ-hook {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.integ-hook code {
+  padding: 2px 6px;
+  background: var(--bg, #0b0f14);
+  border: 1px solid var(--line);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.integ-fields {
+  display: grid;
+  gap: var(--s3, 12px);
+}
+.secret-field {
+  display: grid;
+  gap: 6px;
+}
+.secret-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 600;
+}
+.secret-row,
+.secret-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.secret-edit input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.secret-edit .field-error {
+  flex-basis: 100%;
+}
+.secret-edit .field-error:empty {
+  display: none;
+}
+.secret-mask {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  background: var(--bg, #0b0f14);
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.btn.danger {
+  color: var(--bad);
+}
+.integ-pk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+.integ-pk label {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.integ-toggle {
+  margin: 0;
+}
+.integ-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px dashed var(--line);
+  padding-top: var(--s3, 12px);
+}
+.integ-test {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.integ-test.good {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 40%, transparent);
+}
+.integ-test.bad {
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 40%, transparent);
+}
+@media (max-width: 520px) {
+  .integ-head {
+    grid-template-columns: auto 1fr;
+  }
+  .integ-pill {
+    grid-column: 1 / -1;
+    justify-self: start;
+    white-space: normal;
+  }
+}
