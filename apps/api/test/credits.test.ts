@@ -729,7 +729,10 @@ describe.skipIf(!databaseUrl)(
       expect(add.json()).toMatchObject({
         userId: "user",
         result: "ok",
-        credits: { buckets: { purchased: 4 } },
+        credits: {
+          buckets: { purchased: 4 },
+          welcome: { status: "ineligible", reason: "not_steam" },
+        },
       });
       const over = await app.inject({
         method: "POST",

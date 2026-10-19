@@ -72,6 +72,10 @@ export class CreditsService {
     private readonly clock: Clock,
     private readonly audit: AuditTrail,
     private welcome?: WelcomeState,
+    /** Whether an account signed in through Steam (admin views of other users). */
+    private readonly accounts?: {
+      steamLinked(ownerId: string): Promise<boolean>;
+    },
   ) {}
 
   /** Late binding (the welcome service is built after this one). */
@@ -205,7 +209,8 @@ export class CreditsService {
       bucket,
       note: request.note,
     });
-    return { userId, result, credits: await this.view(userId, true) };
+    const steamLinked = (await this.accounts?.steamLinked(userId)) ?? false;
+    return { userId, result, credits: await this.view(userId, steamLinked) };
   }
 
   /**

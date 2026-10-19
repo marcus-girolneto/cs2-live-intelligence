@@ -10,6 +10,7 @@ import {
   WelcomeService,
   type ProfileSource,
 } from "../modules/credits/welcome.service.js";
+import { PgUsersRepository } from "../modules/users/users.repository.js";
 import type { PlansService } from "../modules/plans/plans.service.js";
 import type { Clock } from "../shared/clock/clock.js";
 import type { Db } from "../shared/db/database.js";
@@ -36,7 +37,19 @@ export function createCreditsContext(
   logger: Logger,
 ) {
   const repository = new PgCreditsRepository(db);
-  const credits = new CreditsService(repository, settings, plans, clock, audit);
+  const users = new PgUsersRepository(db);
+  const credits = new CreditsService(
+    repository,
+    settings,
+    plans,
+    clock,
+    audit,
+    undefined,
+    {
+      steamLinked: async (ownerId) =>
+        !!(await users.account(ownerId).catch(() => undefined))?.steamId,
+    },
+  );
   const welcome = new WelcomeService(
     repository,
     new PgWelcomeRepository(db),
