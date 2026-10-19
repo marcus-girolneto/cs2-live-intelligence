@@ -275,3 +275,28 @@ describe("authenticated live delivery", () => {
     expect(foreign.messages).toEqual([{ type: "snapshot", state: null }]);
   });
 });
+
+it("logs out memory browser credential and closes existing live channels", async () => {
+  const app = await setup();
+  await ingest(app, event());
+  const live = await connect(app, (await ticket(app)).json().ticket);
+  await until(() => live.messages.length > 0);
+  const before = (await app.inject({ url: "/metrics" })).body.match(
+    /cs2_telemetry_accepted_total (\d+)/,
+  )?.[1];
+  expect(
+    (
+      await app.inject({
+        method: "POST",
+        url: "/v1/auth/logout",
+        headers: { authorization: "Bearer web-one" },
+      })
+    ).statusCode,
+  ).toBe(204);
+  await until(() => live.socket.readyState === WebSocket.CLOSED);
+  expect((await read(app)).statusCode).toBe(401);
+  expect((await ticket(app)).statusCode).toBe(401);
+  expect((await app.inject({ url: "/metrics" })).body).toContain(
+    "cs2_telemetry_accepted_total " + before,
+  );
+});
