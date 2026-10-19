@@ -11,6 +11,7 @@ import type { Logger } from "../shared/logging/logger.js";
 import type { WorkerOptions } from "../workers/worker-scheduler.js";
 import type { DemoParser } from "../infrastructure/parser/demo-parser.js";
 import type { JobQueueRepository } from "../modules/matches/job-queue.repository.js";
+import type { UploadRate } from "../modules/matches/upload-rate-limit.js";
 
 /** Demo storage, parser and worker settings (database mode only). */
 export interface JobOptions extends WorkerOptions {
@@ -66,5 +67,10 @@ export interface ApiConfig {
   aiGateway?: AiGateway & OfflineCoach;
   logger?: Logger;
   /** Adapter/repository overrides for the background worker (tests). */
-  overrides?: { jobQueue?: JobQueueRepository; demoParser?: DemoParser };
+  overrides?: {
+    jobQueue?: JobQueueRepository;
+    demoParser?: DemoParser;
+    /** Upload attempts per minute (default UPLOAD_RATE: 10 per account, 30 per network). */
+    uploadRate?: UploadRate;
+  };
 }

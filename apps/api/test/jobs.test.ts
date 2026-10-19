@@ -19,6 +19,7 @@ import { generateCoaching } from "@cs2/coaching";
 import type { AddressInfo } from "node:net";
 import type { FastifyInstance } from "fastify";
 import { TestDatabase } from "./support/test-database.js";
+import { demoBytes, LENIENT_UPLOAD_RATE } from "./support/demo-bytes.js";
 import { buildApp } from "../src/app.js";
 import { createWorker } from "../src/container.js";
 import { objectPath } from "../src/infrastructure/storage/object-storage.js";
@@ -57,6 +58,7 @@ describe.skipIf(!databaseUrl)(
         owners: [],
         webOrigin: "http://127.0.0.1:3000",
         jobs: options,
+        overrides: { uploadRate: LENIENT_UPLOAD_RATE },
       });
       worker = await createWorker(repo, options);
     });
@@ -105,16 +107,71 @@ describe.skipIf(!databaseUrl)(
         payload,
       });
     }
+    it("rejects non-demos with explicit codes before queueing, and rate-limits uploads with Retry-After", async () => {
+      for (const [body, status, code] of [
+        [Buffer.from("MZ" + "x".repeat(100_000)), 400, "not_cs2_demo"],
+        [demoBytes("tiny", 2048), 400, "too_small"],
+      ] as const) {
+        const response = await upload(body);
+        expect(response.statusCode).toBe(status);
+        expect(response.json()).toMatchObject({ code });
+      }
+      expect(await readdir(directory)).toEqual([]);
+      expect(
+        (await repo.pool.query("select count(*)::int as n from demo_jobs"))
+          .rows[0].n,
+      ).toBe(0);
+      const limited = await buildApp({
+        database: repo,
+        devices: [],
+        owners: [],
+        webOrigin: "http://127.0.0.1:3000",
+        jobs: {
+          storageDir: directory,
+          parserBin: "unused",
+          disableWorker: true,
+        },
+        overrides: {
+          uploadRate: {
+            perAccount: 2,
+            perNetwork: 100,
+            windowMs: 60_000,
+            capacity: 100,
+          },
+        },
+      });
+      try {
+        const attempt = () =>
+          limited.inject({
+            method: "POST",
+            url: "/v1/demos/uploads",
+            headers: {
+              ...headers,
+              "content-type": "application/octet-stream",
+              "x-filename": "m.dem",
+            },
+            payload: Buffer.from("not a demo"),
+          });
+        expect((await attempt()).statusCode).toBe(400);
+        expect((await attempt()).statusCode).toBe(400);
+        const third = await attempt();
+        expect(third.statusCode).toBe(429);
+        expect(third.json()).toMatchObject({ code: "upload_rate_limited" });
+        expect(Number(third.headers["retry-after"])).toBeGreaterThan(0);
+      } finally {
+        await limited.close();
+      }
+    });
     it("authenticates before streaming, validates filename/size and stores checksum with generated private key", async () => {
       expect(
         (
-          await upload(Buffer.from("payload"), "sample.dem", {
+          await upload(demoBytes("payload"), "sample.dem", {
             authorization: "Bearer bad",
           })
         ).statusCode,
       ).toBe(401);
       expect(
-        (await upload(Buffer.from("payload"), "../escape.dem")).statusCode,
+        (await upload(demoBytes("payload"), "../escape.dem")).statusCode,
       ).toBe(400);
       expect((await upload(Buffer.alloc(0))).statusCode).toBe(400);
       expect(
@@ -149,25 +206,25 @@ describe.skipIf(!databaseUrl)(
       await repo.pool.query("update users set role='admin' where id='owner'");
       expect((await setLimit(1024)).statusCode).toBe(400);
       expect((await setLimit(1024 * 1024)).statusCode).toBe(200);
-      expect((await upload(Buffer.alloc(1024 * 1024 + 1, 1))).statusCode).toBe(
+      expect((await upload(demoBytes("big", 1024 * 1024 + 1))).statusCode).toBe(
         413,
       );
       expect((await setLimit(524_288_000)).statusCode).toBe(200);
       await repo.pool.query("update users set role='user' where id='owner'");
-      const response = await upload(Buffer.from("payload"));
+      const response = await upload(demoBytes("payload"));
       expect(response.statusCode).toBe(202);
       const { id } = response.json();
       const stored = (
         await repo.pool.query("select * from demo_jobs where id=$1", [id])
       ).rows[0];
       expect(stored.checksum).toBe(
-        createHash("sha256").update("payload").digest("hex"),
+        createHash("sha256").update(demoBytes("payload")).digest("hex"),
       );
       expect(stored.filename).toBe("sample.dem");
       expect(stored.object_key).toBe(id + ".dem");
-      expect(
-        await readFile(objectPath(directory, stored.object_key), "utf8"),
-      ).toBe("payload");
+      expect(await readFile(objectPath(directory, stored.object_key))).toEqual(
+        demoBytes("payload"),
+      );
       expect(
         (await app.inject({ url: "/v1/matches", headers })).json().matches[0],
       ).toMatchObject({ id, status: "queued", filename: "sample.dem" });
@@ -210,18 +267,18 @@ describe.skipIf(!databaseUrl)(
             },
           });
           request.on("error", () => resolveAbort());
-          request.write(Buffer.alloc(100));
+          request.write(demoBytes("partial").subarray(0, 100));
           setTimeout(() => request.destroy(), 20);
         });
       await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
-      expect((await upload(Buffer.from("valid after abort"))).statusCode).toBe(
+      expect((await upload(demoBytes("valid after abort"))).statusCode).toBe(
         202,
       );
       expect((await repo.matches("owner")).matches).toHaveLength(1);
       expect(await readdir(directory)).toHaveLength(1);
     });
     it("claims jobs only once across workers and rejects expired stale completion", async () => {
-      const { id } = (await upload(Buffer.from("corrupt"))).json();
+      const { id } = (await upload(demoBytes("corrupt"))).json();
       const [first, second] = await Promise.all([
         repo.claimJob(),
         repo.claimJob(),
@@ -245,7 +302,7 @@ describe.skipIf(!databaseUrl)(
       expect((await repo.match("owner", id))?.status).toBe("failed");
     });
     it("fails corrupt input without invented analysis and keeps error bounded", async () => {
-      const { id } = (await upload(Buffer.from("corrupt demo"))).json();
+      const { id } = (await upload(demoBytes("corrupt demo"))).json();
       await worker.runOnce();
       const match = await repo.match("owner", id);
       expect(match?.status).toBe("failed");
@@ -253,9 +310,9 @@ describe.skipIf(!databaseUrl)(
       expect(await repo.analysis("owner", id)).toBeUndefined();
     });
     it("enforces owner active quota and consent withdrawal cancels queued processing", async () => {
-      expect((await upload(Buffer.from("one"))).statusCode).toBe(202);
-      expect((await upload(Buffer.from("two"))).statusCode).toBe(202);
-      expect((await upload(Buffer.from("three"))).statusCode).toBe(429);
+      expect((await upload(demoBytes("one"))).statusCode).toBe(202);
+      expect((await upload(demoBytes("two"))).statusCode).toBe(202);
+      expect((await upload(demoBytes("three"))).statusCode).toBe(429);
       expect(await readdir(directory)).toHaveLength(2);
       await repo.updateSettings("owner", {
         telemetryConsent: false,
@@ -263,7 +320,7 @@ describe.skipIf(!databaseUrl)(
         retentionDays: 7,
       });
       expect(await repo.claimJob()).toBeUndefined();
-      expect((await upload(Buffer.from("four"))).statusCode).toBe(403);
+      expect((await upload(demoBytes("four"))).statusCode).toBe(403);
       expect(
         (await repo.matches("owner")).matches.every(
           (m) => m.status === "failed",
@@ -432,7 +489,7 @@ describe.skipIf(!databaseUrl)(
         delete process.env.AI_DAILY_LIMIT;
       });
       async function completedAnalysis() {
-        const { id } = (await upload(Buffer.from("analysis"))).json();
+        const { id } = (await upload(demoBytes("analysis"))).json();
         const job = await repo.claimJob();
         const analysis = analyzeDemo(
           JSON.parse(
@@ -816,7 +873,7 @@ describe.skipIf(!databaseUrl)(
       else process.env.SAMPLE_DEMO_FILE = previous;
     });
     it("retention durably removes metadata and filesystem objects", async () => {
-      const { id } = (await upload(Buffer.from("expired"))).json();
+      const { id } = (await upload(demoBytes("expired"))).json();
       await repo.pool.query(
         "update demo_jobs set created_at=now()-interval '8 days' where id=$1",
         [id],
@@ -902,7 +959,7 @@ describe.skipIf(!databaseUrl)(
       await expect(isolated.ready()).rejects.toThrow();
     });
     it("account deletion queues file removal and revokes all credentials immediately", async () => {
-      const { id } = (await upload(Buffer.from("delete me"))).json();
+      const { id } = (await upload(demoBytes("delete me"))).json();
       expect(
         (await app.inject({ method: "DELETE", url: "/v1/account", headers }))
           .statusCode,

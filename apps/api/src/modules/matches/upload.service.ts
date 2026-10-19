@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Readable } from "node:stream";
+import { pipeline } from "node:stream";
 import {
   ObjectTooLargeError,
   type ObjectStorage,
@@ -9,7 +10,10 @@ import {
   PayloadTooLargeError,
   TooManyRequestsError,
   UnsupportedMediaTypeError,
+  ValidationError,
 } from "../../shared/errors/index.js";
+import { DemoRejectedError, demoSniffer } from "./demo-signature.js";
+import { UploadRateLimiter } from "./upload-rate-limit.js";
 import type { Reservation } from "../usage/usage.service.js";
 import type { ConsentLookup } from "../privacy/privacy.repository.js";
 import {
@@ -67,20 +71,28 @@ export class UploadService {
     private readonly consent: ConsentLookup,
     private readonly quota: UploadQuota,
     private readonly limits: Pick<UploadLimits, "maxDemoBytes">,
+    private readonly rate: UploadRateLimiter = new UploadRateLimiter(),
   ) {}
 
-  /** Runs before the body is read: consent, concurrency, declared size, type, plan quota. */
+  /**
+   * Runs before the body is read: per-account/per-network rate, consent, concurrency, declared
+   * size, type, plan quota.
+   */
   async admit(
     ownerId: string,
     contentLength: number,
     contentType: string | undefined,
+    ip?: string,
   ): Promise<UploadSlot> {
+    this.rate.check(ownerId, ip);
     if (!(await this.consent.settings(ownerId)).telemetryConsent)
       throw new ForbiddenError("Telemetry consent required");
     if (this.activeUploads >= MAX_CONCURRENT_UPLOADS)
       throw new TooManyRequestsError("Upload concurrency reached");
     if (contentLength > (await this.limits.maxDemoBytes()))
-      throw new PayloadTooLargeError("Demo upload exceeds size limit");
+      throw new PayloadTooLargeError("Demo upload exceeds size limit", {
+        code: "too_large",
+      });
     if (contentType !== "application/octet-stream")
       throw new UnsupportedMediaTypeError("Use application/octet-stream");
     const reservation = await this.quota.reserveUpload(ownerId);
@@ -88,7 +100,11 @@ export class UploadService {
     return new UploadSlot(ownerId, reservation, () => this.activeUploads--);
   }
 
-  /** Streams the body into storage (content-type parser). Throws status errors. */
+  /**
+   * Streams the body into storage (content-type parser) through the demo sniffer: the declared
+   * content type is not trusted, the bytes are. Throws status errors; the partial object is
+   * removed on any failure.
+   */
   async store(filename: unknown, body: Readable): Promise<NewDemoJob> {
     const name = uploadFilenameSchema.safeParse(filename);
     if (!name.success) throw bodyError(400, "Valid .dem filename required");
@@ -97,7 +113,7 @@ export class UploadService {
     try {
       const stored = await this.storage.write(
         objectKey,
-        body,
+        pipeline(body, demoSniffer(), () => undefined),
         await this.limits.maxDemoBytes(),
       );
       if (!stored.size) {
@@ -107,7 +123,16 @@ export class UploadService {
       return { id, filename: name.data, objectKey, ...stored };
     } catch (error) {
       if (error instanceof ObjectTooLargeError)
-        throw bodyError(413, "Demo upload exceeds size limit");
+        throw new PayloadTooLargeError("Demo upload exceeds size limit", {
+          code: "too_large",
+        });
+      if (error instanceof DemoRejectedError)
+        throw new ValidationError(
+          error.reason === "too_small"
+            ? "This file is too small to be a CS2 match demo"
+            : "This file is not a CS2 demo (.dem recorded by Counter-Strike 2)",
+          { code: error.reason },
+        );
       throw error;
     }
   }

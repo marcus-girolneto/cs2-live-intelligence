@@ -11,6 +11,7 @@ import type { FastifyInstance } from "fastify";
 import { analyzeDemo } from "@cs2/analytics";
 import { generateCoaching } from "@cs2/coaching";
 import { buildApp } from "../src/app.js";
+import { demoBytes, LENIENT_UPLOAD_RATE } from "./support/demo-bytes.js";
 import { TestDatabase } from "./support/test-database.js";
 import { ZonedClock } from "../src/shared/clock/clock.js";
 import {
@@ -126,6 +127,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         disableWorker: true,
       },
       clock: new ZonedClock("America/Sao_Paulo", () => now),
+      overrides: { uploadRate: LENIENT_UPLOAD_RATE },
     };
     app = await buildApp({ ...common, paymentGateway: null });
     process.env.STRIPE_PRICE_BASIC_MONTHLY = "price_basicmonthly";
@@ -189,7 +191,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         "content-type": "application/octet-stream",
         "x-filename": "m.dem",
       },
-      payload: Buffer.from("demo-" + randomUUID()),
+      payload: demoBytes("demo-" + randomUUID()),
     });
   async function analysisFor(owner: string) {
     const id = randomUUID();

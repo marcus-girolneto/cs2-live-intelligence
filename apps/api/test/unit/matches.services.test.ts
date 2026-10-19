@@ -14,6 +14,7 @@ import { UploadService } from "../../src/modules/matches/upload.service.js";
 import type { ConsentLookup } from "../../src/modules/privacy/privacy.repository.js";
 import { silentLogger } from "../../src/shared/logging/logger.js";
 import { appError, CountingReservation, FakeObjectStorage } from "./fakes.js";
+import { demoBytes } from "../support/demo-bytes.js";
 
 class FakeMatches implements MatchesRepository {
   rejectCreate = false;
@@ -116,13 +117,22 @@ describe("UploadService", () => {
     const { service, storage } = uploads();
     const stored = await service.store(
       "match.dem",
-      Readable.from([Buffer.from("abc")]),
+      Readable.from([demoBytes("abc")]),
     );
     expect(stored).toMatchObject({
       filename: "match.dem",
-      size: 3,
+      size: 65536,
       objectKey: `${stored.id}.dem`,
     });
+    // The bytes decide, not the name or the declared content type.
+    for (const [body, code] of [
+      [Buffer.from("abc"), "not_cs2_demo"],
+      [Buffer.from("MZ" + "x".repeat(70_000)), "not_cs2_demo"],
+      [demoBytes("short", 4096), "too_small"],
+    ] as const)
+      expect(
+        (await appError(service.store("m.dem", Readable.from([body])))).body,
+      ).toMatchObject({ code });
     await expect(
       service.store("../x.dem", Readable.from([])),
     ).rejects.toMatchObject({ statusCode: 400 });
@@ -140,10 +150,7 @@ describe("UploadService", () => {
   it("on enqueue failure removes the object and releases the quota exactly once", async () => {
     const { service, matches, storage, reservation } = uploads();
     const slot = await service.admit("o", 3, OCTET);
-    const file = await service.store(
-      "m.dem",
-      Readable.from([Buffer.from("abc")]),
-    );
+    const file = await service.store("m.dem", Readable.from([demoBytes("e")]));
     matches.rejectCreate = true;
     expect((await appError(service.enqueue(slot, file))).body).toEqual({
       error: "Upload quota reached or consent withdrawn",

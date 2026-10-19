@@ -39,6 +39,7 @@ export class MatchesController {
         ownerId,
         Number(request.headers["content-length"] ?? 0),
         request.headers["content-type"],
+        request.ip,
       ),
     );
   };

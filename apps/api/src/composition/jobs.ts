@@ -39,6 +39,7 @@ import {
   SampleDemoService,
 } from "../modules/matches/sample-demo.service.js";
 import { UploadService } from "../modules/matches/upload.service.js";
+import { UploadRateLimiter } from "../modules/matches/upload-rate-limit.js";
 import { ReplayController } from "../modules/replay/replay.controller.js";
 import { MatchesReplayRepository } from "../modules/replay/replay.repository.js";
 import { ReplayService } from "../modules/replay/replay.service.js";
@@ -128,6 +129,7 @@ export function createJobsContext(
     privacy,
     quota,
     platform.uploadLimits,
+    new UploadRateLimiter(Date.now, config.overrides?.uploadRate),
   );
   const sample = new SampleDemoService(
     new FileSampleDemoSource(() => env.sampleDemoFile()),

@@ -5,7 +5,7 @@ import { body, schema, operation, id } from "./helpers.js";
 export const productPaths = {
   "/v1/demos/uploads": {
     post: operation(
-      "Stream .dem upload; default cap 64 MiB; consent and quotas required",
+      "Stream .dem upload; default cap 500 MB; consent, quotas and upload rate limits (10/min per account, 30/min per /24 or /48 network) apply; the bytes must be a CS2 demo (content type is not trusted)",
       {
         parameters: [
           {
@@ -25,12 +25,18 @@ export const productPaths = {
         },
         responses: {
           202: { description: "Durable queued job {id,status}" },
-          400: { description: "Invalid filename or empty upload" },
+          400: {
+            description:
+              "Invalid filename or empty upload; code not_cs2_demo (wrong magic or first frame) or too_small (< 64 KiB)",
+          },
           401: { description: "Unauthorized" },
           403: { description: "Consent required" },
-          413: { description: "Upload cap exceeded" },
+          413: { description: "Upload cap exceeded (code too_large)" },
           415: { description: "Use application/octet-stream" },
-          429: { description: "Upload/storage quota reached" },
+          429: {
+            description:
+              "Upload/storage quota reached, or code upload_rate_limited with Retry-After (seconds)",
+          },
         },
       },
     ),

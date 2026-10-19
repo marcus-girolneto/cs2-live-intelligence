@@ -28,6 +28,16 @@ export class FixedWindowRateLimiter {
       if (now - window.start >= this.options.windowMs) this.windows.delete(key);
   }
 
+  /** Milliseconds until the window of `key` restarts (0 when it is not tracked). */
+  retryAfterMs(key: string): number {
+    const window = this.windows.get(key);
+    if (!window) return 0;
+    return Math.max(
+      0,
+      window.start + this.options.windowMs - this.options.now(),
+    );
+  }
+
   hit(key: string): RateDecision {
     const now = this.options.now();
     let window = this.windows.get(key);
