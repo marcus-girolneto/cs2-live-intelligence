@@ -1,8 +1,29 @@
-name: Day 1 checks
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cs2
+          POSTGRES_PASSWORD: local-development-only
+          POSTGRES_DB: cs2live
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cs2 -d cs2live"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://cs2:local-development-only@127.0.0.1:55432/cs2live
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -14,6 +35,12 @@ jobs:
         with:
           go-version: "1.24.x"
       - run: pnpm install --frozen-lockfile
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 apps/demo-parser/scripts/fetch-fixture.py
+      - run: go build -o /tmp/cs2live-demo-parser ./cmd/demo-parser
+        working-directory: apps/demo-parser
       - run: pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
