@@ -43,15 +43,17 @@ export class AppSettingsService {
   async view(): Promise<AppSettingsViewDto> {
     this.ai.invalidate();
     const snap = await this.ai.load();
-    const [review, deep, live, report, coach, team, verify] = await Promise.all([
-      this.ai.resolve("review_quick"),
-      this.ai.resolve("review_deep"),
-      this.ai.resolve("live"),
-      this.ai.resolve("report"),
-      this.ai.resolve("personal_coach"),
-      this.ai.resolve("review_team"),
-      this.ai.resolve("verify"),
-    ]);
+    const [review, deep, live, report, coach, team, verify] = await Promise.all(
+      [
+        this.ai.resolve("review_quick"),
+        this.ai.resolve("review_deep"),
+        this.ai.resolve("live"),
+        this.ai.resolve("report"),
+        this.ai.resolve("personal_coach"),
+        this.ai.resolve("review_team"),
+        this.ai.resolve("verify"),
+      ],
+    );
     return {
       settings: snap.settings,
       updatedAt: snap.settingsUpdatedAt,

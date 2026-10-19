@@ -102,15 +102,26 @@ export async function startContainerWorkers(
   options: JobOptions,
 ): Promise<WorkerHandle> {
   await jobs.workers.storage.ensureReady();
-  if (options.processing === "external")
-    return startAccountJobs(jobs.daily, options);
-  return startWorkers(
-    jobs.workers.demos,
-    jobs.workers.retention,
-    options,
-    jobs.daily,
-    jobs.workers.maintenance,
-  );
+  const handle =
+    options.processing === "external"
+      ? await startAccountJobs(jobs.daily, options)
+      : await startWorkers(
+          jobs.workers.demos,
+          jobs.workers.retention,
+          options,
+          jobs.daily,
+          jobs.workers.maintenance,
+        );
+  // Ownership classification and auto-reviews of processed demos run in the API process
+  // (the demo worker has no internet access).
+  if (!options.disableWorker) jobs.followUp.start();
+  return {
+    ...handle,
+    async stop() {
+      await jobs.followUp.stop();
+      await handle.stop();
+    },
+  };
 }
 
 /**

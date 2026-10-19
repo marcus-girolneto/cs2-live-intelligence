@@ -10,6 +10,7 @@ export function registerCoachExtrasRoutes(
 ): void {
   const user = { preHandler: guards.requireUser };
   app.get("/v1/matches/ownership", user, controller.ownershipList);
+  app.get("/v1/matches/auto-reviews", user, controller.autoReviewStatuses);
   app.patch<{ Params: { id: string } }>(
     "/v1/matches/:id/ownership",
     user,

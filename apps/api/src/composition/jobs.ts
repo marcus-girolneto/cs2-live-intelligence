@@ -21,6 +21,9 @@ import { PgOwnershipRepository } from "../modules/coaching/ownership.repository.
 import { OwnershipService } from "../modules/coaching/ownership.service.js";
 import { PgTeamReviewRepository } from "../modules/coaching/team-review.repository.js";
 import { TeamReviewService } from "../modules/coaching/team-review.service.js";
+import { PgAutoReviewRepository } from "../modules/coaching/auto-review.repository.js";
+import { AutoReviewService } from "../modules/coaching/auto-review.service.js";
+import { CoachFollowUpWorker } from "../modules/coaching/follow-up.worker.js";
 import {
   CoachingAiGateway,
   type TeamAiGateway,
@@ -145,6 +148,27 @@ export function createJobsContext(
     deepHistory: (id: string) => plans.feature(id, "deepHistory"),
     reel: (id: string) => plans.feature(id, "reel"),
   };
+  const reviewService = new ReviewService({
+    coaching,
+    history: matches,
+    personalization,
+    quota,
+    credits: credits.credits,
+    features,
+    ai: aiAccess,
+    gateway: aiGateway,
+    replays: workers.replays,
+    logger,
+    reviewAi,
+    teamRatings: teamReviews,
+  });
+  const autoReviewRepository = new PgAutoReviewRepository(db);
+  const autoReviews = new AutoReviewService(
+    autoReviewRepository,
+    ownership,
+    reviewService,
+    logger,
+  );
   const reports = new ReportsService(
     new PgReportsRepository(db),
     mineHistory,
@@ -224,22 +248,9 @@ export function createJobsContext(
     ),
     aiStatusController: new AiStatusController(aiAccess, guards),
     coachingController: new CoachingController(
-      new CoachProfileService(coaching),
+      new CoachProfileService(coaching, autoReviewRepository),
       new ProgressService(coaching, matches, coachPlans, ownership),
-      new ReviewService({
-        coaching,
-        history: matches,
-        personalization,
-        quota,
-        credits: credits.credits,
-        features,
-        ai: aiAccess,
-        gateway: aiGateway,
-        replays: workers.replays,
-        logger,
-        reviewAi,
-        teamRatings: teamReviews,
-      }),
+      reviewService,
       new LiveCallService(
         coaching,
         live.store,
@@ -255,7 +266,14 @@ export function createJobsContext(
     ),
     reportsController: new ReportsController(reports, guards),
     ownership,
-    coachExtrasController: new CoachExtrasController(ownership, teams, guards),
+    autoReviews,
+    followUp: new CoachFollowUpWorker(ownership, autoReviews, logger),
+    coachExtrasController: new CoachExtrasController(
+      ownership,
+      teams,
+      guards,
+      autoReviews,
+    ),
     personalCoachController: new PersonalCoachController(personalCoach, guards),
     daily,
     feedbackController: new FeedbackController(

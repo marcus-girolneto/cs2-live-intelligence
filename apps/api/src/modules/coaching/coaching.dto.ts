@@ -12,7 +12,17 @@ export const coachPlayerIdSchema = playerIdSchema.nullable().optional();
 export type CoachProfileRequestDto = {
   preferences?: unknown;
   playerSteamId?: unknown;
+  autoReview?: unknown;
 };
+/** PUT /v1/coach/profile `autoReview` (partial update). */
+export const autoReviewPatchSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    tier: z.enum(["quick", "deep"]).optional(),
+    lang: z.enum(["en", "pt"]).optional(),
+  })
+  .strict()
+  .optional();
 /** POST /v1/coach/reviews/:id/rating. */
 export const ratingRequestSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -85,6 +95,8 @@ export type CoachProfileDto = {
   preferences: CoachPreferences;
   playerSteamId: string | null;
   linkedToSteam: boolean;
+  /** Review my demos automatically after processing (default off). */
+  autoReview: { enabled: boolean; tier: "quick" | "deep"; lang: "en" | "pt" };
 };
 export type NewReview = {
   ownerId: string;

@@ -2,11 +2,26 @@ import { checkCustomInstructions, parsePreferences } from "@cs2/coaching";
 import { ValidationError } from "../../shared/errors/index.js";
 import type { CoachProfileDto, CoachProfileRecord } from "./coaching.dto.js";
 import type { CoachingRepository } from "./coaching.repository.js";
+import {
+  DEFAULT_AUTO_REVIEW,
+  parseAutoReview,
+  type AutoReviewSettings,
+} from "./auto-review.repository.js";
 
-const view = (p: CoachProfileRecord): CoachProfileDto => ({
+/** Port: the per-user auto-review setting (coach profile). */
+export interface AutoReviewSettingsStore {
+  settings(ownerId: string): Promise<AutoReviewSettings>;
+  saveSettings(ownerId: string, settings: AutoReviewSettings): Promise<void>;
+}
+
+const view = (
+  p: CoachProfileRecord,
+  autoReview: AutoReviewSettings,
+): CoachProfileDto => ({
   preferences: parsePreferences(p.preferences),
   playerSteamId: p.playerSteamId,
   linkedToSteam: p.linkedToSteam,
+  autoReview,
 });
 
 /**
@@ -19,10 +34,20 @@ export const UNSAFE_INSTRUCTIONS_MESSAGE =
 
 /** Coaching preferences and which in-demo player the account is coached as. */
 export class CoachProfileService {
-  constructor(private readonly coaching: CoachingRepository) {}
+  constructor(
+    private readonly coaching: CoachingRepository,
+    private readonly autoReviews?: AutoReviewSettingsStore,
+  ) {}
+
+  private async autoReview(ownerId: string): Promise<AutoReviewSettings> {
+    return (await this.autoReviews?.settings(ownerId)) ?? DEFAULT_AUTO_REVIEW;
+  }
 
   async get(ownerId: string): Promise<CoachProfileDto> {
-    return view(await this.coaching.profile(ownerId));
+    return view(
+      await this.coaching.profile(ownerId),
+      await this.autoReview(ownerId),
+    );
   }
 
   /**
@@ -33,6 +58,7 @@ export class CoachProfileService {
     ownerId: string,
     preferences: unknown,
     playerSteamId: string | null | undefined,
+    autoReview?: Partial<AutoReviewSettings>,
   ): Promise<CoachProfileDto> {
     const current = await this.coaching.profile(ownerId);
     const next = parsePreferences(preferences ?? current.preferences);
@@ -53,6 +79,11 @@ export class CoachProfileService {
           ? current.playerSteamId
           : playerSteamId,
     );
-    return view(await this.coaching.profile(ownerId));
+    if (autoReview && this.autoReviews)
+      await this.autoReviews.saveSettings(
+        ownerId,
+        parseAutoReview({ ...(await this.autoReview(ownerId)), ...autoReview }),
+      );
+    return this.get(ownerId);
   }
 }

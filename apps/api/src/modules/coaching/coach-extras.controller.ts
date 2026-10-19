@@ -10,6 +10,10 @@ import {
   teamReviewRequestSchema,
 } from "./coaching.dto.js";
 import type { TeamReviewService } from "./team-review.service.js";
+import type {
+  AutoReviewService,
+  AutoReviewStatusDto,
+} from "./auto-review.service.js";
 import { ViewerPolicy } from "./viewer.policy.js";
 import type {
   OwnershipItemDto,
@@ -24,7 +28,20 @@ export class CoachExtrasController {
     private readonly ownership: OwnershipService,
     private readonly teams: TeamReviewService,
     private readonly guards: AuthGuards,
+    private readonly autoReviews: AutoReviewService,
   ) {}
+
+  /** GET /v1/matches/auto-reviews?ids=a,b */
+  autoReviewStatuses = async (
+    request: FastifyRequest,
+  ): Promise<{ items: AutoReviewStatusDto[] }> => {
+    const query = parseDto(
+      idsQuerySchema,
+      request.query ?? {},
+      "ids must be up to 100 comma-separated match ids.",
+    );
+    return this.autoReviews.statuses(ownerOf(request), query.ids);
+  };
 
   private async viewer(ownerId: string): Promise<ViewerPolicy> {
     return ViewerPolicy.for(await this.guards.isAdmin(ownerId));

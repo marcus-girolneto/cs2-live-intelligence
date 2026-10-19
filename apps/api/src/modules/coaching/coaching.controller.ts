@@ -5,6 +5,7 @@ import { ownerOf } from "../../shared/http/principal.js";
 import { parseDto } from "../../shared/http/validation.js";
 import type { CoachProfileService } from "./coach-profile.service.js";
 import {
+  autoReviewPatchSchema,
   coachPlayerIdSchema,
   langSchema,
   playerQuerySchema,
@@ -49,10 +50,16 @@ export class CoachingController {
       request.body?.playerSteamId,
       "playerSteamId must be a player id from your demos.",
     );
+    const autoReview = parseDto(
+      autoReviewPatchSchema,
+      request.body?.autoReview ?? undefined,
+      "autoReview must be {enabled?: boolean, tier?: quick|deep, lang?: en|pt}.",
+    );
     return this.profiles.update(
       ownerId,
       request.body?.preferences,
       playerSteamId,
+      autoReview,
     );
   };
 

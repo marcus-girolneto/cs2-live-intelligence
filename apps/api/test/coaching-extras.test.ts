@@ -305,4 +305,64 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
     });
     expect(bad.statusCode).toBe(400);
   });
+
+  it("auto-reviews new demos of the account once, with the same credit path", async () => {
+    await repo.pool.query("delete from auto_reviews");
+    await repo.pool.query(
+      "update demo_jobs set updated_at = now() - interval '3 days'",
+    );
+    const statuses = async (ids: string[]) =>
+      (
+        await call("GET", `/v1/matches/auto-reviews?ids=${ids.join(",")}`)
+      ).json().items as {
+        jobId: string;
+        status: string;
+        reason?: string;
+        reviewId?: string;
+      }[];
+    const off = await analysisFor("user");
+    await container.jobs!.followUp.runOnce();
+    expect(await statuses([off])).toEqual([
+      { jobId: off, status: "skipped", reason: "disabled" },
+    ]);
+    const profile = await call("PUT", "/v1/coach/profile", {
+      autoReview: { enabled: true, tier: "quick" },
+    });
+    expect(profile.json().autoReview).toEqual({
+      enabled: true,
+      tier: "quick",
+      lang: "en",
+    });
+    // No credits: skipped, nothing charged.
+    await repo.pool.query("delete from credit_ledger where owner_id='user'");
+    await repo.pool
+      .query("delete from credit_wallets where owner_id='user'")
+      .catch(() => undefined);
+    const poor = await analysisFor("user");
+    await container.jobs!.followUp.runOnce();
+    const balance = async () =>
+      (await call("GET", "/v1/me")).json().credits.balance;
+    expect(await statuses([poor])).toEqual([
+      { jobId: poor, status: "skipped", reason: "insufficient_credits" },
+    ]);
+    await repo.grantCredits("user", 1);
+    const paid = await analysisFor("user");
+    calls.length = 0;
+    await container.jobs!.followUp.runOnce();
+    await container.jobs!.followUp.runOnce();
+    const [done] = await statuses([paid]);
+    expect(done).toMatchObject({ jobId: paid, status: "done" });
+    expect(done!.reviewId).toBeTruthy();
+    expect(calls.filter((c) => c.kind === "review")).toHaveLength(1);
+    expect(await balance()).toBe(0);
+    // A demo the account is not in.
+    await repo.pool.query(
+      "update coach_profiles set player_steam_id='zzz' where owner_id='user'",
+    );
+    const external = await analysisFor("user");
+    await container.jobs!.followUp.runOnce();
+    expect(await statuses([external])).toEqual([
+      { jobId: external, status: "skipped", reason: "not_in_demo" },
+    ]);
+  });
 });
