@@ -23,6 +23,42 @@ export const reviewRequestSchema = z.object({
   lang: langSchema,
   tier: z.enum(["quick", "deep"]).default("quick"),
 });
+/** GET /v1/coach/progress?map= (map names are demo strings: allowlisted characters). */
+export const progressQuerySchema = z.object({
+  map: z
+    .string()
+    .regex(/^[A-Za-z0-9_ .'-]{1,64}$/)
+    .optional(),
+});
+/** PUT /v1/coach/identity. */
+export const identityRequestSchema = z
+  .object({
+    steamId: playerIdSchema,
+    analysisIds: z
+      .union([z.literal("all"), z.array(z.string().min(1).max(128)).max(500)])
+      .default("all"),
+  })
+  .strict();
+/** PATCH /v1/matches/:id/ownership. */
+export const ownershipRequestSchema = z
+  .object({
+    ownership: z.enum(["mine", "external"]),
+    playerSteamId: playerIdSchema.optional(),
+  })
+  .strict();
+/** ?ids=a,b,c (at most 100 job ids). */
+export const idsQuerySchema = z.object({
+  ids: z
+    .string()
+    .max(100 * 130)
+    .transform((v) =>
+      v
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.string().min(1).max(128)).max(100)),
+});
 /** GET /v1/analyses/:id/reviews and /reel query. */
 export const playerQuerySchema = z.object({ steamId: playerIdSchema });
 /** POST /v1/ai/live-call: a live session id, or a replayed frame's state. */

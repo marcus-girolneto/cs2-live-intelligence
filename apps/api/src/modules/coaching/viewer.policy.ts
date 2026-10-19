@@ -7,6 +7,12 @@ export function publicCoaching<T>(coaching: T): T {
   const rest = { ...provenance };
   delete rest.model;
   delete rest.provider;
+  const verification = rest.verification as Record<string, unknown> | undefined;
+  if (verification && typeof verification === "object") {
+    const v = { ...verification };
+    delete v.verifierModel;
+    rest.verification = v;
+  }
   return { ...c, provenance: rest } as T;
 }
 

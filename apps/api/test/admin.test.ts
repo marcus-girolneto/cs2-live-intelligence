@@ -127,6 +127,19 @@ describe.skipIf(!databaseUrl)(
             messages: { content: string }[];
           };
           const org = req.headers["x-org"] as string | undefined;
+          if (raw.includes("fact checker of this app")) {
+            res.writeHead(200, { "content-type": "application/json" });
+            return res.end(
+              JSON.stringify({
+                choices: [
+                  {
+                    finish_reason: "stop",
+                    message: { content: JSON.stringify({ results: [] }) },
+                  },
+                ],
+              }),
+            );
+          }
           hits.push({ url: req.url ?? "", auth, org, model: body.model, body });
           const user = body.messages[1]!.content;
           let parsed: { facts?: { id: string }[]; recentRounds?: unknown } = {};
@@ -505,6 +518,8 @@ describe.skipIf(!databaseUrl)(
           review: { configured: true },
           review_quick: { configured: true },
           review_deep: { configured: true },
+          review_team: { configured: true },
+          verify: { configured: true },
           live: { configured: true },
           report: { configured: true },
           personal_coach: { configured: true },
@@ -758,6 +773,8 @@ describe.skipIf(!databaseUrl)(
         personalCoachNewMatches: 3,
         maxDemoBytes: 524_288_000,
         timezone: null,
+        verifierEnabled: true,
+        promptAb: {},
       });
       expect(
         (

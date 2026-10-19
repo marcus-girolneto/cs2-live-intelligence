@@ -226,6 +226,20 @@ describe.skipIf(!databaseUrl)(
         let raw = "";
         req.on("data", (c) => (raw += c));
         req.on("end", async () => {
+          if (raw.includes("fact checker of this app")) {
+            // The claim verifier (purpose verify): supports nothing new, changes nothing.
+            res.writeHead(200, { "content-type": "application/json" });
+            return res.end(
+              JSON.stringify({
+                choices: [
+                  {
+                    finish_reason: "stop",
+                    message: { content: JSON.stringify({ results: [] }) },
+                  },
+                ],
+              }),
+            );
+          }
           hits++;
           if (mode === "slow") await new Promise((r) => setTimeout(r, 150));
           if (mode === "error") {
@@ -434,7 +448,7 @@ describe.skipIf(!databaseUrl)(
       });
       expect(deep.json().coaching).toMatchObject({
         tier: "deep",
-        provenance: { promptVersion: "igl-review-v8-deep" },
+        provenance: { promptVersion: "igl-review-v9-deep" },
       });
       expect(deep.json().coaching.deep.utility).toBeDefined();
       expect(deep.json().coaching.insights[0].evidenceIds[0]).toMatch(/^deep-/);
@@ -495,7 +509,11 @@ describe.skipIf(!databaseUrl)(
         steamId: proMatch.steamId,
       });
       expect(proReel.json().clips.length).toBeGreaterThan(0);
-      expect((await me(pro)).credits.costs).toEqual({ quick: 1, deep: 2 });
+      expect((await me(pro)).credits.costs).toEqual({
+        quick: 1,
+        deep: 2,
+        team: 3,
+      });
     });
 
     it("grants plan credits per period (idempotent), expires leftovers and syncs on admin grants", async () => {
@@ -788,6 +806,8 @@ describe.skipIf(!databaseUrl)(
         quickCost: 1,
         deepCost: 3,
         proDeepCost: 2,
+        teamCost: 4,
+        proTeamCost: 3,
         dailySafetyCap: 30,
         minSteamAgeDays: 30,
         maxGrantsPerNetwork: 3,
@@ -810,7 +830,11 @@ describe.skipIf(!databaseUrl)(
         payload: { deepCost: 4 },
       });
       expect(put.json().settings.deepCost).toBe(4);
-      expect((await me(user)).credits.costs).toEqual({ quick: 1, deep: 4 });
+      expect((await me(user)).credits.costs).toEqual({
+        quick: 1,
+        deep: 4,
+        team: 4,
+      });
       expect(
         (await app.inject({ url: "/v1/plans" })).json().plans[1].credits
           .deepCost,

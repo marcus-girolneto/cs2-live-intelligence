@@ -8,6 +8,7 @@ import {
   coachPlayerIdSchema,
   langSchema,
   playerQuerySchema,
+  progressQuerySchema,
   ratingRequestSchema,
   reviewRequestSchema,
   type CoachProfileRequestDto,
@@ -59,7 +60,16 @@ export class CoachingController {
     request: FastifyRequest,
   ): Promise<Record<string, unknown>> => {
     const ownerId = ownerOf(request);
-    return this.progressService.progress(ownerId, await this.viewer(ownerId));
+    const query = parseDto(
+      progressQuerySchema,
+      request.query ?? {},
+      "Invalid map",
+    );
+    return this.progressService.progress(
+      ownerId,
+      await this.viewer(ownerId),
+      query.map,
+    );
   };
 
   rate = async (request: ById): Promise<{ ok: true }> => {

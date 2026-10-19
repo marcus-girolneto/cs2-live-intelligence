@@ -66,6 +66,20 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
       let raw = "";
       req.on("data", (c) => (raw += c));
       req.on("end", () => {
+        if (raw.includes("fact checker of this app")) {
+          // The claim verifier (purpose verify): supports nothing new, changes nothing.
+          res.writeHead(200, { "content-type": "application/json" });
+          return res.end(
+            JSON.stringify({
+              choices: [
+                {
+                  finish_reason: "stop",
+                  message: { content: JSON.stringify({ results: [] }) },
+                },
+              ],
+            }),
+          );
+        }
         hits++;
         if (mode === "error") {
           res.writeHead(500, { "content-type": "application/json" });
@@ -289,7 +303,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
       buckets: { plan: 0, bonus: 0, purchased: 0 },
       // Seeded dev accounts never signed in through Steam.
       welcome: { status: "ineligible", reason: "not_steam" },
-      costs: { quick: 1, deep: 3 },
+      costs: { quick: 1, deep: 3, team: 4 },
     });
     expect(me.usage).toEqual({
       day: "2026-10-19",

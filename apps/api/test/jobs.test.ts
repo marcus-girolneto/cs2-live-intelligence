@@ -412,6 +412,20 @@ describe.skipIf(!databaseUrl)(
               model: string;
               messages: { content: string }[];
             };
+            if (raw.includes("fact checker of this app")) {
+              // The claim verifier (purpose verify): supports nothing new, changes nothing.
+              res.writeHead(200, { "content-type": "application/json" });
+              return res.end(
+                JSON.stringify({
+                  choices: [
+                    {
+                      finish_reason: "stop",
+                      message: { content: JSON.stringify({ results: [] }) },
+                    },
+                  ],
+                }),
+              );
+            }
             hits.push({
               url: req.url ?? "",
               auth: req.headers.authorization,

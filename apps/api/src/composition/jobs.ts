@@ -18,6 +18,10 @@ import { ProgressService } from "../modules/coaching/progress.service.js";
 import { ReelService } from "../modules/coaching/reel.service.js";
 import { ReviewService } from "../modules/coaching/review.service.js";
 import { SettingsReviewAi } from "../modules/coaching/review-ai.policy.js";
+import { CoachExtrasController } from "../modules/coaching/coach-extras.controller.js";
+import { MineOnlyHistory } from "../modules/coaching/mine-history.js";
+import { PgOwnershipRepository } from "../modules/coaching/ownership.repository.js";
+import { OwnershipService } from "../modules/coaching/ownership.service.js";
 import { ReportsController } from "../modules/reports/reports.controller.js";
 import { PgReportsRepository } from "../modules/reports/reports.repository.js";
 import { ReportsService } from "../modules/reports/reports.service.js";
@@ -142,9 +146,16 @@ export function createJobsContext(
   );
   const coaching = new PgCoachingRepository(db);
   const coachPlans = new CoachPlansService(new PgCoachPlansRepository(db));
+  // Personal features read only the account's own ("mine") matches.
+  const ownership = new OwnershipService(
+    new PgOwnershipRepository(db),
+    matches,
+    logger,
+  );
+  const mineHistory = new MineOnlyHistory(matches, ownership);
   const personalization = new PersonalizationService(
     coaching,
-    matches,
+    mineHistory,
     coachPlans,
   );
   const features = {
@@ -154,7 +165,7 @@ export function createJobsContext(
   };
   const reports = new ReportsService(
     new PgReportsRepository(db),
-    matches,
+    mineHistory,
     {
       playerSteamId: async (ownerId) =>
         (await coaching.profile(ownerId)).playerSteamId,
@@ -173,7 +184,7 @@ export function createJobsContext(
       playerSteamId: async (ownerId) =>
         (await coaching.profile(ownerId)).playerSteamId,
       completedAnalyses: (ownerId, limit) =>
-        matches.completedAnalyses(ownerId, limit),
+        mineHistory.completedAnalyses(ownerId, limit),
       reviews: async (ownerId) =>
         (await coaching.reviews(ownerId, 200)).map((r) => {
           const c = r.coaching as {
@@ -226,7 +237,7 @@ export function createJobsContext(
     aiStatusController: new AiStatusController(aiAccess, guards),
     coachingController: new CoachingController(
       new CoachProfileService(coaching),
-      new ProgressService(coaching, matches, coachPlans),
+      new ProgressService(coaching, matches, coachPlans, ownership),
       new ReviewService({
         coaching,
         history: matches,
@@ -254,6 +265,8 @@ export function createJobsContext(
       new ReelService(matches, features),
     ),
     reportsController: new ReportsController(reports, guards),
+    ownership,
+    coachExtrasController: new CoachExtrasController(ownership),
     personalCoachController: new PersonalCoachController(personalCoach, guards),
     daily,
     feedbackController: new FeedbackController(
