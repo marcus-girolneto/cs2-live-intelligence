@@ -32,8 +32,10 @@ createServer((req, res) => {
     let facts: { id: string; kind: string; value: number }[] | undefined;
     let live = false;
     try {
+      // The data sits between per-request <<DATA-…>> / <<END-…>> markers.
+      const text = body.messages[1]!.content;
       const user = JSON.parse(
-        body.messages[1]!.content.slice(body.messages[1]!.content.indexOf("{")),
+        text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1),
       ) as {
         facts?: typeof facts;
         recentRounds?: unknown;
