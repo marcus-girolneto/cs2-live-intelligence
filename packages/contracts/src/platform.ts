@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { deepSchema } from "./deep.js";
 const id = z.string().min(1).max(128);
 export const pairingRequestSchema = z
   .object({ name: z.string().min(1).max(80) })
@@ -68,6 +69,8 @@ export const demoEventSchema = z.discriminatedUnion("type", [
     attackerPlace: place,
     victimPlace: place,
     roundTime: z.number().optional(),
+    /** Grenades the victim still carried (parser cs2live.3+); absent = unknown. */
+    victimGrenades: z.array(z.string().max(16)).max(8).optional(),
   }),
   z.object({
     ...common,
@@ -371,9 +374,23 @@ export const SCORE_DIMENSIONS = [
   "economy",
   "impact",
 ] as const;
+export const reviewTierSchema = z.enum(["quick", "deep"]);
+export type ReviewTier = z.infer<typeof reviewTierSchema>;
+/** Practice area of a drill (deep reviews tag utility/crosshair/positioning drills). */
+export const drillAreaSchema = z.enum([
+  "utility",
+  "crosshair",
+  "positioning",
+  "aim",
+  "trading",
+  "economy",
+  "general",
+]);
 export const coachingSchema = z.object({
   schemaVersion: z.literal("1.0"),
   mode: z.enum(["offline", "provider"]),
+  /** Review tier (absent on reviews made before tiers existed = quick). */
+  tier: reviewTierSchema.optional(),
   /** The analysis map, when known (scope "map" items refer to it). */
   map: z.string().max(64).optional(),
   /** Punchy headline, at most 90 characters (provider mode, v5+). */
@@ -436,7 +453,8 @@ export const coachingSchema = z.object({
         clip: clipSchema,
       }),
     )
-    .max(6)
+    // Quick reviews keep at most 6; deep reviews up to 10.
+    .max(10)
     .optional(),
   drills: z
     .array(
@@ -447,10 +465,14 @@ export const coachingSchema = z.object({
         metric: z.string().max(300),
         scope: coachingScopeSchema.optional(),
         map: z.string().max(64).optional(),
+        area: drillAreaSchema.optional(),
       }),
     )
-    .max(4)
+    // Quick reviews keep at most 4; deep reviews up to 6.
+    .max(6)
     .optional(),
+  /** Deep tier only: deterministic utility, crosshair, positioning and round modules. */
+  deep: deepSchema.optional(),
   caveats: z.array(z.string()),
 });
 export type Coaching = z.infer<typeof coachingSchema>;

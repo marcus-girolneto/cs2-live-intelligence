@@ -30,6 +30,8 @@ import {
   type LearnedProfile,
   type PreviousPlan,
 } from "./learn.js";
+import { deepContext, type DeepResult } from "./deep/index.js";
+import { DEEP_PROMPT_VERSION, DEEP_SYSTEM_PROMPT } from "./prompts-deep.js";
 import {
   insightClips,
   isMapEvidence,
@@ -51,6 +53,9 @@ export * from "./prompts.js";
 export * from "./live.js";
 export * from "./learn.js";
 export * from "./review.js";
+export * from "./deep/index.js";
+export * from "./prompts-deep.js";
+export * from "./report.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */
@@ -62,7 +67,15 @@ export interface CoachingOptions {
   lang?: CoachLang;
   /** Viewer preferences and what was learned from their previous matches. */
   personal?: Personalization;
+  /** Review tier (default quick). Deep needs `deep` (computeDeep) for the focus player. */
+  tier?: "quick" | "deep";
+  deep?: DeepResult;
 }
+/** Item caps per tier (the contract allows the deep maxima). */
+export const TIER_LIMITS = {
+  quick: { keyMoments: 6, drills: 4 },
+  deep: { keyMoments: 10, drills: 6 },
+} as const;
 export type Personalization = {
   preferences: CoachPreferences;
   history?: LearnedProfile | null;
@@ -171,6 +184,15 @@ const drillItem = {
     scope,
   },
 };
+const DRILL_AREAS = [
+  "utility",
+  "crosshair",
+  "positioning",
+  "aim",
+  "trading",
+  "economy",
+  "general",
+] as const;
 const planItem = {
   type: "object",
   additionalProperties: false,
@@ -188,6 +210,26 @@ export const coachingOutputSchema = {
     keyMoments: { type: "array", maxItems: 6, items: momentItem },
     drills: { type: "array", maxItems: 4, items: drillItem },
     plan: { type: "array", maxItems: 3, items: planItem },
+  },
+};
+/** Deep tier output: up to 10 key moments and 6 drills tagged with a practice area. */
+export const deepCoachingOutputSchema = {
+  ...coachingOutputSchema,
+  properties: {
+    ...coachingOutputSchema.properties,
+    keyMoments: { type: "array", maxItems: 10, items: momentItem },
+    drills: {
+      type: "array",
+      maxItems: 6,
+      items: {
+        ...drillItem,
+        required: [...drillItem.required, "area"],
+        properties: {
+          ...drillItem.properties,
+          area: { type: "string", enum: [...DRILL_AREAS] },
+        },
+      },
+    },
   },
 };
 
@@ -274,12 +316,28 @@ export async function aiCoaching(
   config: AiConfig,
   options: Omit<CoachingOptions, "ai"> = {},
 ): Promise<AiCoachingResult> {
-  const analysis = analysisSchema.parse(input);
+  const parsed = analysisSchema.parse(input);
+  const tier = options.tier ?? "quick";
+  if (tier === "deep" && (!options.deep || !options.focusSteamId))
+    throw new Error("A deep review needs the deep modules of one player");
+  const deep = tier === "deep" ? options.deep : undefined;
+  // Deep facts become citable evidence of this review (validated like any other fact).
+  const analysis = deep
+    ? { ...parsed, evidence: [...parsed.evidence, ...deep.evidence] }
+    : parsed;
   const focus = options.focusSteamId
     ? analysis.players.find((p) => p.steamId === options.focusSteamId)
     : undefined;
   if (options.focusSteamId && !focus) throw new Error("Unknown player");
-  const facts = factsFor(analysis, focus);
+  const facts = [
+    ...factsFor(parsed, focus),
+    ...(deep?.evidence ?? []).map((e) => ({
+      id: e.id,
+      kind: e.kind,
+      value: e.value,
+      description: e.description,
+    })),
+  ];
   if (!facts.length)
     throw new AiError(
       "invalid_output",
@@ -318,6 +376,7 @@ export async function aiCoaching(
             ? { previousPlans: plans }
             : {}),
           momentCandidates: candidates,
+          ...(deep ? { deep: deepContext(deep.deep) } : {}),
           ruleFindings: playerInsights(analysis, focus.steamId).map((i) => ({
             observation: i.observation,
             evidenceIds: i.evidenceIds,
@@ -332,14 +391,14 @@ export async function aiCoaching(
       system:
         languageReminder(lang) +
         "\n\n" +
-        POST_MATCH_SYSTEM_PROMPT +
+        (deep ? DEEP_SYSTEM_PROMPT : POST_MATCH_SYSTEM_PROMPT) +
         (options.personal
           ? personalizationPrompt(options.personal.preferences)
           : "") +
         languageInstruction(lang),
       user: languageReminder(lang) + "\nDATA:\n" + JSON.stringify(payload),
-      schemaName: "cs2_coaching",
-      schema: coachingOutputSchema,
+      schemaName: deep ? "cs2_deep_coaching" : "cs2_coaching",
+      schema: deep ? deepCoachingOutputSchema : coachingOutputSchema,
     },
     options.fetch,
   );
@@ -350,6 +409,8 @@ export async function aiCoaching(
       candidateIds: candidates,
       allowedFacts: new Set(facts.map((f) => f.id)),
       model: call.model,
+      tier,
+      ...(deep ? { deep: deep.deep } : {}),
     }),
     analysis,
   );
@@ -390,8 +451,12 @@ export function buildReview(
     candidateIds: ReturnType<typeof momentCandidates>;
     allowedFacts: Set<string>;
     model?: string;
+    tier?: "quick" | "deep";
+    deep?: DeepResult["deep"];
   },
 ): Coaching {
+  const tier = options.tier ?? "quick";
+  const limits = TIER_LIMITS[tier];
   const raw = obj(data);
   const map = analysis.map ? analysis.map.slice(0, 64) : undefined;
   const scoped = (scope: "map" | "general") =>
@@ -461,7 +526,7 @@ export function buildReview(
             !!text(m.whatToDoInstead, 600)
           );
         })
-        .slice(0, 6)
+        .slice(0, limits.keyMoments)
         .map((m) => {
           const c = byCandidate.get(m.eventId as string)!;
           return {
@@ -485,9 +550,10 @@ export function buildReview(
     .filter(
       (d) => text(d.name, 120) && text(d.howTo, 800) && text(d.metric, 300),
     )
-    .slice(0, 4)
+    .slice(0, limits.drills)
     .map((d) => {
       const minutes = Number(d.durationMinutes);
+      const area = DRILL_AREAS.find((a) => a === d.area);
       return {
         name: text(d.name, 120)!,
         durationMinutes: Number.isFinite(minutes)
@@ -496,6 +562,7 @@ export function buildReview(
         howTo: text(d.howTo, 800)!,
         metric: text(d.metric, 300)!,
         ...scoped(normalizeScope(d.scope, "general")),
+        ...(tier === "deep" && area ? { area } : {}),
       };
     });
   const planItems = (Array.isArray(raw.plan) ? raw.plan : [])
@@ -516,9 +583,11 @@ export function buildReview(
   return {
     schemaVersion: "1.0",
     mode: "provider",
+    tier,
     ...(map ? { map } : {}),
     provenance: {
-      promptVersion: POST_MATCH_PROMPT_VERSION,
+      promptVersion:
+        tier === "deep" ? DEEP_PROMPT_VERSION : POST_MATCH_PROMPT_VERSION,
       ...(options.model ? { model: options.model } : {}),
     },
     ...(verdict ? { verdict } : {}),
@@ -530,6 +599,7 @@ export function buildReview(
     ...(scores ? { scores } : {}),
     ...(keyMoments.length ? { keyMoments } : {}),
     ...(drills.length ? { drills } : {}),
+    ...(options.deep ? { deep: options.deep } : {}),
     caveats: [
       ...analysis.caveats,
       ...(dropped
