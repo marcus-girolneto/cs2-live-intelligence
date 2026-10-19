@@ -1,0 +1,35 @@
+{
+  "name": "cs2-live-intelligence",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck && tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "turbo test && pnpm test:go",
+    "test:go": "cd apps/collector && go test -race ./...",
+    "test:e2e": "playwright test",
+    "mock": "cd apps/collector && go run ./cmd/mock"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0",
+    "eslint": "^9.30.0",
+    "typescript-eslint": "^8.35.0",
+    "prettier": "^3.5.3",
+    "@playwright/test": "^1.53.0",
+    "tsx": "^4.20.0",
+    "@types/node": "^22.15.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  },
+  "type": "module"
+}

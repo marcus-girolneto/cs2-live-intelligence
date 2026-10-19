@@ -1,0 +1,16 @@
+{
+  "provider": { "timestamp": 1792400000, "steamid": "76561198000000000" },
+  "map": {
+    "name": "de_mirage",
+    "phase": "live",
+    "round": 4,
+    "team_ct": { "score": 2 },
+    "team_t": { "score": 2 }
+  },
+  "round": { "phase": "live" },
+  "player": {
+    "steamid": "76561198000000000",
+    "state": { "health": 85, "armor": 100 },
+    "match_stats": { "kills": 3, "deaths": 2, "assists": 1 }
+  }
+}

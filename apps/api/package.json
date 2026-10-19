@@ -1,0 +1,22 @@
+{
+  "name": "@cs2/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cs2/contracts": "workspace:*",
+    "fastify": "^5.4.0",
+    "@fastify/websocket": "^11.2.0",
+    "zod-to-json-schema": "^3.24.5"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.0",
+    "ws": "^8.18.0"
+  }
+}

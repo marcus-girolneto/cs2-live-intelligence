@@ -1,0 +1,366 @@
+:root {
+  color-scheme: dark;
+  --bg: #0c1015;
+  --panel: #151b23;
+  --border: #2a3440;
+  --muted: #a2adbb;
+  --text: #edf2f7;
+  --accent: #a9e76a;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 70% 0%, #16212b 0, transparent 58%), var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+main {
+  max-width: 1180px;
+  padding: 0 32px 24px;
+  margin: auto;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+.brand strong {
+  font-size: 11px;
+  display: block;
+  color: var(--muted);
+  letter-spacing: 0.16em;
+}
+.brand-mark {
+  background: var(--accent);
+  color: #12230b;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 22px;
+  padding: 6px 8px;
+  border-radius: 5px;
+}
+.scope,
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  color: var(--muted);
+}
+.intro {
+  margin: 42px 0 30px;
+}
+.intro h1 {
+  font-size: 40px;
+  line-height: 1.2;
+  letter-spacing: -1.3px;
+  margin: 10px 0;
+}
+.intro p {
+  margin: 8px 0;
+}
+.muted {
+  color: var(--muted);
+}
+h2 {
+  font-size: 18px;
+  margin: 0;
+}
+h3 {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.connect {
+  padding: 22px 24px;
+}
+.connect p {
+  font-size: 13px;
+  margin: 5px 0 0;
+}
+form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 20px;
+}
+label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 7px;
+  color: var(--muted);
+}
+input {
+  background: #0d131a;
+  border: 1px solid #394553;
+  border-radius: 6px;
+  padding: 11px 12px;
+  min-width: 0;
+  width: 100%;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+button {
+  background: var(--accent);
+  color: #15250b;
+  border: 1px solid transparent;
+  padding: 11px 22px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 43px;
+}
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: #536172;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+button:hover {
+  filter: brightness(1.08);
+}
+:focus-visible {
+  outline: 3px solid #c5f795;
+  outline-offset: 3px;
+}
+.error {
+  color: #ffb3b3 !important;
+}
+.statusbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 23px 0;
+}
+.statusbar strong {
+  font-weight: 400;
+  color: var(--text);
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+}
+.status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status.live {
+  color: var(--accent);
+}
+.status.warning {
+  color: #f5bf70;
+}
+.match {
+  padding: 28px 30px;
+}
+.match-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.match-heading .eyebrow {
+  margin: 0 0 5px;
+}
+.match-heading h2 {
+  font-size: 28px;
+  line-height: 1.3;
+}
+.phase {
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted);
+}
+.phase strong {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr 0.65fr 1fr;
+  text-align: center;
+  align-items: center;
+  padding: 30px 0 8px;
+}
+.team span,
+.round span {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+.team strong {
+  display: block;
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.team strong:has(+ *) {
+  font-size: 52px;
+}
+.ct {
+  color: #9dc9f8;
+}
+.t {
+  color: #efbf7d;
+}
+.round {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+}
+.round strong {
+  display: block;
+  color: var(--text);
+  font-size: 24px;
+  margin-top: 8px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0 14px;
+}
+.section-heading span {
+  font-size: 12px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.stat {
+  padding: 20px;
+}
+.stat strong {
+  font-size: 24px;
+  font-weight: 600;
+}
+.stat strong:empty {
+  display: none;
+}
+footer {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 30px;
+}
+footer p {
+  margin: 5px 0;
+}
+.team strong[data-testid] {
+  overflow-wrap: anywhere;
+  font-size: clamp(20px, 4vw, 52px);
+}
+@media (max-width: 680px) {
+  main {
+    padding: 0 18px 20px;
+  }
+  .header {
+    height: 80px;
+  }
+  .scope {
+    display: none;
+  }
+  .intro {
+    margin-top: 30px;
+  }
+  .intro h1 {
+    font-size: 32px;
+  }
+  .connect {
+    padding: 20px;
+  }
+  form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  label {
+    grid-column: 1/-1;
+  }
+  button {
+    width: 100%;
+    padding: 11px 12px;
+  }
+  .statusbar {
+    gap: 10px 18px;
+  }
+  .status {
+    width: 100%;
+  }
+  .match {
+    padding: 22px 16px;
+  }
+  .match-heading h2 {
+    font-size: 23px;
+  }
+  .scoreboard {
+    grid-template-columns: 1fr 0.7fr 1fr;
+  }
+  .team span {
+    font-size: 8px;
+    letter-spacing: 0.04em;
+  }
+  .round strong {
+    font-size: 18px;
+  }
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stat:last-child {
+    grid-column: 1/-1;
+  }
+  .stat strong {
+    font-size: 22px;
+  }
+  .section-heading span {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+  }
+}
+
+.stat strong.unavailable {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}

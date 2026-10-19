@@ -1,0 +1,15 @@
+pnpm-lock.yaml
+.next
+node_modules
+dist
+*.docx
+test-results
+playwright-report
+
+.next-e2e
+.turbo
+
+.next-build
+
+# Supplied specification remains unchanged.
+IMPLEMENTATION_RUNBOOK.md
