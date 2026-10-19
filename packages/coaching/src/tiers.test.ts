@@ -264,3 +264,27 @@ describe("monthly report", () => {
     ).toBeGreaterThan(0);
   });
 });
+
+describe("match reel", () => {
+  it("orders the best highlights and clearest mistakes by match time", async () => {
+    const { matchReel } = await import("./index.js");
+    const a = analysis();
+    const steamId = a.players[0]!.steamId;
+    const reel = matchReel(a, steamId, { highlights: 3, mistakes: 2 });
+    expect(reel.clips.length).toBeGreaterThan(0);
+    expect(
+      reel.clips.filter((c) => c.kind === "highlight").length,
+    ).toBeLessThanOrEqual(3);
+    expect(
+      reel.clips.filter((c) => c.kind === "mistake").length,
+    ).toBeLessThanOrEqual(2);
+    for (let i = 1; i < reel.clips.length; i++)
+      expect(
+        reel.clips[i]!.round * 1000 + reel.clips[i]!.from,
+      ).toBeGreaterThanOrEqual(
+        reel.clips[i - 1]!.round * 1000 + reel.clips[i - 1]!.from,
+      );
+    expect(reel.totalSeconds).toBeGreaterThan(0);
+    expect(reel.clips[0]!.title).toMatch(/^Round \d+: /);
+  });
+});

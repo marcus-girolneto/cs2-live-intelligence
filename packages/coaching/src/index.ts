@@ -56,6 +56,7 @@ export * from "./review.js";
 export * from "./deep/index.js";
 export * from "./prompts-deep.js";
 export * from "./report.js";
+export * from "./reel.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */

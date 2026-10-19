@@ -78,6 +78,7 @@ export type ReviewSummaryDto = {
   rating: number | null;
   latencyMs: number;
   createdAt: string;
+  tier?: "quick" | "deep";
 };
 export type LiveCallSummaryDto = {
   id: string;
@@ -97,10 +98,20 @@ export type CoachProgressDto = ProgressByMapDto & {
   reviews: ReviewSummaryDto[];
   liveCalls: LiveCallSummaryDto[];
 };
+/** POST /v1/analyses/:id/coaching body (tier defaults to quick). */
+export type PlayerReviewRequest = {
+  steamId: string;
+  lang?: "en" | "pt";
+  tier?: "quick" | "deep";
+};
 /** POST /v1/analyses/:id/coaching. */
 export type PlayerReviewDto = {
   reviewId: string;
   steamId: string;
+  tier: "quick" | "deep";
+  creditsSpent: number;
+  /** Balance after the charge. */
+  balance: number;
   call: { latencyMs: number; attempts: number } & Record<string, unknown>;
   coaching: unknown;
   personalization: {
@@ -114,4 +125,41 @@ export type LiveCallDto = {
   id: string;
   call: unknown;
   meta: { latencyMs: number; attempts: number } & Record<string, unknown>;
+};
+
+/** GET /v1/analyses/:id/reviews?steamId= (saved reviews per tier; re-opening is free). */
+export type MatchReviewsDto = {
+  analysisId: string;
+  steamId: string;
+  latest: { quick: string | null; deep: string | null };
+  reviews: {
+    reviewId: string;
+    tier: "quick" | "deep";
+    createdAt: string;
+    creditsSpent: number;
+    promptVersion: string;
+    lang: string;
+    rating: number | null;
+    provider?: string;
+    model?: string;
+    coaching: unknown;
+  }[];
+};
+/** GET /v1/analyses/:id/reel?steamId= (Pro): clip windows in match order. */
+export type MatchReelDto = {
+  analysisId: string;
+  steamId: string;
+  map: string | null;
+  totalSeconds: number;
+  clips: {
+    round: number;
+    from: number;
+    to: number;
+    focusSteamId: string;
+    eventIds: string[];
+    label?: string;
+    kind: "highlight" | "mistake";
+    title: string;
+    score: number;
+  }[];
 };

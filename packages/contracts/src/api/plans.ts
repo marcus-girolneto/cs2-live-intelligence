@@ -12,8 +12,18 @@ export type PlanLimits = {
   liveAiMatchesPerDay: number | null;
   uploadsPerDay: number | null;
   retentionDaysMax: number | null;
+  /** Plan credits granted each period (expire at period end). */
+  monthlyCredits: number;
 };
-export type PlanFeatures = { clipExport: boolean; perMapLearning: boolean };
+export type PlanFeatures = {
+  clipExport: boolean;
+  perMapLearning: boolean;
+  cheaperDeep: boolean;
+  monthlyReport: boolean;
+  reel: boolean;
+  deepHistory: boolean;
+  priorityQueue: boolean;
+};
 export type SubscriptionStatus =
   "active" | "trialing" | "past_due" | "canceled";
 export type SubscriptionSource = "admin" | "stripe";
@@ -25,6 +35,9 @@ export type PlanView = {
   prices: Prices;
   limits: PlanLimits;
   features: PlanFeatures;
+  credits: { monthly: number; quickCost: number; deepCost: number };
+  /** Enabled feature keys in display order. */
+  benefits: (keyof PlanFeatures)[];
 };
 /** GET /v1/admin/plans item. */
 export type AdminPlanView = PlanView & {

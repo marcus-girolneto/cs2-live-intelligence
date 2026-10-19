@@ -1,3 +1,4 @@
+import type { CreditsDto } from "./credits.js";
 import type { AccountPlanView, UsageView } from "./plans.js";
 
 export type Role = "user" | "admin";
@@ -46,6 +47,7 @@ export type MeDto = {
   profile?: SteamProfileDto;
   plan: AccountPlanView;
   usage: UsageView;
+  credits: CreditsDto;
 };
 /** 429 body of POST /v1/me/refresh-profile (also a retry-after header). */
 export type RefreshThrottledDto = { error: string; retryAfterSeconds: number };
