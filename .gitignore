@@ -11,3 +11,15 @@ test-results/
 .next-e2e/
 
 .next-build/
+
+*credentials.json
+.local-data/
+*.dem
+*.dem.bz2
+
+artifacts/release/docker-video/
+
+# Local scratch
+.next-dev*/
+*.replay.json.gz
+artifacts/release/

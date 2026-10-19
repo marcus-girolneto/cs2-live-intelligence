@@ -13,3 +13,6 @@ playwright-report
 
 # Supplied specification remains unchanged.
 IMPLEMENTATION_RUNBOOK.md
+
+# Downloaded parser output is generated and not tracked.
+**/*.parsed.json

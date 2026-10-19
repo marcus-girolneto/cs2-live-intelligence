@@ -10,9 +10,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "turbo test && pnpm test:go",
-    "test:go": "cd apps/collector && go test -race ./...",
+    "test:go": "(cd apps/collector && go test -race ./...) && (cd apps/demo-parser && go test -race ./...)",
     "test:e2e": "playwright test",
-    "mock": "cd apps/collector && go run ./cmd/mock"
+    "mock": "cd apps/collector && go run ./cmd/mock",
+    "test:integration": "pnpm --filter @cs2/api test",
+    "local:up": "docker compose -f compose.yaml -f compose.local.yaml up -d --build",
+    "local:down": "docker compose -f compose.yaml -f compose.local.yaml down"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

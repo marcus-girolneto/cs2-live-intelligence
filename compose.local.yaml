@@ -1,0 +1,164 @@
+services:
+  api:
+    build:
+      context: .
+      target: api
+    init: true
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      ALLOW_DEV_AUTH: "true"
+      API_HOST: 0.0.0.0
+      API_PORT: "4000"
+      API_PUBLIC_URL: http://127.0.0.1:4000
+      WEB_ORIGIN: http://127.0.0.1:3000
+      DATABASE_URL: postgres://cs2:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/cs2live
+      OWNER_ID: dev-owner
+      DEVICE_ID: dev-device
+      DEVICE_TOKEN: ${DEVICE_TOKEN:?Set DEVICE_TOKEN in .env}
+      WEB_TOKEN: ${WEB_TOKEN:?Set WEB_TOKEN in .env}
+      OBJECT_STORAGE_DIR: /data/objects
+      DEMO_PARSER_BIN: /usr/local/bin/demo-parser
+      # AI provider: any OpenAI-compatible API (OpenAI, OpenRouter, Ollama, ...). See .env.example.
+      AI_PROVIDER: ${AI_PROVIDER:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_API_STYLE: ${AI_API_STYLE:-}
+      AI_JSON_MODE: ${AI_JSON_MODE:-}
+      AI_MAX_TOKENS_PARAM: ${AI_MAX_TOKENS_PARAM:-}
+      AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-}
+      AI_MAX_ATTEMPTS: ${AI_MAX_ATTEMPTS:-}
+      AI_TEMPERATURE: ${AI_TEMPERATURE:-}
+      AI_HEADERS: ${AI_HEADERS:-}
+      AI_EXTRA_BODY: ${AI_EXTRA_BODY:-}
+      AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-}
+      AI_MAX_INPUT_BYTES: ${AI_MAX_INPUT_BYTES:-}
+      AI_ALLOW_HTTP: ${AI_ALLOW_HTTP:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      # Roles: admins from ADMIN_STEAM_IDS; ADMIN_BOOTSTRAP=first-login makes the first
+      # Steam sign-in admin when none exists. APP_ENCRYPTION_KEY encrypts stored API keys.
+      ADMIN_STEAM_IDS: ${ADMIN_STEAM_IDS:-}
+      ADMIN_BOOTSTRAP: ${ADMIN_BOOTSTRAP:-}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
+      # Plans/quotas day boundary and optional Stripe billing (disabled when keys are empty).
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_BASIC_MONTHLY: ${STRIPE_PRICE_BASIC_MONTHLY:-}
+      STRIPE_PRICE_BASIC_YEARLY: ${STRIPE_PRICE_BASIC_YEARLY:-}
+      STRIPE_PRICE_PRO_MONTHLY: ${STRIPE_PRICE_PRO_MONTHLY:-}
+      STRIPE_PRICE_PRO_YEARLY: ${STRIPE_PRICE_PRO_YEARLY:-}
+      STRIPE_PAYMENT_METHODS_BRL: ${STRIPE_PAYMENT_METHODS_BRL:-card}
+      STRIPE_PAYMENT_METHODS_USD: ${STRIPE_PAYMENT_METHODS_USD:-card}
+      # Public sample demo that new accounts can import ("Load sample match").
+      SAMPLE_DEMO_FILE: /data/sample/public-cs2.dem
+      # Optional: Steam display name and avatar after Steam sign-in.
+      STEAM_WEB_API_KEY: ${STEAM_WEB_API_KEY:-}
+      # Optional extra trusted CA (e.g. a corporate TLS-inspecting proxy). Empty by default.
+      NODE_EXTRA_CA_CERTS: /etc/cs2/extra-ca.pem
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - objects:/data/objects
+      - ${EXTRA_CA_CERTS_FILE:-./docker/no-extra-ca.pem}:/etc/cs2/extra-ca.pem:ro
+      - ./apps/demo-parser/testdata:/data/sample:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 128
+    stop_grace_period: 150s
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  # Real collector pipeline for local demos. Shares the API network namespace, so the
+  # collector reaches the API on loopback and binds its GSI listener to 127.0.0.1 only.
+  collector:
+    build:
+      context: .
+      target: collector
+    init: true
+    restart: unless-stopped
+    network_mode: "service:api"
+    environment:
+      API_URL: http://127.0.0.1:4000/v1/telemetry/gsi
+      GSI_LISTEN: 127.0.0.1:3002
+      DEVICE_ID: dev-device
+      DEVICE_TOKEN: ${DEVICE_TOKEN:?Set DEVICE_TOKEN in .env}
+      GSI_AUTH_TOKEN: ${GSI_AUTH_TOKEN:?Set GSI_AUTH_TOKEN in .env}
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 128m
+    pids_limit: 64
+    security_opt: [no-new-privileges:true]
+  # Plays a scripted match into the collector on demand (Live page → "Simulate a match").
+  simulator:
+    build:
+      context: .
+      target: collector
+    command: ["simulator"]
+    init: true
+    restart: unless-stopped
+    network_mode: "service:api"
+    environment:
+      SIMULATOR_LISTEN: 0.0.0.0:3010
+      GSI_AUTH_TOKEN: ${GSI_AUTH_TOKEN:?Set GSI_AUTH_TOKEN in .env}
+    depends_on:
+      - collector
+    mem_limit: 64m
+    pids_limit: 32
+    security_opt: [no-new-privileges:true]
+  web:
+    build:
+      context: .
+      target: web
+    init: true
+    restart: unless-stopped
+    environment:
+      APP_ENV: local
+      ENABLE_DEV_AUTH: "true"
+      # Sign-in with Steam is required. Set DEV_AUTO_LOGIN=true only for automated tests:
+      # it signs every visitor in as the local development owner.
+      DEV_AUTO_LOGIN: ${DEV_AUTO_LOGIN:-false}
+      # Server-side only: lets the local demo open a session via HttpOnly cookie.
+      WEB_TOKEN: ${WEB_TOKEN:?Set WEB_TOKEN in .env}
+      # Server-side only: authorizes the local match simulator control API.
+      GSI_AUTH_TOKEN: ${GSI_AUTH_TOKEN:?Set GSI_AUTH_TOKEN in .env}
+      SIMULATOR_URL: http://api:3010
+      API_URL: http://api:4000
+      WEB_ORIGIN: http://127.0.0.1:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 512m
+    pids_limit: 128
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+volumes:
+  objects:

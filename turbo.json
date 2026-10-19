@@ -1,11 +1,35 @@
 {
+  "globalEnv": [
+    "DATABASE_URL",
+    "OPENAI_MODEL",
+    "OPENAI_API_KEY",
+    "APP_ENV",
+    "ENABLE_DEV_AUTH",
+    "ALLOW_DEV_AUTH",
+    "API_URL",
+    "WEB_ORIGIN",
+    "NEXT_PUBLIC_WS_URL",
+    "NEXT_DIST_DIR",
+    "DEMO_FIXTURE",
+    "DEMO_PARSER_BIN"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
-    "dev": { "cache": false, "persistent": true },
-    "test": { "dependsOn": ["^build"], "outputs": [] },
-    "typecheck": { "dependsOn": ["^build"], "outputs": [] }
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    }
   }
 }
