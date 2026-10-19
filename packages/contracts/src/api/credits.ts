@@ -23,7 +23,8 @@ export type CreditsDto = {
     status: "granted" | "ineligible" | "pending";
     reason?: WelcomeReason;
   };
-  costs: Record<ReviewTierDto, number>;
+  /** `team`: cost of a team review (absent on older servers). */
+  costs: Record<ReviewTierDto, number> & { team?: number };
 };
 export type CreditReasonDto =
   | "welcome"
@@ -31,6 +32,7 @@ export type CreditReasonDto =
   | "purchase"
   | "review_quick"
   | "review_deep"
+  | "review_team"
   | "refund"
   | "admin_adjust"
   | "expire";
@@ -83,6 +85,9 @@ export type CreditSettingsDto = {
   quickCost: number;
   deepCost: number;
   proDeepCost: number;
+  /** Team review cost (Pro: proTeamCost). */
+  teamCost?: number;
+  proTeamCost?: number;
   dailySafetyCap: number;
   minSteamAgeDays: number;
   maxGrantsPerNetwork: number;

@@ -35,7 +35,10 @@ export type Hold = { id: string; buckets: Buckets };
 export type CreditEntry = {
   ownerId: string;
   delta: number;
-  reason: Exclude<CreditReason, "review_quick" | "review_deep" | "expire">;
+  reason: Exclude<
+    CreditReason,
+    "review_quick" | "review_deep" | "review_team" | "expire"
+  >;
   bucket: Bucket;
   ref?: string;
   note?: string;
@@ -63,7 +66,7 @@ export interface CreditsRepository {
   commit(
     ownerId: string,
     hold: Hold & { amount: number },
-    reason: "review_quick" | "review_deep",
+    reason: "review_quick" | "review_deep" | "review_team",
     ref: string,
     now: Date,
   ): Promise<Buckets | undefined>;
@@ -152,7 +155,7 @@ export class PgCreditsRepository implements CreditsRepository {
   commit(
     ownerId: string,
     hold: Hold & { amount: number },
-    reason: "review_quick" | "review_deep",
+    reason: "review_quick" | "review_deep" | "review_team",
     ref: string,
     now: Date,
   ): Promise<Buckets | undefined> {

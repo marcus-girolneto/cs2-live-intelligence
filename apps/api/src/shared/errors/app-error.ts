@@ -72,7 +72,7 @@ export class PlanLimitError extends AppError {
  */
 export class InsufficientCreditsError extends AppError {
   constructor(details: {
-    tier: "quick" | "deep";
+    tier: "quick" | "deep" | "team";
     needed: number;
     balance: number;
     packs: unknown[];

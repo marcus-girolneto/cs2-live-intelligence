@@ -92,6 +92,7 @@ export class CreditsService {
     return {
       quick: PlanPolicy.reviewCost(plan, "quick", settings),
       deep: PlanPolicy.reviewCost(plan, "deep", settings),
+      team: PlanPolicy.reviewCost(plan, "team", settings),
     };
   }
 
@@ -154,7 +155,7 @@ export class CreditsService {
         const charged = await this.repository.commit(
           ownerId,
           { ...hold, amount: cost },
-          tier === "deep" ? "review_deep" : "review_quick",
+          `review_${tier}`,
           ref,
           this.clock.now(),
         );

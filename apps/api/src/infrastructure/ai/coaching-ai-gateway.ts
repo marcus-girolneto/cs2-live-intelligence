@@ -13,6 +13,7 @@ import {
   type DeepResult,
   type ModelResult,
   type Personalization,
+  type PromptVariant,
 } from "@cs2/coaching";
 import type {
   Analysis,
@@ -39,6 +40,11 @@ export type ReviewOptions = {
   /** Review tier (default quick); deep needs the precomputed deep modules. */
   tier?: "quick" | "deep";
   deep?: DeepResult;
+  /** Deaths removed by fairAnalysis (unusual opponents). */
+  fair?: { excluded: string[]; rounds: number[] };
+  /** Claim checks; `config` adds the verifier model. */
+  verify?: { config?: AiConfig };
+  variant?: PromptVariant;
 };
 
 /**

@@ -110,10 +110,20 @@ export const PlanPolicy = {
   /** Credits charged for a review tier on this plan. */
   reviewCost(
     plan: Pick<EffectivePlan, "features">,
-    tier: "quick" | "deep",
-    costs: { quickCost: number; deepCost: number; proDeepCost: number },
+    tier: "quick" | "deep" | "team",
+    costs: {
+      quickCost: number;
+      deepCost: number;
+      proDeepCost: number;
+      teamCost?: number;
+      proTeamCost?: number;
+    },
   ): number {
     if (tier === "quick") return costs.quickCost;
+    if (tier === "team")
+      return plan.features.cheaperDeep
+        ? (costs.proTeamCost ?? 3)
+        : (costs.teamCost ?? 4);
     return plan.features.cheaperDeep ? costs.proDeepCost : costs.deepCost;
   },
 

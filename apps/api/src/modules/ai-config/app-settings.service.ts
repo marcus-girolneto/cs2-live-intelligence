@@ -20,6 +20,8 @@ export type AppSettingsViewDto = {
       live: "database" | "env";
       report: "database" | "env";
       personal_coach: "database" | "env";
+      review_team: "database" | "env";
+      verify: "database" | "env";
     };
   };
 };
@@ -41,12 +43,14 @@ export class AppSettingsService {
   async view(): Promise<AppSettingsViewDto> {
     this.ai.invalidate();
     const snap = await this.ai.load();
-    const [review, deep, live, report, coach] = await Promise.all([
+    const [review, deep, live, report, coach, team, verify] = await Promise.all([
       this.ai.resolve("review_quick"),
       this.ai.resolve("review_deep"),
       this.ai.resolve("live"),
       this.ai.resolve("report"),
       this.ai.resolve("personal_coach"),
+      this.ai.resolve("review_team"),
+      this.ai.resolve("verify"),
     ]);
     return {
       settings: snap.settings,
@@ -68,6 +72,8 @@ export class AppSettingsService {
           live: live.source,
           report: report.source,
           personal_coach: coach.source,
+          review_team: team.source,
+          verify: verify.source,
         },
       },
     };

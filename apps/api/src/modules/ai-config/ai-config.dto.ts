@@ -7,10 +7,18 @@ import { isTimeZone } from "../../shared/clock/clock.js";
  * back review_deep → review_quick and report → review_quick, then to the AI_* environment.
  */
 export type AiPurpose =
-  "review_quick" | "review_deep" | "live" | "report" | "personal_coach";
+  | "review_quick"
+  | "review_deep"
+  | "review_team"
+  | "verify"
+  | "live"
+  | "report"
+  | "personal_coach";
 export const AI_PURPOSES: AiPurpose[] = [
   "review_quick",
   "review_deep",
+  "review_team",
+  "verify",
   "live",
   "report",
   "personal_coach",
@@ -18,6 +26,8 @@ export const AI_PURPOSES: AiPurpose[] = [
 /** Assignment fallbacks (a purpose without its own assignment uses the next one). */
 export const PURPOSE_FALLBACK: Partial<Record<AiPurpose, AiPurpose>> = {
   review_deep: "review_quick",
+  review_team: "review_deep",
+  verify: "review_quick",
   report: "review_quick",
   personal_coach: "review_deep",
 };
@@ -27,6 +37,8 @@ export function purposeOf(value: unknown): AiPurpose {
     value === "review_deep" ||
     value === "report" ||
     value === "personal_coach" ||
+    value === "review_team" ||
+    value === "verify" ||
     value === "review_quick"
     ? value
     : "review_quick";
@@ -77,6 +89,16 @@ export const appSettingsSchema = z
       .max(64)
       .refine(isTimeZone, "unknown IANA time zone")
       .nullable(),
+    /** Second-model claim check after quick, deep and team reviews (number checks always run). */
+    verifierEnabled: z.boolean(),
+    /** Prompt A/B: % of users (stable hash) that get variant "b" per review purpose. */
+    promptAb: z
+      .object({
+        review_quick: z.number().int().min(0).max(100).optional(),
+        review_deep: z.number().int().min(0).max(100).optional(),
+        review_team: z.number().int().min(0).max(100).optional(),
+      })
+      .strict(),
   })
   .strict();
 export type AppSettings = z.infer<typeof appSettingsSchema>;
@@ -88,6 +110,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   personalCoachNewMatches: 3,
   maxDemoBytes: 524_288_000,
   timezone: null,
+  verifierEnabled: true,
+  promptAb: {},
 };
 
 const providerName = z.string().trim().min(1).max(64);
@@ -186,6 +210,8 @@ export const assignmentsSchema = z
     live: assignment.nullable().optional(),
     report: assignment.nullable().optional(),
     personal_coach: assignment.nullable().optional(),
+    review_team: assignment.nullable().optional(),
+    verify: assignment.nullable().optional(),
   })
   .strict()
   .transform(({ review, ...rest }) => ({
@@ -223,6 +249,8 @@ export const purposeTestSchema = z
       "live",
       "report",
       "personal_coach",
+      "review_team",
+      "verify",
     ]),
     providerId: z.string().uuid().optional(),
     model: modelName.optional(),

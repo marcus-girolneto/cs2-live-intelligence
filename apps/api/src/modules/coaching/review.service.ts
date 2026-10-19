@@ -1,5 +1,11 @@
 import { analysisSchema, type Analysis } from "@cs2/contracts";
-import { computeDeep, type DeepResult } from "@cs2/coaching";
+import {
+  computeDeep,
+  fairAnalysis,
+  flaggedOpponents,
+  integrityOf,
+  type DeepResult,
+} from "@cs2/coaching";
 import type {
   AiGateway,
   CoachLanguage,
@@ -18,6 +24,7 @@ import type {
 import type { CoachingRepository } from "./coaching.repository.js";
 import type { PersonalizationService } from "./personalization.service.js";
 import type { ViewerPolicy } from "./viewer.policy.js";
+import { NO_REVIEW_AI, type ReviewAi } from "./review-ai.policy.js";
 
 /** Previous deep reviews on the same map fed to a Pro deep review. */
 export const DEEP_HISTORY_MATCHES = 5;
@@ -33,6 +40,8 @@ export type ReviewDependencies = {
   gateway: AiGateway;
   replays: DeepReplaySource;
   logger: Logger;
+  /** Verifier + prompt A/B (default: deterministic checks only, variant "a"). */
+  reviewAi?: ReviewAi;
 };
 
 /**
@@ -55,9 +64,16 @@ export class ReviewService {
       this.deps;
     const stored = await history.analysis(ownerId, analysisId);
     if (!stored) throw new NotFoundError("Analysis not found");
-    const analysis = analysisSchema.parse(stored.analysis);
-    if (!analysis.players.some((p) => p.steamId === steamId))
+    const parsed = analysisSchema.parse(stored.analysis);
+    if (!parsed.players.some((p) => p.steamId === steamId))
       throw new NotFoundError("Player not found");
+    // Deaths to unusual opponents (analysis.integrity) are never held against the player.
+    const fair = fairAnalysis(
+      parsed,
+      steamId,
+      flaggedOpponents(integrityOf(stored.analysis)),
+    );
+    const analysis = fair.analysis;
     const daily = await quota.reserveReview(ownerId);
     const hold = await credits
       .reserve(ownerId, tier)
@@ -69,8 +85,10 @@ export class ReviewService {
       await hold.release();
       await daily.release();
     };
+    const purpose = tier === "deep" ? "review_deep" : "review_quick";
+    const reviewAi = this.deps.reviewAi ?? NO_REVIEW_AI;
     const config = await ai
-      .acquire(ownerId, tier === "deep" ? "review_deep" : "review_quick")
+      .acquire(ownerId, purpose)
       .catch(async (error: unknown) => {
         await release();
         throw error;
@@ -86,12 +104,21 @@ export class ReviewService {
         tier === "deep"
           ? await this.deepModules(ownerId, analysisId, analysis, steamId)
           : undefined;
+      const [verifier, variant] = await Promise.all([
+        reviewAi.verifierConfig(),
+        reviewAi.variant(ownerId, purpose),
+      ]);
       const result = await gateway.review(analysis, config, {
         focusSteamId: steamId,
         lang,
         personal,
         tier,
         ...(deep ? { deep } : {}),
+        ...(fair.excluded.length
+          ? { fair: { excluded: fair.excluded, rounds: [...fair.rounds] } }
+          : {}),
+        verify: verifier ? { config: verifier } : {},
+        variant,
       });
       const { call } = result;
       const reviewId = await coaching.saveReview({
@@ -99,6 +126,7 @@ export class ReviewService {
         analysisId,
         steamId,
         tier,
+        variant,
         creditsSpent: hold.cost,
         provider: call.provider,
         model: call.model,

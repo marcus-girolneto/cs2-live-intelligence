@@ -235,6 +235,8 @@ describe("AiAccessService", () => {
         review: { configured: true },
         review_quick: { configured: true },
         review_deep: { configured: true },
+        review_team: { configured: true },
+        verify: { configured: true },
         live: { configured: true },
         report: { configured: true },
         personal_coach: { configured: true },

@@ -11,12 +11,14 @@ export const CREDIT_REASONS = [
   "purchase",
   "review_quick",
   "review_deep",
+  "review_team",
   "refund",
   "admin_adjust",
   "expire",
 ] as const;
 export type CreditReason = (typeof CREDIT_REASONS)[number];
-export type ReviewTier = "quick" | "deep";
+/** Review kinds that cost credits ("team" = one review of the whole team). */
+export type ReviewTier = "quick" | "deep" | "team";
 
 const small = (min: number, max: number) => z.number().int().min(min).max(max);
 /** Admin-editable credit settings (GET/PUT /v1/admin/credits/settings). */
@@ -28,6 +30,10 @@ export const creditSettingsSchema = z
     deepCost: small(1, 100),
     /** Deep cost on plans with the cheaperDeep feature (Pro). */
     proDeepCost: small(1, 100),
+    /** Team review (whole 5-stack in one AI call). */
+    teamCost: small(1, 100),
+    /** Team review cost on plans with the cheaperDeep feature (Pro). */
+    proTeamCost: small(1, 100),
     /** Per-account AI reviews per day, whatever the balance. */
     dailySafetyCap: small(1, 1000),
     minSteamAgeDays: small(0, 3650),
@@ -42,6 +48,8 @@ export const DEFAULT_CREDIT_SETTINGS: CreditSettings = {
   quickCost: 1,
   deepCost: 3,
   proDeepCost: 2,
+  teamCost: 4,
+  proTeamCost: 3,
   dailySafetyCap: 30,
   minSteamAgeDays: 30,
   maxGrantsPerNetwork: 3,

@@ -17,6 +17,7 @@ import { PersonalizationService } from "../modules/coaching/personalization.serv
 import { ProgressService } from "../modules/coaching/progress.service.js";
 import { ReelService } from "../modules/coaching/reel.service.js";
 import { ReviewService } from "../modules/coaching/review.service.js";
+import { SettingsReviewAi } from "../modules/coaching/review-ai.policy.js";
 import { ReportsController } from "../modules/reports/reports.controller.js";
 import { PgReportsRepository } from "../modules/reports/reports.repository.js";
 import { ReportsService } from "../modules/reports/reports.service.js";
@@ -235,6 +236,7 @@ export function createJobsContext(
         gateway: aiGateway,
         replays: workers.replays,
         logger,
+        reviewAi: new SettingsReviewAi(aiSettings),
       }),
       new LiveCallService(
         coaching,

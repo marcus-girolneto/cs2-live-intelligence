@@ -79,7 +79,7 @@ export class PgCoachingRepository implements CoachingRepository {
   async saveReview(review: NewReview): Promise<string> {
     const id = randomUUID();
     await this.db.execute(
-      sql`insert into coach_reviews(id,owner_id,analysis_id,steam_id,provider,model,prompt_version,lang,preferences,coaching,latency_ms,input_tokens,output_tokens,tier,credits_spent) values(${id},${review.ownerId},${review.analysisId},${review.steamId},${review.provider},${review.model},${review.promptVersion},${review.lang},${JSON.stringify(review.preferences)}::jsonb,${JSON.stringify(review.coaching)}::jsonb,${review.latencyMs},${review.inputTokens ?? null},${review.outputTokens ?? null},${review.tier},${review.creditsSpent})`,
+      sql`insert into coach_reviews(id,owner_id,analysis_id,steam_id,provider,model,prompt_version,lang,preferences,coaching,latency_ms,input_tokens,output_tokens,tier,credits_spent,variant) values(${id},${review.ownerId},${review.analysisId},${review.steamId},${review.provider},${review.model},${review.promptVersion},${review.lang},${JSON.stringify(review.preferences)}::jsonb,${JSON.stringify(review.coaching)}::jsonb,${review.latencyMs},${review.inputTokens ?? null},${review.outputTokens ?? null},${review.tier},${review.creditsSpent},${review.variant ?? "a"})`,
     );
     return id;
   }

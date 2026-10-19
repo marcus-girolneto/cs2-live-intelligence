@@ -2,7 +2,13 @@ import type { Role } from "./me.js";
 
 /** "review" is the legacy alias of "review_quick". */
 export type AiPurpose =
-  "review" | "review_quick" | "review_deep" | "live" | "report";
+  | "review"
+  | "review_quick"
+  | "review_deep"
+  | "review_team"
+  | "verify"
+  | "live"
+  | "report";
 /** GET /v1/admin/users item (plan added by the plans module). */
 export type AdminUserDto = {
   id: string;

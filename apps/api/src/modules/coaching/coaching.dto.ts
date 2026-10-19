@@ -50,6 +50,8 @@ export type NewReview = {
   analysisId: string;
   steamId: string;
   tier: "quick" | "deep";
+  /** Prompt A/B variant (default "a"). */
+  variant?: "a" | "b";
   creditsSpent: number;
   provider: string;
   model: string;
