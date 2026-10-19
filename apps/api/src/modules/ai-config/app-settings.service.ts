@@ -11,6 +11,8 @@ export type AppSettingsViewDto = {
     maxInputBytes: number | null;
     sampleDemoEnabled: boolean;
     sampleDemoConfigured: boolean;
+    /** Day boundary in effect for plans, quotas and credits. */
+    timezone?: string;
     aiSource: {
       review: "database" | "env";
       review_quick: "database" | "env";
@@ -29,6 +31,11 @@ export class AppSettingsService {
     private readonly ai: AiSettingsService,
     private readonly audit: AuditTrail,
     private readonly sampleDemoConfigured: () => boolean,
+    /** Optional: the app clock's zone (refreshed after a settings change). */
+    private readonly timeZone?: {
+      current(): string;
+      refresh(): Promise<void>;
+    },
   ) {}
 
   async view(): Promise<AppSettingsViewDto> {
@@ -53,6 +60,7 @@ export class AppSettingsService {
           : snap.settings.maxInputBytes,
         sampleDemoEnabled: snap.settings.sampleDemoEnabled,
         sampleDemoConfigured: this.sampleDemoConfigured(),
+        ...(this.timeZone ? { timezone: this.timeZone.current() } : {}),
         aiSource: {
           review: review.source,
           review_quick: review.source,
@@ -72,6 +80,7 @@ export class AppSettingsService {
     const current = await this.ai.settings();
     await this.repository.saveAppSettings({ ...current, ...patch });
     this.ai.invalidate();
+    await this.timeZone?.refresh();
     await this.audit.record(adminId, "settings.update", patch);
     return this.view();
   }

@@ -2,10 +2,8 @@ import type { ApiConfig } from "../config/api-config.js";
 import type { RuntimeEnv } from "../config/env.js";
 import { CoachingAiGateway } from "../infrastructure/ai/coaching-ai-gateway.js";
 import { HttpModelCatalog } from "../infrastructure/ai/model-catalog.js";
-import {
-  createPaymentGateway,
-  paymentMethodsFromEnv,
-} from "../infrastructure/billing/payment-gateway-factory.js";
+import { createPaymentGatewaySource } from "../infrastructure/billing/payment-gateway-factory.js";
+import { HttpIntegrationProbes } from "../infrastructure/integrations/http-integration-probes.js";
 import { AesGcmSecretCipher } from "../infrastructure/secrets/aes-gcm-secret-cipher.js";
 import { HttpSteamClient } from "../infrastructure/steam/http-steam-client.js";
 import { AdminController } from "../modules/admin/admin.controller.js";
@@ -50,7 +48,15 @@ import {
 import { UsersController } from "../modules/users/users.controller.js";
 import { PgUsersRepository } from "../modules/users/users.repository.js";
 import { UsersService } from "../modules/users/users.service.js";
-import { ZonedClock } from "../shared/clock/clock.js";
+import { CachedIntegrationConfig } from "../modules/integrations/integration-config.provider.js";
+import { IntegrationsController } from "../modules/integrations/integrations.controller.js";
+import { PgIntegrationsRepository } from "../modules/integrations/integrations.repository.js";
+import { IntegrationsService } from "../modules/integrations/integrations.service.js";
+import {
+  RefreshingSetting,
+  validTimeZone,
+  ZonedClock,
+} from "../shared/clock/clock.js";
 import type { Db } from "../shared/db/database.js";
 import { PgUnitOfWork } from "../shared/db/unit-of-work.js";
 import { AuthGuards } from "../shared/http/guards.js";
@@ -79,7 +85,25 @@ export function createPlatformContext(
   );
   const apiPublicUrl = config.apiPublicUrl ?? "http://127.0.0.1:4000";
 
-  const clock = config.clock ?? new ZonedClock(env.timeZone());
+  const aiRepository = new PgAiConfigRepository(db);
+  const cipher = new AesGcmSecretCipher(() => env.raw());
+  const factory = new AiConfigFactory(cipher, env);
+  const aiSettings = new AiSettingsService(aiRepository, [
+    new AssignedProviderSource(factory),
+    new EnvironmentSource(factory),
+  ]);
+  // Day boundary: admin setting `timezone`, else the APP_TIMEZONE bootstrap, else São Paulo.
+  const timeZone = new RefreshingSetting<string>(
+    async () =>
+      validTimeZone((await aiSettings.settings()).timezone ?? env.timeZone()),
+    validTimeZone(env.timeZone()),
+  );
+  const clock = config.clock ?? new ZonedClock(() => timeZone.current());
+  const integrationConfig = new CachedIntegrationConfig(
+    new PgIntegrationsRepository(db),
+    cipher,
+    () => env.raw(),
+  );
   const adminRepository = new PgAdminRepository(db);
   const creditSettings = createCreditSettings(db, adminRepository);
   const plans = new PlansService(
@@ -97,13 +121,6 @@ export function createPlatformContext(
   );
   const accountExtras = new PlanAccountExtras(plans, quota);
 
-  const aiRepository = new PgAiConfigRepository(db);
-  const cipher = new AesGcmSecretCipher(() => env.raw());
-  const factory = new AiConfigFactory(cipher, env);
-  const aiSettings = new AiSettingsService(aiRepository, [
-    new AssignedProviderSource(factory),
-    new EnvironmentSource(factory),
-  ]);
   const aiGateway = config.aiGateway ?? new CoachingAiGateway();
   const aiAccess = new AiAccessService(
     aiSettings,
@@ -118,7 +135,7 @@ export function createPlatformContext(
   accountExtras.useUploadLimits(uploadLimits);
 
   const steam = new HttpSteamClient(config.steamFetch, () =>
-    env.steamWebApiKey(),
+    integrationConfig.steamWebApiKey(),
   );
   const users = new UsersService(usersRepository, steam, accountExtras);
   const credits = createCreditsContext(
@@ -133,18 +150,24 @@ export function createPlatformContext(
   );
   accountExtras.useCredits(credits.credits);
   users.onProfileRefreshed(credits.welcome);
-  const raw = env.raw();
   const billing = new BillingService(
-    createPaymentGateway(raw, config.paymentGateway),
+    createPaymentGatewaySource(
+      () => integrationConfig.stripe(),
+      config.paymentGateway,
+      config.integrationFetch ?? fetch,
+    ),
     plans,
     new PgBillingRepository(db),
     {
       webOrigin: config.webOrigin.replace(/\/$/, ""),
-      paymentMethods: {
-        BRL: paymentMethodsFromEnv(raw.STRIPE_PAYMENT_METHODS_BRL),
-        USD: paymentMethodsFromEnv(raw.STRIPE_PAYMENT_METHODS_USD),
+      paymentMethods: async () => {
+        const stripe = await integrationConfig.stripe();
+        return {
+          paymentMethods: stripe.paymentMethods,
+          publishableKey: stripe.publishableKey,
+        };
       },
-      env: raw,
+      env: env.raw(),
     },
     {
       pack: (id) => creditSettings.pack(id),
@@ -165,6 +188,8 @@ export function createPlatformContext(
     aiSettings,
     aiGateway,
     uploadLimits,
+    timeZone,
+    integrationConfig,
     audit: adminRepository,
     aiAccess,
     authController: new AuthController(
@@ -198,6 +223,20 @@ export function createPlatformContext(
         aiSettings,
       ),
     ),
+    integrationsController: new IntegrationsController(
+      new IntegrationsService(
+        new PgIntegrationsRepository(db),
+        cipher,
+        integrationConfig,
+        adminRepository,
+        new HttpIntegrationProbes(config.integrationFetch),
+        {
+          steamId: async (ownerId) =>
+            (await usersRepository.account(ownerId)).steamId,
+        },
+        apiPublicUrl.replace(/\/$/, ""),
+      ),
+    ),
     aiAdminController: new AiAdminController(
       new AiProviderAdminService(
         aiRepository,
@@ -213,6 +252,7 @@ export function createPlatformContext(
         aiSettings,
         adminRepository,
         () => !!env.sampleDemoFile(),
+        timeZone,
       ),
       aiAccess,
     ),

@@ -46,9 +46,14 @@ export interface ApiConfig {
   steamFetch?: typeof fetch;
   /** Fetch used for AI provider model listings. */
   fetch?: typeof fetch;
-  /** Payment gateway override (tests); null disables billing; default from STRIPE_* env. */
+  /** Fetch used by the Stripe gateway and the integration "Test" probes (tests). */
+  integrationFetch?: typeof fetch;
+  /**
+   * Payment gateway override (tests); null disables billing. Default: Stripe resolved per call
+   * from the admin-managed integration settings (env STRIPE_* as bootstrap fallback).
+   */
   paymentGateway?: PaymentGateway | null;
-  /** Quota day clock override (tests); default APP_TIMEZONE. */
+  /** Quota day clock override (tests); default: admin setting `timezone` (APP_TIMEZONE fallback). */
   clock?: Clock;
   /** Operator-tunable environment (tests may pass a fixed source). */
   env?: RuntimeEnv;

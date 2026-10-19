@@ -179,7 +179,7 @@ export const productPaths = {
   "/v1/admin/settings": {
     get: operation("Admin only: app-wide settings and effective values"),
     put: operation(
-      "Admin only: update dailyLimit, maxInputBytes, sampleDemoEnabled, personalCoachIntervalDays, personalCoachNewMatches, maxDemoBytes (1 MiB..1 GiB, default 524288000; clamped to MAX_UPLOAD_BYTES)",
+      "Admin only: update dailyLimit, maxInputBytes, sampleDemoEnabled, personalCoachIntervalDays, personalCoachNewMatches, maxDemoBytes (1 MiB..1 GiB, default 524288000; clamped to MAX_UPLOAD_BYTES), timezone (IANA zone for the plans/quotas/credits day boundary; null = APP_TIMEZONE or America/Sao_Paulo; applies without a restart)",
     ),
   },
   "/v1/admin/users": {

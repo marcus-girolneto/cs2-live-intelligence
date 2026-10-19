@@ -8,6 +8,10 @@ import type {
   PaymentGateway,
 } from "../../infrastructure/billing/payment-gateway.js";
 import { NullPaymentGateway } from "../../infrastructure/billing/null-payment-gateway.js";
+import {
+  StaticPaymentGatewaySource,
+  type PaymentGatewaySource,
+} from "../../infrastructure/billing/payment-gateway-factory.js";
 import type { Currency, Interval } from "../plans/plans.dto.js";
 import type {
   PlanRecord,
@@ -62,10 +66,15 @@ export interface BillingCredits {
   ): Promise<unknown>;
   syncPlanCredits(ownerId: string): Promise<unknown>;
 }
+/** Admin-managed checkout options read per request (publishable key, payment methods). */
+export type BillingOptions = {
+  paymentMethods: Record<Currency, string[]>;
+  publishableKey?: string | null;
+};
 export type BillingConfig = {
   webOrigin: string;
-  /** Payment method types per currency (e.g. BRL: ["card","pix"]). */
-  paymentMethods: Record<Currency, string[]>;
+  /** Payment method types per currency (e.g. BRL: ["card","pix"]), fixed or read per call. */
+  paymentMethods: Record<Currency, string[]> | (() => Promise<BillingOptions>);
   /** Env price ids: STRIPE_PRICE_<PLAN>_<MONTHLY|YEARLY>[_<CURRENCY>]. */
   env: Record<string, string | undefined>;
 };
@@ -91,35 +100,53 @@ const unix = (v: unknown): string | null =>
     ? new Date(v * 1000).toISOString()
     : null;
 
-/** Subscriptions through an optional payment gateway. Without one, billing is disabled. */
+const isSource = (
+  value: PaymentGateway | PaymentGatewaySource,
+): value is PaymentGatewaySource =>
+  typeof (value as PaymentGatewaySource).current === "function";
+
+/**
+ * Subscriptions through the payment gateway in effect, resolved per operation (admins can
+ * configure, rotate or disable Stripe at runtime). Without one, billing is disabled.
+ */
 export class BillingService {
-  /** The configured gateway, or the Null Object when billing is disabled. */
-  private readonly gateway: PaymentGateway;
+  private readonly gateways: PaymentGatewaySource;
   constructor(
-    gateway: PaymentGateway | undefined,
+    gateway: PaymentGateway | PaymentGatewaySource | undefined,
     private readonly plans: BillingPlans,
     private readonly events: BillingRepository,
     private readonly config: BillingConfig,
     private readonly credits?: BillingCredits,
   ) {
-    this.gateway = gateway ?? new NullPaymentGateway();
+    this.gateways = !gateway
+      ? new StaticPaymentGatewaySource(new NullPaymentGateway())
+      : isSource(gateway)
+        ? gateway
+        : new StaticPaymentGatewaySource(gateway);
   }
-  get enabled(): boolean {
-    return this.gateway.enabled !== false;
+  private async options(): Promise<BillingOptions> {
+    const m = this.config.paymentMethods;
+    return typeof m === "function" ? m() : { paymentMethods: m };
   }
-  status(): BillingStatusDto {
-    if (!this.enabled) return { enabled: false };
+  async status(): Promise<BillingStatusDto> {
+    const gateway = await this.gateways.current();
+    if (gateway.enabled === false) return { enabled: false };
+    const options = await this.options();
     return {
       enabled: true,
-      provider: this.gateway.name,
+      provider: gateway.name,
       currencies: ["BRL", "USD"],
       intervals: ["month", "year"],
-      paymentMethods: this.config.paymentMethods,
+      paymentMethods: options.paymentMethods,
+      ...(options.publishableKey
+        ? { publishableKey: options.publishableKey }
+        : {}),
     };
   }
-  private gw(): PaymentGateway {
-    if (!this.enabled) throw new BillingDisabledError();
-    return this.gateway;
+  private async gw(): Promise<PaymentGateway> {
+    const gateway = await this.gateways.current();
+    if (gateway.enabled === false) throw new BillingDisabledError();
+    return gateway;
   }
   /** Price id from the plan row, else STRIPE_PRICE_<PLAN>_<MONTHLY|YEARLY>[_<CURRENCY>]. */
   priceId(
@@ -139,7 +166,7 @@ export class BillingService {
     ownerId: string,
     request: CheckoutRequestDto,
   ): Promise<RedirectDto> {
-    const gateway = this.gw();
+    const gateway = await this.gw();
     const plan = await this.plans.plan(request.planId);
     if (!plan || !plan.active || plan.id === "free")
       throw new NotFoundError("Plan not available for purchase", NOT_FOUND);
@@ -155,7 +182,9 @@ export class BillingService {
       ownerId,
       planId: plan.id,
       customerId: existing?.stripeCustomerId ?? null,
-      paymentMethodTypes: this.config.paymentMethods[request.currency],
+      paymentMethodTypes: (await this.options()).paymentMethods[
+        request.currency
+      ],
       successUrl: `${this.config.webOrigin}/billing?status=success`,
       cancelUrl: `${this.config.webOrigin}/billing?status=cancel`,
     });
@@ -165,7 +194,7 @@ export class BillingService {
     ownerId: string,
     request: CreditCheckoutRequest,
   ): Promise<RedirectDto> {
-    const gateway = this.gw();
+    const gateway = await this.gw();
     const pack = await this.credits?.pack(request.packId);
     if (!pack || !pack.active)
       throw new NotFoundError("Credit pack not available", NOT_FOUND);
@@ -190,14 +219,16 @@ export class BillingService {
         ownerId,
         credits: String(pack.credits),
       },
-      paymentMethodTypes: this.config.paymentMethods[request.currency],
+      paymentMethodTypes: (await this.options()).paymentMethods[
+        request.currency
+      ],
       successUrl: `${this.config.webOrigin}/billing?credits=success`,
       cancelUrl: `${this.config.webOrigin}/billing?credits=cancel`,
     });
   }
 
   async portal(ownerId: string): Promise<RedirectDto> {
-    const gateway = this.gw();
+    const gateway = await this.gw();
     const customer = (await this.plans.subscription(ownerId))?.stripeCustomerId;
     if (!customer) throw new NotFoundError("No billing account yet", NOT_FOUND);
     return gateway.createPortal(customer, `${this.config.webOrigin}/billing`);
@@ -208,7 +239,7 @@ export class BillingService {
     rawBody: string,
     signature: string | undefined,
   ): Promise<WebhookResultDto> {
-    const event = this.gw().verifyWebhook(rawBody, signature);
+    const event = (await this.gw()).verifyWebhook(rawBody, signature);
     if (await this.events.seen(event.id))
       return { received: true, duplicate: true };
     await this.apply(event);

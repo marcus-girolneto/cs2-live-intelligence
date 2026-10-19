@@ -452,7 +452,7 @@ describe("BillingService (in-memory fakes)", () => {
       new FakeEvents(),
       config,
     );
-    expect(billing.status()).toEqual({ enabled: false });
+    expect(await billing.status()).toEqual({ enabled: false });
     await expect(
       billing.checkout("u1", {
         planId: "basic",

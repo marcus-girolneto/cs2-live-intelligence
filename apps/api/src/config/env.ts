@@ -3,10 +3,14 @@ import { z } from "zod";
 /**
  * The only module that reads process.env.
  *
+ * The environment holds bootstrap/infrastructure settings only (see .env.example). Everything
+ * an operator tunes lives in Postgres and is edited by admins in the app (AI providers, app
+ * settings incl. time zone, Steam/Stripe integrations) — it survives restarts and redeploys.
+ *
  * - `loadConfig()` validates the boot-time settings once (zod) into a typed AppConfig.
- * - `RuntimeEnv` exposes the settings an operator may change without a restart (AI_* fallback,
- *   Steam Web API key, admin bootstrap, sample demo, Stripe price ids). They are read on every
- *   use, exactly like before the refactor, so tests and operators can flip them live.
+ * - `RuntimeEnv` exposes optional bootstrap fallbacks that the database overrides (AI_*,
+ *   STEAM_WEB_API_KEY / STRIPE_* via the integrations module, APP_TIMEZONE), the admin
+ *   bootstrap and the sample demo path. They are read on every use.
  */
 type Env = Record<string, string | undefined>;
 
@@ -39,7 +43,7 @@ export interface DevAuthConfig {
 export interface AppConfig {
   production: boolean;
   databaseUrl: string | undefined;
-  /** Static development identities (APP_ENV=local + ALLOW_DEV_AUTH=true only). */
+  /** Static development identities (APP_ENV=local, unless ALLOW_DEV_AUTH=false). */
   devAuth: DevAuthConfig | undefined;
   storageDir: string;
   parserBin: string;
@@ -55,16 +59,18 @@ export function loadConfig(env: Env = process.env): AppConfig {
   const e = bootSchema.parse(env);
   const production = e.APP_ENV !== "local";
   const databaseUrl = e.DATABASE_URL || undefined;
-  const allowDev = !production && e.ALLOW_DEV_AUTH === "true";
+  // Static development identities follow APP_ENV=local unless ALLOW_DEV_AUTH=false.
+  const allowDev =
+    !production && (e.ALLOW_DEV_AUTH ?? "true").trim() !== "false";
   if (!databaseUrl && !allowDev)
     throw new Error(
-      "DATABASE_URL required; explicit ALLOW_DEV_AUTH=true is available only with APP_ENV=local",
+      "DATABASE_URL required; development auth is available only with APP_ENV=local",
     );
   if (production && e.ALLOW_DEV_AUTH === "true")
     throw new Error("Development authentication forbidden in production");
   if (allowDev && (!e.DEVICE_TOKEN || !e.WEB_TOKEN))
     throw new Error(
-      "Explicit development auth requires DEVICE_TOKEN and WEB_TOKEN",
+      "Development auth (APP_ENV=local) requires DEVICE_TOKEN and WEB_TOKEN; set ALLOW_DEV_AUTH=false to disable it",
     );
   return {
     production,
@@ -131,9 +137,6 @@ export class RuntimeEnv {
   }
   aiMaxInputBytes(): string | undefined {
     return this.source().AI_MAX_INPUT_BYTES;
-  }
-  steamWebApiKey(): string | undefined {
-    return this.source().STEAM_WEB_API_KEY;
   }
   sampleDemoFile(): string | undefined {
     return this.source().SAMPLE_DEMO_FILE;

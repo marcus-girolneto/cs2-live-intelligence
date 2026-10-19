@@ -29,6 +29,7 @@ import { registerReportsRoutes } from "./modules/reports/reports.routes.js";
 import { registerPersonalCoachRoutes } from "./modules/personal-coach/personal-coach.routes.js";
 import { registerDevicesRoutes } from "./modules/devices/devices.routes.js";
 import { registerFeedbackRoutes } from "./modules/feedback/feedback.routes.js";
+import { registerIntegrationsRoutes } from "./modules/integrations/integrations.routes.js";
 import { registerLiveRoutes } from "./modules/live/live.routes.js";
 import { registerMatchesRoutes } from "./modules/matches/matches.routes.js";
 import { registerPlansRoutes } from "./modules/plans/plans.routes.js";
@@ -114,6 +115,9 @@ export async function buildHttpApp(
     registerPlatform(app, platform);
     registerAiAdminRoutes(app, platform.aiAdminController, guards);
     const coded = guards.withStyle("coded");
+    // Admin-managed settings read synchronously (the clock's zone) are loaded before serving.
+    await platform.timeZone.refresh();
+    registerIntegrationsRoutes(app, platform.integrationsController, coded);
     registerPlansRoutes(app, platform.plansController, coded);
     registerCreditsRoutes(app, platform.credits.creditsController, coded);
     await registerBillingRoutes(app, platform.billingController, coded);

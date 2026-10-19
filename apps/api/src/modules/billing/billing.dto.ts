@@ -17,6 +17,8 @@ export type BillingStatusDto =
       currencies: string[];
       intervals: string[];
       paymentMethods: Record<string, string[]>;
+      /** Stripe publishable key, when an admin configured one. */
+      publishableKey?: string;
     };
 export type RedirectDto = { url: string };
 /** POST /v1/billing/webhook response. */

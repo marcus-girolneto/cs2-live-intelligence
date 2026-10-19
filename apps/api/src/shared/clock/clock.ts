@@ -10,6 +10,16 @@ export interface Clock {
 
 export const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 
+/** True when `zone` is an IANA time zone this runtime knows. */
+export function isTimeZone(zone: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: zone.trim() });
+    return !!zone.trim();
+  } catch {
+    return false;
+  }
+}
+
 export function validTimeZone(zone: string | undefined): string {
   if (!zone?.trim()) return DEFAULT_TIMEZONE;
   try {
@@ -70,13 +80,24 @@ function offset(zone: string, at: Date): number {
   return asUtc - Math.floor(at.getTime() / 1000) * 1000;
 }
 
+/**
+ * Clock in a fixed zone, or in a zone read on every use (`() => zone`, e.g. the admin setting)
+ * so a changed time zone applies without a restart.
+ */
 export class ZonedClock implements Clock {
-  readonly timeZone: string;
+  private readonly zone: () => string | undefined;
+  private last?: { raw: string | undefined; valid: string };
   constructor(
-    timeZone?: string,
+    timeZone?: string | (() => string | undefined),
     private readonly source: () => number = Date.now,
   ) {
-    this.timeZone = validTimeZone(timeZone);
+    this.zone = typeof timeZone === "function" ? timeZone : () => timeZone;
+  }
+  get timeZone(): string {
+    const raw = this.zone();
+    if (this.last?.raw !== raw || !this.last)
+      this.last = { raw, valid: validTimeZone(raw) };
+    return this.last.valid;
   }
   now(): Date {
     return new Date(this.source());
@@ -97,3 +118,40 @@ export class ZonedClock implements Clock {
 
 /** Millisecond time source (Date.now in production; fixed in tests). */
 export type TimeSource = () => number;
+
+/**
+ * A setting-backed value read synchronously (the clock's zone): returns the last loaded value
+ * and reloads in the background once it is older than `ttlMs`. `refresh()` reloads now (boot,
+ * admin change).
+ */
+export class RefreshingSetting<T> {
+  private value: T;
+  private at = 0;
+  private pending?: Promise<void>;
+  constructor(
+    private readonly load: () => Promise<T>,
+    initial: T,
+    private readonly ttlMs = 30_000,
+    private readonly now: TimeSource = Date.now,
+  ) {
+    this.value = initial;
+  }
+  current(): T {
+    if (this.now() - this.at >= this.ttlMs) void this.refresh();
+    return this.value;
+  }
+  refresh(): Promise<void> {
+    this.pending ??= this.load()
+      .then((value) => {
+        this.value = value;
+        this.at = this.now();
+      })
+      .catch(() => {
+        this.at = this.now(); // keep the last value; retry after the TTL
+      })
+      .finally(() => {
+        this.pending = undefined;
+      });
+    return this.pending;
+  }
+}

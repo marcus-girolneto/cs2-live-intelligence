@@ -15,7 +15,8 @@ export interface SteamProfileProvider {
 
 /**
  * Adapter for Steam over HTTP: OpenID direct verification and the public profile
- * (community XML + optional Web API). `apiKey` is read per call so it can be rotated live.
+ * (community XML + optional Web API). `apiKey` is resolved per call (admin-managed, see the
+ * integrations module) so a new or rotated key applies without a restart.
  */
 export class HttpSteamClient
   implements SteamOpenIdVerifier, SteamProfileProvider
@@ -23,7 +24,8 @@ export class HttpSteamClient
   constructor(
     /** Undefined: the global fetch at call time. */
     private readonly fetchImpl?: typeof fetch,
-    private readonly apiKey: () => string | undefined = () => undefined,
+    private readonly apiKey: () =>
+      string | undefined | Promise<string | undefined> = () => undefined,
   ) {}
 
   async verify(fields: URLSearchParams): Promise<OpenIdVerdict> {
@@ -45,10 +47,13 @@ export class HttpSteamClient
     }
   }
 
-  profile(steamId: string): Promise<SteamProfile | null> {
-    return fetchSteamProfile(steamId, {
-      fetch: this.fetchImpl,
-      apiKey: this.apiKey(),
-    });
+  async profile(steamId: string): Promise<SteamProfile | null> {
+    let apiKey: string | undefined;
+    try {
+      apiKey = await this.apiKey();
+    } catch {
+      apiKey = undefined; // key store unavailable: public community profile only
+    }
+    return fetchSteamProfile(steamId, { fetch: this.fetchImpl, apiKey });
   }
 }

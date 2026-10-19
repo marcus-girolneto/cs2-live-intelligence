@@ -756,6 +756,7 @@ describe.skipIf(!databaseUrl)(
         personalCoachIntervalDays: 7,
         personalCoachNewMatches: 3,
         maxDemoBytes: 524_288_000,
+        timezone: null,
       });
       expect(
         (

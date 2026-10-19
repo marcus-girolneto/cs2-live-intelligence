@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isTimeZone } from "../../shared/clock/clock.js";
 
 /**
  * What a model call is for. Quick and deep reviews can use different models (the admin assigns
@@ -69,6 +70,13 @@ export const appSettingsSchema = z
       .int()
       .min(1024 * 1024)
       .max(1024 * 1024 * 1024),
+    /** Plans/quotas day boundary (IANA zone); null = APP_TIMEZONE bootstrap or America/Sao_Paulo. */
+    timezone: z
+      .string()
+      .trim()
+      .max(64)
+      .refine(isTimeZone, "unknown IANA time zone")
+      .nullable(),
   })
   .strict();
 export type AppSettings = z.infer<typeof appSettingsSchema>;
@@ -79,6 +87,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   personalCoachIntervalDays: 7,
   personalCoachNewMatches: 3,
   maxDemoBytes: 524_288_000,
+  timezone: null,
 };
 
 const providerName = z.string().trim().min(1).max(64);

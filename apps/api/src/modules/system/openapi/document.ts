@@ -2,6 +2,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { envelopeSchema, liveStateSchema } from "@cs2/contracts";
 import { accountPaths } from "./account-paths.js";
 import { creditsPaths } from "./credits-paths.js";
+import { integrationsPaths } from "./integrations-paths.js";
 import { livePaths } from "./live-paths.js";
 import { productPaths } from "./product-paths.js";
 
@@ -24,6 +25,12 @@ export function openApiDocument(): Record<string, unknown> {
         LiveState: zodToJsonSchema(liveStateSchema, { target: "openApi3" }),
       },
     },
-    paths: { ...accountPaths, ...productPaths, ...creditsPaths, ...livePaths },
+    paths: {
+      ...accountPaths,
+      ...productPaths,
+      ...creditsPaths,
+      ...integrationsPaths,
+      ...livePaths,
+    },
   };
 }
