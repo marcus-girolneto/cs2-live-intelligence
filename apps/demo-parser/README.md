@@ -11,7 +11,7 @@ python3 scripts/fetch-fixture.py
 CS2_DEMO_FIXTURE="$PWD/testdata/public-cs2.dem" go test -race -count=1 ./...
 ```
 
-The executable writes exactly one `normalizedDemoSchema` JSON object plus newline to stdout on success. Diagnostics/errors go to stderr; malformed input exits 1 and argument errors exit 2. No JSON is written on parse failure. `-input` is required. `-max-bytes` defaults to 268435456 (256 MiB), with an absolute ceiling of 536870912 (512 MiB). Only regular files with the CS2 `PBDEMS2\0` magic are accepted. CS:GO `HL2DEMO` files are rejected. Empty, truncated, malformed demos, and demos without any fully observed valid live round fail.
+The executable writes exactly one `normalizedDemoSchema` JSON object plus newline to stdout on success, or to the file named by `-output` (mode 0600; the API always uses it because documents of large demos exceed a pipe buffer). Diagnostics/errors go to stderr; malformed input exits 1 and argument errors exit 2. No JSON is written on parse failure. `-input` is required. `-max-bytes` defaults to 524288000 (500 MiB, the product's upload limit), with an absolute ceiling of 1073741824 (1 GiB). Only regular files with the CS2 `PBDEMS2\0` magic are accepted. CS:GO `HL2DEMO` files are rejected. Empty, truncated, malformed demos, and demos without any fully observed valid live round fail.
 
 ## Normalization and completeness
 
@@ -52,7 +52,7 @@ The M4A1-S is labelled `M4A1-S` (the dependency names it `M4A1`). Enrichment nev
 
 ## Limits and isolation
 
-Limits: 128 players, 1000 rounds, 1,000,000 normalized pending/committed events, and capped input size. Input is streamed. Dependency protobuf/entity allocations are not bounded by file size and the Go 512 MiB soft memory target is not a hard sandbox. Run as the API's separate worker process with an OS/container memory limit, subprocess deadline, bounded stdout/stderr capture, no network requirement and an immutable uploaded file. Parser panics on malformed data are converted to failures where recoverable; process crashes/OOM must be treated as failed jobs by the caller. Do not run parsing in the live ingest path.
+Limits: 128 players, 1000 rounds, 5,000,000 normalized pending/committed events, and capped input size. Input is streamed. Dependency protobuf/entity allocations are not bounded by file size and the Go 1 GiB soft memory target is not a hard sandbox. Run as the API's separate worker process with an OS/container memory limit, subprocess deadline, bounded stdout/stderr capture, no network requirement and an immutable uploaded file. Parser panics on malformed data are converted to failures where recoverable; process crashes/OOM must be treated as failed jobs by the caller. Do not run parsing in the live ingest path.
 
 ## Verification
 

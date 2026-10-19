@@ -32,6 +32,10 @@ import { DevicesController } from "../modules/devices/devices.controller.js";
 import { PgDevicesRepository } from "../modules/devices/devices.repository.js";
 import { DevicesService } from "../modules/devices/devices.service.js";
 import { PlanAccountExtras } from "../modules/plans/plans.extras.js";
+import {
+  MAX_UPLOAD_CAP,
+  UploadLimits,
+} from "../modules/matches/upload-limits.js";
 import { PlansController } from "../modules/plans/plans.controller.js";
 import { PgPlansRepository } from "../modules/plans/plans.repository.js";
 import { PlansService } from "../modules/plans/plans.service.js";
@@ -101,6 +105,11 @@ export function createPlatformContext(
     new EnvironmentSource(factory),
   ]);
   const aiGateway = config.aiGateway ?? new CoachingAiGateway();
+  const uploadLimits = new UploadLimits(
+    aiSettings,
+    config.jobs?.maxUploadBytes ?? MAX_UPLOAD_CAP,
+  );
+  accountExtras.useUploadLimits(uploadLimits);
 
   const steam = new HttpSteamClient(config.steamFetch, () =>
     env.steamWebApiKey(),
@@ -149,6 +158,7 @@ export function createPlatformContext(
     privacy,
     aiSettings,
     aiGateway,
+    uploadLimits,
     audit: adminRepository,
     aiAccess: new AiAccessService(aiSettings, aiRepository, aiGateway, logger),
     authController: new AuthController(
@@ -172,7 +182,7 @@ export function createPlatformContext(
     privacyController: new PrivacyController(
       new PrivacyService(privacy, live.invalidation, plans),
     ),
-    plansController: new PlansController(plans),
+    plansController: new PlansController(plans, uploadLimits),
     billingController: new BillingController(billing),
     adminController: new AdminController(
       new AdminService(

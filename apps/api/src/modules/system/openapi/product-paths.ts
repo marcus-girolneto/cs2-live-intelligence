@@ -173,7 +173,7 @@ export const productPaths = {
   "/v1/admin/settings": {
     get: operation("Admin only: app-wide settings and effective values"),
     put: operation(
-      "Admin only: update dailyLimit, maxInputBytes, sampleDemoEnabled",
+      "Admin only: update dailyLimit, maxInputBytes, sampleDemoEnabled, personalCoachIntervalDays, personalCoachNewMatches, maxDemoBytes (1 MiB..1 GiB, default 524288000; clamped to MAX_UPLOAD_BYTES)",
     ),
   },
   "/v1/admin/users": {
@@ -195,7 +195,7 @@ export const productPaths = {
   },
   "/v1/plans": {
     get: operation(
-      "Active plans {plans:[{id,name,prices:{BRL?,USD?:{month,year}} (cents),limits:{aiReviewsPerDay,liveAiMatchesPerDay,uploadsPerDay,retentionDaysMax (null = unlimited),monthlyCredits},features:{clipExport,perMapLearning,cheaperDeep,monthlyReport,reel,deepHistory,priorityQueue},credits:{monthly,quickCost,deepCost},benefits:[enabled feature keys]}]}",
+      "Active plans {plans:[{id,name,prices:{BRL?,USD?:{month,year}} (cents),limits:{aiReviewsPerDay,liveAiMatchesPerDay,uploadsPerDay,retentionDaysMax (null = unlimited),monthlyCredits},features:{clipExport,perMapLearning,cheaperDeep,monthlyReport,reel,deepHistory,priorityQueue},credits:{monthly,quickCost,deepCost},benefits:[enabled feature keys]}], uploads:{maxDemoBytes}}",
     ),
   },
   "/v1/admin/plans": {

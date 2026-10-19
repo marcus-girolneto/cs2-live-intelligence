@@ -21,9 +21,14 @@ import (
 )
 
 const Version = "demoinfocs-golang/v4@v4.5.1+cs2live.3"
-const DefaultMaxBytes int64 = 256 << 20
-const MaxBytes int64 = 512 << 20
-const MaxEvents = 1_000_000
+
+// DefaultMaxBytes is the default input cap (500 MiB = 524288000 bytes, the product's demo
+// upload limit); MaxBytes is the hard ceiling accepted by -max-bytes.
+const DefaultMaxBytes int64 = 500 << 20
+const MaxBytes int64 = 1 << 30
+
+// MaxEvents bounds the normalized document; long/large demos (500 MB) stay well below it.
+const MaxEvents = 5_000_000
 
 type Completeness struct {
 	Kills  bool `json:"kills"`

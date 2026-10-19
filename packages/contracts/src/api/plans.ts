@@ -96,3 +96,9 @@ export const checkoutRequestSchema = z
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 /** POST /v1/billing/checkout and /v1/billing/portal response. */
 export type RedirectDto = { url: string };
+/** GET /v1/plans. */
+export type PlansListDto = {
+  plans: PlanView[];
+  /** Demo upload limit for every plan (bytes). */
+  uploads?: { maxDemoBytes: number };
+};

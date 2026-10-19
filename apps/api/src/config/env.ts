@@ -10,7 +10,8 @@ import { z } from "zod";
  */
 type Env = Record<string, string | undefined>;
 
-const DEFAULT_MAX_UPLOAD = 64 * 1024 * 1024;
+/** Deployment ceiling for uploads; the admin setting maxDemoBytes (default 500 MB) applies below it. */
+const DEFAULT_MAX_UPLOAD = 1024 * 1024 * 1024;
 
 const bootSchema = z.object({
   APP_ENV: z.string().optional(),

@@ -106,7 +106,7 @@ export function createJobsContext(
     credits,
     clock,
   } = platform;
-  const maxBytes = options.maxUploadBytes ?? 64 * 1024 * 1024;
+  const maxBytes = platform.uploadLimits.ceiling;
   const workers = createWorkers(
     db,
     options,
@@ -121,7 +121,7 @@ export function createJobsContext(
     workers.storage,
     privacy,
     quota,
-    maxBytes,
+    platform.uploadLimits,
   );
   const sample = new SampleDemoService(
     new FileSampleDemoSource(() => env.sampleDemoFile()),

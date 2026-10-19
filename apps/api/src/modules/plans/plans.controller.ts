@@ -14,10 +14,20 @@ const INVALID = { code: "invalid_request" } as const;
 
 /** HTTP ⇄ plans service: parses DTOs and shapes responses (guards run as preHandlers). */
 export class PlansController {
-  constructor(private readonly plans: PlansService) {}
+  constructor(
+    private readonly plans: PlansService,
+    private readonly uploads?: { maxDemoBytes(): Promise<number> },
+  ) {}
 
-  list = async (): Promise<{ plans: PlanView[] }> => ({
+  /** Public catalogue plus the demo upload limit (same for every plan). */
+  list = async (): Promise<{
+    plans: PlanView[];
+    uploads?: { maxDemoBytes: number };
+  }> => ({
     plans: await this.plans.publicPlans(),
+    ...(this.uploads
+      ? { uploads: { maxDemoBytes: await this.uploads.maxDemoBytes() } }
+      : {}),
   });
 
   adminList = async (): Promise<{ plans: AdminPlanView[] }> => ({

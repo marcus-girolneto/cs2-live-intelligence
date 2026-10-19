@@ -63,6 +63,12 @@ export const appSettingsSchema = z
     personalCoachIntervalDays: z.number().int().min(1).max(90),
     /** ...unless this many new analyses arrived (also the auto-regeneration threshold). */
     personalCoachNewMatches: z.number().int().min(1).max(50),
+    /** Demo upload limit in bytes (default 500 MB; clamped to MAX_UPLOAD_BYTES, max 1 GiB). */
+    maxDemoBytes: z
+      .number()
+      .int()
+      .min(1024 * 1024)
+      .max(1024 * 1024 * 1024),
   })
   .strict();
 export type AppSettings = z.infer<typeof appSettingsSchema>;
@@ -72,6 +78,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   sampleDemoEnabled: true,
   personalCoachIntervalDays: 7,
   personalCoachNewMatches: 3,
+  maxDemoBytes: 524_288_000,
 };
 
 const providerName = z.string().trim().min(1).max(64);

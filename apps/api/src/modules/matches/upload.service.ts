@@ -19,7 +19,8 @@ import {
 } from "./matches.dto.js";
 import type { MatchesRepository } from "./matches.repository.js";
 
-export const MAX_UPLOAD_CAP = 128 * 1024 * 1024;
+import type { UploadLimits } from "./upload-limits.js";
+export { MAX_UPLOAD_CAP } from "./upload-limits.js";
 const MAX_CONCURRENT_UPLOADS = 4;
 
 /** Port (usage module): one upload unit of the caller's daily plan quota. */
@@ -65,15 +66,8 @@ export class UploadService {
     private readonly storage: ObjectStorage,
     private readonly consent: ConsentLookup,
     private readonly quota: UploadQuota,
-    readonly maxBytes: number,
-  ) {
-    if (
-      !Number.isInteger(maxBytes) ||
-      maxBytes < 1 ||
-      maxBytes > MAX_UPLOAD_CAP
-    )
-      throw new Error("Upload cap must be 1 byte..128 MiB");
-  }
+    private readonly limits: Pick<UploadLimits, "maxDemoBytes">,
+  ) {}
 
   /** Runs before the body is read: consent, concurrency, declared size, type, plan quota. */
   async admit(
@@ -85,7 +79,7 @@ export class UploadService {
       throw new ForbiddenError("Telemetry consent required");
     if (this.activeUploads >= MAX_CONCURRENT_UPLOADS)
       throw new TooManyRequestsError("Upload concurrency reached");
-    if (contentLength > this.maxBytes)
+    if (contentLength > (await this.limits.maxDemoBytes()))
       throw new PayloadTooLargeError("Demo upload exceeds size limit");
     if (contentType !== "application/octet-stream")
       throw new UnsupportedMediaTypeError("Use application/octet-stream");
@@ -101,7 +95,11 @@ export class UploadService {
     const id = randomUUID();
     const objectKey = id + ".dem";
     try {
-      const stored = await this.storage.write(objectKey, body, this.maxBytes);
+      const stored = await this.storage.write(
+        objectKey,
+        body,
+        await this.limits.maxDemoBytes(),
+      );
       if (!stored.size) {
         await this.storage.remove(objectKey);
         throw bodyError(400, "Empty demo upload");

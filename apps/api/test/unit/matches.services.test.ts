@@ -1,9 +1,15 @@
 import { Readable } from "node:stream";
+import { parserDeadlineMs } from "../../src/infrastructure/parser/demo-parser.js";
 import { describe, expect, it } from "vitest";
 import type { MatchesRepository } from "../../src/modules/matches/matches.repository.js";
 import { MatchesService } from "../../src/modules/matches/matches.service.js";
 import type { SampleDemoSource } from "../../src/modules/matches/sample-demo.service.js";
 import { SampleDemoService } from "../../src/modules/matches/sample-demo.service.js";
+import {
+  DEFAULT_MAX_DEMO_BYTES,
+  MAX_UPLOAD_CAP,
+  UploadLimits,
+} from "../../src/modules/matches/upload-limits.js";
 import { UploadService } from "../../src/modules/matches/upload.service.js";
 import type { ConsentLookup } from "../../src/modules/privacy/privacy.repository.js";
 import { silentLogger } from "../../src/shared/logging/logger.js";
@@ -58,24 +64,33 @@ function uploads(consentGiven = true) {
     storage,
     consent(consentGiven),
     { reserveUpload: async () => reservation },
-    100,
+    { maxDemoBytes: async () => 100 },
   );
   return { matches, storage, reservation, service };
 }
 const OCTET = "application/octet-stream";
 
 describe("UploadService", () => {
-  it("validates the cap at construction", () => {
+  it("validates the deployment ceiling and clamps the admin setting to it", async () => {
+    const setting = (maxDemoBytes: number) => ({
+      settings: async () => ({ maxDemoBytes }),
+    });
+    expect(() => new UploadLimits(setting(1), 0)).toThrow(
+      "Upload cap must be 1 byte..1 GiB",
+    );
+    expect(() => new UploadLimits(setting(1), MAX_UPLOAD_CAP + 1)).toThrow();
     expect(
-      () =>
-        new UploadService(
-          new FakeMatches(),
-          new FakeObjectStorage(),
-          consent(),
-          { reserveUpload: async () => new CountingReservation() },
-          0,
-        ),
-    ).toThrow("Upload cap must be 1 byte..128 MiB");
+      await new UploadLimits(
+        setting(DEFAULT_MAX_DEMO_BYTES),
+        MAX_UPLOAD_CAP,
+      ).maxDemoBytes(),
+    ).toBe(524_288_000);
+    expect(
+      await new UploadLimits(
+        setting(DEFAULT_MAX_DEMO_BYTES),
+        1000,
+      ).maxDemoBytes(),
+    ).toBe(1000);
   });
   it("admits in order: consent, concurrency, declared size, content type", async () => {
     expect(
@@ -218,5 +233,13 @@ describe("MatchesService.reprocess", () => {
     expect((await appError(service.get("o", "x"))).body).toEqual({
       error: "Match not found",
     });
+  });
+});
+
+describe("parserDeadlineMs", () => {
+  it("scales the parser deadline with the demo size, bounded to 30 minutes", () => {
+    expect(parserDeadlineMs(120_000, 0)).toBe(120_000);
+    expect(parserDeadlineMs(120_000, 500 * 1024 * 1024)).toBe(620_000);
+    expect(parserDeadlineMs(120_000, 5 * 1024 * 1024 * 1024)).toBe(1_800_000);
   });
 });

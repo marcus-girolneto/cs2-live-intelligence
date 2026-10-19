@@ -48,6 +48,8 @@ export type MeDto = {
   plan: AccountPlanView;
   usage: UsageView;
   credits: CreditsDto;
+  /** Effective demo upload limit in bytes (admin setting, default 500 MB). */
+  uploadMaxBytes?: number;
 };
 /** 429 body of POST /v1/me/refresh-profile (also a retry-after header). */
 export type RefreshThrottledDto = { error: string; retryAfterSeconds: number };

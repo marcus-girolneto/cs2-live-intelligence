@@ -17,6 +17,11 @@ export class PlanAccountExtras implements AccountExtras, UserPlans {
     private credits?: CreditsExtras,
   ) {}
 
+  private uploads?: { maxDemoBytes(): Promise<number> };
+  /** Late binding (the upload limit is an AI/app setting built after plans). */
+  useUploadLimits(uploads: { maxDemoBytes(): Promise<number> }): void {
+    this.uploads = uploads;
+  }
   /** Late binding (credits are built after plans and usage). */
   useCredits(credits: CreditsExtras): void {
     this.credits = credits;
@@ -31,6 +36,9 @@ export class PlanAccountExtras implements AccountExtras, UserPlans {
       usage: await this.quota.usageView(ownerId),
       ...(this.credits
         ? { credits: await this.credits.view(ownerId, account.steamLinked) }
+        : {}),
+      ...(this.uploads
+        ? { uploadMaxBytes: await this.uploads.maxDemoBytes() }
         : {}),
     };
   }

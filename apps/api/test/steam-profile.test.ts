@@ -545,6 +545,7 @@ describe.skipIf(!databaseUrl)("GET /v1/me Steam profile", () => {
         balance: 0,
         welcome: { status: "ineligible", reason: "not_steam" },
       }),
+      uploadMaxBytes: 524_288_000,
     });
     expect(
       (await app.inject({ method: "POST", url: "/v1/me/refresh-profile" }))

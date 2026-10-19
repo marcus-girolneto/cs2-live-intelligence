@@ -670,6 +670,7 @@ describe.skipIf(!databaseUrl)(
         sampleDemoEnabled: true,
         personalCoachIntervalDays: 7,
         personalCoachNewMatches: 3,
+        maxDemoBytes: 524_288_000,
       });
       expect(
         (

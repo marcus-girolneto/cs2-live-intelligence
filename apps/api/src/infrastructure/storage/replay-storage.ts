@@ -10,7 +10,8 @@ import {
 const gunzipAsync = promisify(gunzip);
 const JOB_ID = /^[a-f0-9-]{36}$/;
 /** Decompressed artifacts above this size are rejected (guards against gzip bombs). */
-const MAX_DECOMPRESSED = 64 * 1024 * 1024;
+// Long matches from 500 MB demos produce larger replays.
+const MAX_DECOMPRESSED = 256 * 1024 * 1024;
 
 /** Storage of per-job replay artifacts (`<jobId>.replay.json.gz`). */
 export interface ReplayStorage {

@@ -125,12 +125,34 @@ describe.skipIf(!databaseUrl)(
               ...headers,
               "content-type": "application/octet-stream",
               "x-filename": "sample.dem",
-              "content-length": String(128 * 1024 * 1024),
+              "content-length": String(600 * 1024 * 1024),
             },
             payload: Buffer.from("bad"),
           })
         ).statusCode,
       ).toBe(413);
+      // 500 MB demos are admitted by default; the admin setting lowers the limit.
+      expect((await app.inject({ url: "/v1/plans" })).json().uploads).toEqual({
+        maxDemoBytes: 524_288_000,
+      });
+      expect(
+        (await app.inject({ url: "/v1/me", headers })).json().uploadMaxBytes,
+      ).toBe(524_288_000);
+      const setLimit = (maxDemoBytes: number) =>
+        app.inject({
+          method: "PUT",
+          url: "/v1/admin/settings",
+          headers,
+          payload: { maxDemoBytes },
+        });
+      await repo.pool.query("update users set role='admin' where id='owner'");
+      expect((await setLimit(1024)).statusCode).toBe(400);
+      expect((await setLimit(1024 * 1024)).statusCode).toBe(200);
+      expect((await upload(Buffer.alloc(1024 * 1024 + 1, 1))).statusCode).toBe(
+        413,
+      );
+      expect((await setLimit(524_288_000)).statusCode).toBe(200);
+      await repo.pool.query("update users set role='user' where id='owner'");
       const response = await upload(Buffer.from("payload"));
       expect(response.statusCode).toBe(202);
       const { id } = response.json();
