@@ -16,4 +16,19 @@ export function registerCoachExtrasRoutes(
     controller.ownershipOverride,
   );
   app.put("/v1/coach/identity", user, controller.identity);
+  app.post<{ Params: { id: string } }>(
+    "/v1/analyses/:id/team-review",
+    user,
+    controller.teamReview,
+  );
+  app.get<{ Params: { id: string } }>(
+    "/v1/analyses/:id/team-reviews",
+    user,
+    controller.teamReviews,
+  );
+  app.get<{ Params: { id: string } }>(
+    "/v1/analyses/:id/lobby",
+    user,
+    controller.lobby,
+  );
 }

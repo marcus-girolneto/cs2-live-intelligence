@@ -42,6 +42,10 @@ export type ReviewDependencies = {
   logger: Logger;
   /** Verifier + prompt A/B (default: deterministic checks only, variant "a"). */
   reviewAi?: ReviewAi;
+  /** Team reviews share the rating endpoint. */
+  teamRatings?: {
+    rate(ownerId: string, id: string, rating: number): Promise<boolean>;
+  };
 };
 
 /**
@@ -234,7 +238,10 @@ export class ReviewService {
     reviewId: string,
     rating: number,
   ): Promise<{ ok: true }> {
-    if (!(await this.deps.coaching.rateReview(ownerId, reviewId, rating)))
+    if (
+      !(await this.deps.coaching.rateReview(ownerId, reviewId, rating)) &&
+      !(await this.deps.teamRatings?.rate(ownerId, reviewId, rating))
+    )
       throw new NotFoundError("Review not found");
     return { ok: true };
   }

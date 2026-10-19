@@ -41,7 +41,10 @@ export interface AiAccess {
 }
 /** credits: reserve the review's cost before the model call (402 insufficient_credits). */
 export interface CoachingCredits {
-  reserve(ownerId: string, tier: "quick" | "deep"): Promise<CreditHold>;
+  reserve(
+    ownerId: string,
+    tier: "quick" | "deep" | "team",
+  ): Promise<CreditHold>;
   balance(ownerId: string): Promise<number>;
 }
 /** replay: the replay samples of an analysis (deep reviews; undefined when none). */

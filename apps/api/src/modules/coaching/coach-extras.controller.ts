@@ -1,11 +1,16 @@
 import type { FastifyRequest } from "fastify";
 import { ownerOf } from "../../shared/http/principal.js";
 import { describeIssues, parseDto } from "../../shared/http/validation.js";
+import type { AuthGuards } from "../../shared/http/guards.js";
 import {
   identityRequestSchema,
   idsQuerySchema,
   ownershipRequestSchema,
+  playerQuerySchema,
+  teamReviewRequestSchema,
 } from "./coaching.dto.js";
+import type { TeamReviewService } from "./team-review.service.js";
+import { ViewerPolicy } from "./viewer.policy.js";
 import type {
   OwnershipItemDto,
   OwnershipService,
@@ -13,9 +18,60 @@ import type {
 
 type ById = FastifyRequest<{ Params: { id: string } }>;
 
-/** Match ownership and the tracked identity ("this is me"). */
+/** Match ownership, the tracked identity ("this is me"), team reviews and the lobby view. */
 export class CoachExtrasController {
-  constructor(private readonly ownership: OwnershipService) {}
+  constructor(
+    private readonly ownership: OwnershipService,
+    private readonly teams: TeamReviewService,
+    private readonly guards: AuthGuards,
+  ) {}
+
+  private async viewer(ownerId: string): Promise<ViewerPolicy> {
+    return ViewerPolicy.for(await this.guards.isAdmin(ownerId));
+  }
+
+  /** POST /v1/analyses/:id/team-review {steamId, lang?} */
+  teamReview = async (request: ById): Promise<Record<string, unknown>> => {
+    const ownerId = ownerOf(request);
+    const body = parseDto(
+      teamReviewRequestSchema,
+      request.body ?? {},
+      "Invalid player",
+    );
+    return this.teams.review(
+      ownerId,
+      request.params.id,
+      body.steamId,
+      body.lang,
+      await this.viewer(ownerId),
+    );
+  };
+
+  /** GET /v1/analyses/:id/team-reviews?steamId= */
+  teamReviews = async (request: ById): Promise<Record<string, unknown>> => {
+    const ownerId = ownerOf(request);
+    const query = parseDto(
+      playerQuerySchema,
+      request.query ?? {},
+      "Invalid player",
+    );
+    return this.teams.list(
+      ownerId,
+      request.params.id,
+      query.steamId,
+      await this.viewer(ownerId),
+    );
+  };
+
+  /** GET /v1/analyses/:id/lobby?steamId= */
+  lobby = async (request: ById): Promise<Record<string, unknown>> => {
+    const query = parseDto(
+      playerQuerySchema,
+      request.query ?? {},
+      "Invalid player",
+    );
+    return this.teams.lobby(ownerOf(request), request.params.id, query.steamId);
+  };
 
   /** GET /v1/matches/ownership?ids=a,b */
   ownershipList = async (

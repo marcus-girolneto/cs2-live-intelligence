@@ -23,6 +23,11 @@ export const reviewRequestSchema = z.object({
   lang: langSchema,
   tier: z.enum(["quick", "deep"]).default("quick"),
 });
+/** POST /v1/analyses/:id/team-review: steamId = the requester's player (a team member). */
+export const teamReviewRequestSchema = z.object({
+  steamId: playerIdSchema,
+  lang: langSchema,
+});
 /** GET /v1/coach/progress?map= (map names are demo strings: allowlisted characters). */
 export const progressQuerySchema = z.object({
   map: z

@@ -14,6 +14,9 @@ import {
   type ModelResult,
   type Personalization,
   type PromptVariant,
+  aiTeamReview,
+  type AiTeamResult,
+  type TeamReviewOptions,
 } from "@cs2/coaching";
 import type {
   Analysis,
@@ -80,13 +83,31 @@ export interface AiGateway {
   ): Promise<{ plan: PersonalCoachPlan; call: ModelMeta }>;
 }
 
+/** Port: the team review model call (purpose review_team). */
+export interface TeamAiGateway {
+  teamReview(
+    analysis: Analysis,
+    config: AiConfig,
+    options: TeamReviewOptions,
+  ): Promise<AiTeamResult>;
+}
+
 /** Port: deterministic (model-free) coaching attached to every processed upload. */
 export interface OfflineCoach {
   coach(analysis: Analysis): Promise<Coaching>;
 }
 
 /** Adapter over @cs2/coaching. */
-export class CoachingAiGateway implements AiGateway, OfflineCoach {
+export class CoachingAiGateway
+  implements AiGateway, OfflineCoach, TeamAiGateway
+{
+  teamReview(
+    analysis: Analysis,
+    config: AiConfig,
+    options: TeamReviewOptions,
+  ): Promise<AiTeamResult> {
+    return aiTeamReview(analysis, config, options);
+  }
   review(
     analysis: Analysis,
     config: AiConfig,

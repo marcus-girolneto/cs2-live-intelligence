@@ -19,6 +19,12 @@ import { CoachExtrasController } from "../modules/coaching/coach-extras.controll
 import { MineOnlyHistory } from "../modules/coaching/mine-history.js";
 import { PgOwnershipRepository } from "../modules/coaching/ownership.repository.js";
 import { OwnershipService } from "../modules/coaching/ownership.service.js";
+import { PgTeamReviewRepository } from "../modules/coaching/team-review.repository.js";
+import { TeamReviewService } from "../modules/coaching/team-review.service.js";
+import {
+  CoachingAiGateway,
+  type TeamAiGateway,
+} from "../infrastructure/ai/coaching-ai-gateway.js";
 import { ReportsController } from "../modules/reports/reports.controller.js";
 import { PgReportsRepository } from "../modules/reports/reports.repository.js";
 import { ReportsService } from "../modules/reports/reports.service.js";
@@ -113,6 +119,22 @@ export function createJobsContext(
     logger,
   );
   const mineHistory = new MineOnlyHistory(matches, ownership);
+  const reviewAi = new SettingsReviewAi(aiSettings);
+  const teamReviews = new PgTeamReviewRepository(db);
+  const teamGateway: TeamAiGateway =
+    "teamReview" in aiGateway
+      ? (aiGateway as unknown as TeamAiGateway)
+      : new CoachingAiGateway();
+  const teams = new TeamReviewService({
+    reviews: teamReviews,
+    history: matches,
+    quota,
+    credits: credits.credits,
+    ai: aiAccess,
+    gateway: teamGateway,
+    reviewAi,
+    logger,
+  });
   const personalization = new PersonalizationService(
     coaching,
     mineHistory,
@@ -215,7 +237,8 @@ export function createJobsContext(
         gateway: aiGateway,
         replays: workers.replays,
         logger,
-        reviewAi: new SettingsReviewAi(aiSettings),
+        reviewAi,
+        teamRatings: teamReviews,
       }),
       new LiveCallService(
         coaching,
@@ -232,7 +255,7 @@ export function createJobsContext(
     ),
     reportsController: new ReportsController(reports, guards),
     ownership,
-    coachExtrasController: new CoachExtrasController(ownership),
+    coachExtrasController: new CoachExtrasController(ownership, teams, guards),
     personalCoachController: new PersonalCoachController(personalCoach, guards),
     daily,
     feedbackController: new FeedbackController(
