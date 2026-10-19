@@ -93,4 +93,5 @@ export * from "./platform.js";
 export * from "./deep.js";
 export * from "./report.js";
 export * from "./personal-coach.js";
+export * from "./team.js";
 export * as api from "./api/index.js";

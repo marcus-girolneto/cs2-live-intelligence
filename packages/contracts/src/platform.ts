@@ -386,6 +386,38 @@ export const drillAreaSchema = z.enum([
   "economy",
   "general",
 ]);
+/** Progress metric a plan item targets ("none": not measurable by this app). */
+export const TARGET_METRICS = [
+  "adr",
+  "kd",
+  "kast",
+  "hsPct",
+  "accuracy",
+  "tradedDeathsPct",
+  "openingWinPct",
+  "utilityDamagePerRound",
+  "crosshairMedianDeg",
+  "isolatedDeathsPct",
+  "none",
+] as const;
+export const targetMetricSchema = z.enum(TARGET_METRICS);
+export type TargetMetric = z.infer<typeof targetMetricSchema>;
+export const confidenceSchema = z.enum(["low", "medium", "high"]);
+/** Verifier and deterministic claim checks applied to a review (provider mode). */
+export const verificationSchema = z.object({
+  /** Human-readable claims checked. */
+  claims: z.number().int().nonnegative(),
+  supported: z.number().int().nonnegative(),
+  dropped: z.number().int().nonnegative(),
+  /** Claims replaced by the verifier's corrected text or a deterministic fix. */
+  corrected: z.number().int().nonnegative(),
+  /** Claims failing the deterministic number / "consecutive" checks. */
+  numberFailures: z.number().int().nonnegative(),
+  /** Whether the second-model verifier ran (false: disabled or failed; checks still ran). */
+  verifier: z.boolean(),
+  verifierModel: z.string().max(200).optional(),
+});
+export type Verification = z.infer<typeof verificationSchema>;
 export const coachingSchema = z.object({
   schemaVersion: z.literal("1.0"),
   mode: z.enum(["offline", "provider"]),
@@ -406,12 +438,32 @@ export const coachingSchema = z.object({
         text: z.string().max(300),
         scope: coachingScopeSchema,
         map: z.string().max(64).optional(),
+        /** Metric the next matches are measured on (v8+; inferred for older reviews). */
+        targetMetric: targetMetricSchema.optional(),
+        direction: z.enum(["up", "down"]).optional(),
       }),
     )
     .max(5)
     .optional(),
   provenance: z
-    .object({ promptVersion: z.string(), model: z.string().optional() })
+    .object({
+      promptVersion: z.string(),
+      model: z.string().optional(),
+      /** Prompt A/B variant that produced the review. */
+      variant: z.enum(["a", "b"]).optional(),
+      verification: verificationSchema.optional(),
+    })
+    .optional(),
+  /**
+   * Deaths not counted against the player: the killer had a "high" integrity level or was
+   * banned after the match (see analysis.integrity). Never names the opponent.
+   */
+  excludedDeaths: z
+    .object({
+      reason: z.literal("unusual_opponent"),
+      count: z.number().int().nonnegative(),
+      eventIds: z.array(id).max(60),
+    })
     .optional(),
   insights: z
     .array(

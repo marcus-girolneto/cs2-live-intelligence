@@ -168,6 +168,8 @@ export const positioningDeathSchema = z.object({
   crossfireEnemies: count,
   /** Seconds you had stayed within 150 units of the death spot (null: no replay). */
   holdSeconds: num.nonnegative().nullable(),
+  /** Killed by an unusual opponent: not counted against the player in aggregates. */
+  excluded: z.literal("unusual_opponent").optional(),
 });
 export const positioningSchema = z.object({
   deaths: count,
