@@ -2,14 +2,15 @@ import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import type { FastifyInstance } from "fastify";
-import { PgRepository, digest } from "../src/repository.js";
+import { TestDatabase } from "./support/test-database.js";
+import { digest } from "../src/shared/crypto/tokens.js";
 import { buildApp } from "../src/app.js";
 const databaseUrl = process.env.DATABASE_URL;
 describe.skipIf(!databaseUrl)(
   "Sprint 1 real Postgres persistence and identity",
   () => {
     let admin: Pool;
-    let repo: PgRepository;
+    let repo: TestDatabase;
     let app: FastifyInstance;
     let url: string;
     const schema = "test_" + randomUUID().replaceAll("-", "");
@@ -20,7 +21,7 @@ describe.skipIf(!databaseUrl)(
       const dbUrl = new URL(databaseUrl!);
       dbUrl.searchParams.set("options", `-c search_path=${schema}`);
       url = dbUrl.toString();
-      repo = new PgRepository(url);
+      repo = new TestDatabase(url);
       await repo.migrate();
       await repo.migrate();
       await repo.seedDev("owner", "owner-token", "device", "device-token");
@@ -31,12 +32,34 @@ describe.skipIf(!databaseUrl)(
         "other-device-token",
       );
       app = await buildApp({
-        repository: repo,
+        database: repo,
         devices: [],
         owners: [],
         webOrigin: "http://127.0.0.1:3000",
         apiPublicUrl: "http://127.0.0.1:4000",
         steamFetch: async (input, init) => {
+          if (String(input).startsWith("https://api.steampowered.com/")) {
+            const url = new URL(String(input));
+            expect(url.searchParams.get("key")).toBe("steam-web-key");
+            return Response.json({
+              response: {
+                players: [
+                  {
+                    steamid: url.searchParams.get("steamids"),
+                    personaname: "s1mple fan",
+                    avatarfull: "https://avatars.steamstatic.com/abc_full.jpg",
+                    profileurl: "https://steamcommunity.com/id/fan/",
+                  },
+                ],
+              },
+            });
+          }
+          if (
+            /^https:\/\/steamcommunity\.com\/profiles\/[0-9]{17}\/\?xml=1$/.test(
+              String(input),
+            )
+          )
+            return new Response("", { status: 503 });
           expect(input).toBe("https://steamcommunity.com/openid/login");
           expect(
             new URLSearchParams(init?.body as URLSearchParams).get(
@@ -90,7 +113,7 @@ describe.skipIf(!databaseUrl)(
       expect(responses.every((r) => r.statusCode === 202)).toBe(true);
       expect((await repo.session("session"))?.state.sequence).toBe(20);
       expect((await push(telemetry(20))).json().status).toBe("duplicate");
-      const second = new PgRepository(url);
+      const second = new TestDatabase(url);
       expect((await second.session("session"))?.state.sequence).toBe(20);
       expect(await second.owner("owner-token")).toBe("owner");
       await second.close();
@@ -306,6 +329,48 @@ describe.skipIf(!databaseUrl)(
           ).statusCode,
         ).toBe(400);
       }
+    });
+    it("adds Web API profile data to /v1/me when a Steam Web API key is configured", async () => {
+      await repo.pool.query("update users set steam_id=$1 where id=$2", [
+        "76561197960287930",
+        "owner",
+      ]);
+      const previous = process.env.STEAM_WEB_API_KEY;
+      delete process.env.STEAM_WEB_API_KEY;
+      // Public XML unavailable (mocked 503) and no key: no profile, account still served.
+      const before = (await app.inject({ url: "/v1/me", headers })).json();
+      expect(before).toMatchObject({
+        ownerId: "owner",
+        role: "user",
+        steamId: "76561197960287930",
+      });
+      expect(before.profile).toBeUndefined();
+      process.env.STEAM_WEB_API_KEY = "steam-web-key";
+      const me = (
+        await app.inject({
+          method: "POST",
+          url: "/v1/me/refresh-profile",
+          headers,
+        })
+      ).json();
+      process.env.STEAM_WEB_API_KEY = previous;
+      if (previous === undefined) delete process.env.STEAM_WEB_API_KEY;
+      expect(me.profile).toMatchObject({
+        personaName: "s1mple fan",
+        avatarUrl: "https://avatars.steamstatic.com/abc_full.jpg",
+        profileUrl: "https://steamcommunity.com/id/fan/",
+      });
+      expect(JSON.stringify(me)).not.toContain("steam-web-key");
+      // The profile is stored on the account, so it survives without the key.
+      delete process.env.STEAM_WEB_API_KEY;
+      expect(
+        (await app.inject({ url: "/v1/me", headers })).json().profile
+          .personaName,
+      ).toBe("s1mple fan");
+      await repo.pool.query(
+        "update users set steam_id=null,display_name=null,avatar_url=null,profile_url=null,steam_profile=null,steam_profile_fetched_at=null where id=$1",
+        ["owner"],
+      );
     });
     it("lists only owned live history and logs out durable tokens", async () => {
       expect(

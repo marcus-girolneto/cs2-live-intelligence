@@ -1,0 +1,263 @@
+import { describe, expect, it } from "vitest";
+import { AiError, type AiConfig } from "@cs2/coaching";
+import { RuntimeEnv } from "../../src/config/env.js";
+import type { SecretCipher } from "../../src/infrastructure/secrets/aes-gcm-secret-cipher.js";
+import { AiAccessService } from "../../src/modules/ai-config/ai-access.service.js";
+import type { AssignmentMap } from "../../src/modules/ai-config/ai-config.dto.js";
+import {
+  AiConfigFactory,
+  UNDECRYPTABLE,
+} from "../../src/modules/ai-config/ai-config.factory.js";
+import type {
+  AiConfigRepository,
+  AiProviderRecord,
+} from "../../src/modules/ai-config/ai-config.repository.js";
+import {
+  aiRequestError,
+  providerTestError,
+} from "../../src/modules/ai-config/ai-errors.js";
+import {
+  AiSettingsService,
+  AssignedProviderSource,
+  EnvironmentSource,
+} from "../../src/modules/ai-config/ai-settings.service.js";
+import { silentLogger } from "../../src/shared/logging/logger.js";
+import { appError } from "./fakes.js";
+
+const cipher = (fail = false): SecretCipher => ({
+  encrypt: (p) => `enc:${p}`,
+  decrypt: (c) => {
+    if (fail) throw new Error("bad tag");
+    return c.replace(/^enc:/, "");
+  },
+});
+const provider: AiProviderRecord = {
+  id: "p1",
+  name: "Main",
+  provider: "custom",
+  baseUrl: "https://llm.example/v1",
+  apiKeyEnc: "enc:sk-db-key-123456",
+  keyLast4: "3456",
+  headersEnc: null,
+  headerNames: [],
+  options: {},
+  createdAt: "",
+  updatedAt: "",
+};
+
+class FakeAiRepo implements AiConfigRepository {
+  loads = 0;
+  providerRows: AiProviderRecord[] = [provider];
+  assigned: AssignmentMap = {};
+  settings: Record<string, unknown> = {};
+  async providers() {
+    this.loads++;
+    return this.providerRows;
+  }
+  async saveProvider() {}
+  async deleteProvider() {
+    return "ok" as const;
+  }
+  async assignments() {
+    return this.assigned;
+  }
+  async setAssignments() {}
+  async appSettings() {
+    return { settings: this.settings, updatedAt: null };
+  }
+  async saveAppSettings() {}
+}
+
+function setup(env: Record<string, string> = {}, failDecrypt = false) {
+  const runtime = new RuntimeEnv(() => env);
+  const factory = new AiConfigFactory(cipher(failDecrypt), runtime);
+  const repo = new FakeAiRepo();
+  let now = 0;
+  const settings = new AiSettingsService(
+    repo,
+    [new AssignedProviderSource(factory), new EnvironmentSource(factory)],
+    1000,
+    () => now,
+  );
+  return { repo, settings, factory, tick: (ms: number) => (now += ms) };
+}
+const ENV = {
+  AI_PROVIDER: "envp",
+  AI_BASE_URL: "https://env.example/v1",
+  AI_API_KEY: "k",
+  AI_MODEL: "env-model",
+};
+
+describe("AI configuration resolution (Strategy chain + Factory)", () => {
+  it("uses the assigned provider over the environment", async () => {
+    const { repo, settings } = setup(ENV);
+    repo.assigned = {
+      review: { providerId: "p1", model: "db-model", updatedAt: "" },
+    };
+    const review = await settings.resolve("review");
+    expect(review).toMatchObject({
+      source: "database",
+      providerId: "p1",
+      providerName: "Main",
+    });
+    expect(review.result.ok && review.result.config.model).toBe("db-model");
+    expect(review.result.ok && review.result.config.apiKey).toBe(
+      "sk-db-key-123456",
+    );
+    const live = await settings.resolve("live");
+    expect(live.source).toBe("env");
+    expect(live.result.ok && live.result.config.model).toBe("env-model");
+  });
+  it("falls back to env when the assigned provider row is gone; reports missing env", async () => {
+    const { repo, settings } = setup({});
+    repo.assigned = {
+      review: { providerId: "missing", model: "m", updatedAt: "" },
+    };
+    const resolved = await settings.resolve("review");
+    expect(resolved.source).toBe("env");
+    expect(resolved.result.ok).toBe(false);
+  });
+  it("reports undecryptable credentials instead of throwing", async () => {
+    const { repo, settings } = setup(ENV, true);
+    repo.assigned = { review: { providerId: "p1", model: "m", updatedAt: "" } };
+    expect((await settings.resolve("review")).result).toEqual({
+      ok: false,
+      reason: UNDECRYPTABLE,
+      missing: [],
+    });
+  });
+  it("admin settings override env limits; the snapshot is cached until TTL or invalidate()", async () => {
+    const { repo, settings, tick } = setup({ ...ENV, AI_DAILY_LIMIT: "5" });
+    const limit = async () => {
+      const r = await settings.resolve("review");
+      return r.result.ok ? r.result.config.dailyLimit : "x";
+    };
+    expect(await limit()).toBe(5);
+    repo.settings = { dailyLimit: 2 };
+    expect(await limit()).toBe(5);
+    expect(repo.loads).toBe(1);
+    settings.invalidate();
+    expect(await limit()).toBe(2);
+    tick(1001);
+    repo.settings = {};
+    expect(await limit()).toBe(5);
+    expect(repo.loads).toBe(3);
+    expect(await settings.sampleDemoEnabled()).toBe(true);
+  });
+});
+
+describe("AiAccessService", () => {
+  const gateway = {
+    review: () => Promise.reject(new Error("unused")),
+    liveCall: () => Promise.reject(new Error("unused")),
+    connectivityCheck: async (c: AiConfig) => ({
+      ok: true as const,
+      provider: c.provider,
+      model: c.model,
+      latencyMs: 1,
+      reply: "hi",
+    }),
+  };
+  it("503 ai_not_configured with missing/purpose/source details", async () => {
+    const { settings } = setup({});
+    const access = new AiAccessService(
+      settings,
+      { reserveDailyRequest: async () => true },
+      gateway,
+      silentLogger,
+    );
+    const err = await appError(access.acquire("o", "live"));
+    expect(err.status).toBe(503);
+    expect(err.body).toMatchObject({
+      code: "ai_not_configured",
+      purpose: "live",
+      source: "env",
+    });
+    expect(Array.isArray(err.body.missing)).toBe(true);
+  });
+  it("429 ai_limit when the daily reservation fails; unlimited skips it", async () => {
+    let calls = 0;
+    const usage = { reserveDailyRequest: async () => (calls++, false) };
+    const limited = new AiAccessService(
+      setup({ ...ENV, AI_DAILY_LIMIT: "3" }).settings,
+      usage,
+      gateway,
+      silentLogger,
+    );
+    expect(await appError(limited.acquire("o", "review"))).toMatchObject({
+      status: 429,
+      body: {
+        error: "Daily AI limit of 3 requests reached.",
+        code: "ai_limit",
+      },
+    });
+    const unlimited = new AiAccessService(
+      setup({ ...ENV, AI_DAILY_LIMIT: "0" }).settings,
+      usage,
+      gateway,
+      silentLogger,
+    );
+    expect((await unlimited.acquire("o", "review")).model).toBe("env-model");
+    expect(calls).toBe(1);
+  });
+  it("hides provider details from non-admins in status and runs the admin test", async () => {
+    const access = new AiAccessService(
+      setup(ENV).settings,
+      { reserveDailyRequest: async () => true },
+      gateway,
+      silentLogger,
+    );
+    expect(await access.status(false)).toEqual({
+      configured: true,
+      purposes: { review: { configured: true }, live: { configured: true } },
+    });
+    expect(await access.status(true)).toMatchObject({
+      model: "env-model",
+      endpoint: "env.example",
+    });
+    expect(await access.test("a", "live")).toMatchObject({
+      purpose: "live",
+      reply: "hi",
+    });
+  });
+});
+
+describe("AI error mapping", () => {
+  it("maps model failures to statuses with generic texts for non-admins", () => {
+    const cases: Array<[AiError, number]> = [
+      [new AiError("timeout", "model x timed out"), 504],
+      [new AiError("between_rounds_only", "live"), 409],
+      [new AiError("http", "vendor said no", 401), 502],
+    ];
+    for (const [error, status] of cases) {
+      const pub = aiRequestError(error, false);
+      expect(pub.statusCode).toBe(status);
+      expect(pub.body().error).not.toContain("model x");
+      expect(pub.body().code).toBe(`ai_${error.code}`);
+      expect(pub.body().providerStatus).toBeUndefined();
+    }
+    expect(
+      aiRequestError(new AiError("http", "vendor said no", 401), true).body(),
+    ).toEqual({
+      error: "vendor said no",
+      code: "ai_http",
+      providerStatus: 401,
+    });
+    expect(aiRequestError(new Error("boom"), true).body()).toEqual({
+      error: "The AI request failed.",
+      code: "ai_failed",
+    });
+  });
+  it("maps provider tests to {ok:false} bodies", () => {
+    const timeout = providerTestError(new AiError("timeout", "slow"));
+    expect([timeout.statusCode, timeout.body()]).toEqual([
+      504,
+      { error: "slow", ok: false, code: "ai_timeout" },
+    ]);
+    expect(providerTestError(new Error("x")).body()).toEqual({
+      error: "The AI request failed.",
+      ok: false,
+      code: "ai_failed",
+    });
+  });
+});

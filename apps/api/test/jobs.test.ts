@@ -8,22 +8,26 @@ import {
   vi,
 } from "vitest";
 import { randomUUID, createHash } from "node:crypto";
-import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { Pool } from "pg";
-import { request as httpRequest } from "node:http";
+import { createServer, request as httpRequest, type Server } from "node:http";
+import { analyzeDemo } from "@cs2/analytics";
+import { generateCoaching } from "@cs2/coaching";
 import type { AddressInfo } from "node:net";
 import type { FastifyInstance } from "fastify";
-import { PgRepository } from "../src/repository.js";
+import { TestDatabase } from "./support/test-database.js";
 import { buildApp } from "../src/app.js";
-import { createWorker, objectPath } from "../src/jobs.js";
+import { createWorker } from "../src/container.js";
+import { objectPath } from "../src/infrastructure/storage/object-storage.js";
+import { PgJobQueueRepository } from "../src/modules/matches/job-queue.repository.js";
 const databaseUrl = process.env.DATABASE_URL;
 describe.skipIf(!databaseUrl)(
   "durable demo upload, jobs, consent and retention",
   () => {
     let admin: Pool;
-    let repo: PgRepository;
+    let repo: TestDatabase;
     let app: FastifyInstance;
     let directory: string;
     let testDatabaseUrl: string;
@@ -36,7 +40,7 @@ describe.skipIf(!databaseUrl)(
       const url = new URL(databaseUrl!);
       url.searchParams.set("options", `-c search_path=${schema}`);
       testDatabaseUrl = url.toString();
-      repo = new PgRepository(testDatabaseUrl);
+      repo = new TestDatabase(testDatabaseUrl);
       await repo.migrate();
       await repo.seedDev("owner", "owner-token", "device", "device-token");
       await repo.seedDev("other", "other-owner", "other-device", "other-token");
@@ -47,7 +51,7 @@ describe.skipIf(!databaseUrl)(
         disableWorker: true,
       };
       app = await buildApp({
-        repository: repo,
+        database: repo,
         devices: [],
         owners: [],
         webOrigin: "http://127.0.0.1:3000",
@@ -60,6 +64,12 @@ describe.skipIf(!databaseUrl)(
       await repo.pool.query("delete from product_events");
       await repo.pool.query("delete from feedback");
       await repo.pool.query("delete from provider_usage");
+      // Plan quotas are covered in plans.test.ts; these tests run on the Pro plan.
+      await repo.pool.query("delete from usage_counters");
+      await repo.pool.query("delete from usage_live_matches");
+      await repo.pool.query(
+        "insert into subscriptions(owner_id,plan_id,status,source) values('owner','pro','active','admin') on conflict(owner_id) do update set plan_id='pro',status='active',current_period_end=null",
+      );
       await repo.updateSettings("owner", {
         telemetryConsent: true,
         analyticsConsent: false,
@@ -295,10 +305,470 @@ describe.skipIf(!databaseUrl)(
           })
         ).statusCode,
       ).toBe(400);
-      expect(await repo.reserveProvider("owner")).toBe(true);
-      expect(await repo.reserveProvider("owner")).toBe(true);
-      expect(await repo.reserveProvider("owner")).toBe(true);
-      expect(await repo.reserveProvider("owner")).toBe(false);
+      expect(await repo.reserveProvider("owner", 3)).toBe(true);
+      expect(await repo.reserveProvider("owner", 3)).toBe(true);
+      expect(await repo.reserveProvider("owner", 3)).toBe(true);
+      expect(await repo.reserveProvider("owner", 3)).toBe(false);
+    });
+    describe("AI endpoints with a configurable OpenAI-compatible provider", () => {
+      let server: Server;
+      let hits: {
+        url: string;
+        auth?: string;
+        body: Record<string, unknown>;
+      }[] = [];
+      let mode: "ok" | "error" = "ok";
+      const saved = { ...process.env };
+      beforeAll(async () => {
+        server = createServer((req, res) => {
+          let raw = "";
+          req.on("data", (c) => (raw += c));
+          req.on("end", () => {
+            const body = JSON.parse(raw) as {
+              model: string;
+              messages: { content: string }[];
+            };
+            hits.push({
+              url: req.url ?? "",
+              auth: req.headers.authorization,
+              body,
+            });
+            if (mode === "error") {
+              res.writeHead(404, { "content-type": "application/json" });
+              return res.end(
+                JSON.stringify({
+                  error: { message: "model not found: " + body.model },
+                }),
+              );
+            }
+            let user: { facts?: { id: string }[] } = {};
+            try {
+              user = JSON.parse(
+                body.messages[1]!.content.slice(
+                  body.messages[1]!.content.indexOf("{"),
+                ),
+              ) as typeof user;
+            } catch {
+              /* connectivity check sends plain text */
+            }
+            const content = (user as { recentRounds?: unknown }).recentRounds
+              ? {
+                  call: "Play for the trade next round.",
+                  why: "You died untraded in rounds 1 and 2.",
+                  focus: "trade",
+                  confidence: "medium",
+                }
+              : user.facts
+                ? {
+                    summary: "Mock review.",
+                    insights: [
+                      {
+                        observation: "Opening duels decided your rounds.",
+                        evidenceIds: [user.facts[0]!.id],
+                        confidence: "medium",
+                        actionablePractice:
+                          "Play opening fights with a teammate.",
+                        caveats: [],
+                        kind: "improve",
+                      },
+                    ],
+                    plan: ["Trade your entry fragger"],
+                  }
+                : { ok: true, reply: "Working." };
+            res.writeHead(200, { "content-type": "application/json" });
+            res.end(
+              JSON.stringify({
+                model: body.model,
+                choices: [
+                  {
+                    finish_reason: "stop",
+                    message: { content: JSON.stringify(content) },
+                  },
+                ],
+                usage: { prompt_tokens: 10, completion_tokens: 5 },
+              }),
+            );
+          });
+        });
+        await new Promise<void>((r) =>
+          server.listen(0, "127.0.0.1", () => r()),
+        );
+      });
+      afterAll(async () => {
+        process.env = saved;
+        await new Promise((r) => server.close(r));
+      });
+      beforeEach(() => {
+        hits = [];
+        mode = "ok";
+        process.env = { ...saved };
+        process.env.AI_PROVIDER = "local-mock";
+        process.env.AI_BASE_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
+        process.env.AI_API_KEY = "sk-test";
+        process.env.AI_MODEL = "mock/qwen3";
+        delete process.env.AI_DAILY_LIMIT;
+      });
+      async function completedAnalysis() {
+        const { id } = (await upload(Buffer.from("analysis"))).json();
+        const job = await repo.claimJob();
+        const analysis = analyzeDemo(
+          JSON.parse(
+            await readFile(
+              resolve(
+                import.meta.dirname,
+                "../../../packages/contracts/fixtures/normalized-demo.json",
+              ),
+              "utf8",
+            ),
+          ),
+        );
+        await repo.finishJob(id, job!.leaseToken, {
+          analysis,
+          coaching: await generateCoaching(analysis),
+        });
+        return { id, steamId: analysis.players[0]!.steamId };
+      }
+      it("reports status without exposing the key", async () => {
+        await repo.pool.query("update users set role='admin' where id='owner'");
+        const status = (
+          await app.inject({ url: "/v1/ai/status", headers })
+        ).json();
+        expect(status).toMatchObject({
+          configured: true,
+          provider: "local-mock",
+          model: "mock/qwen3",
+          keyConfigured: true,
+        });
+        expect(JSON.stringify(status)).not.toContain("sk-test");
+        delete process.env.AI_MODEL;
+        expect(
+          (await app.inject({ url: "/v1/ai/status", headers })).json(),
+        ).toMatchObject({
+          configured: false,
+          missing: ["AI_MODEL"],
+        });
+        expect((await app.inject({ url: "/v1/ai/status" })).statusCode).toBe(
+          401,
+        );
+        await repo.pool.query("update users set role='user' where id='owner'");
+      });
+      it("tests connectivity with a real call (admin only)", async () => {
+        expect(
+          (await app.inject({ method: "POST", url: "/v1/ai/test", headers }))
+            .statusCode,
+        ).toBe(403);
+        expect(hits).toHaveLength(0);
+        await repo.pool.query("update users set role='admin' where id='owner'");
+        const r = await app.inject({
+          method: "POST",
+          url: "/v1/ai/test",
+          headers,
+        });
+        expect(r.statusCode).toBe(200);
+        expect(r.json()).toMatchObject({
+          ok: true,
+          model: "mock/qwen3",
+          reply: "Working.",
+        });
+        expect(hits).toHaveLength(1);
+        expect(hits[0]!.url).toBe("/v1/chat/completions");
+        expect(hits[0]!.auth).toBe("Bearer sk-test");
+        await repo.pool.query("update users set role='user' where id='owner'");
+      });
+      it("calls the model on every review request and never caches or substitutes", async () => {
+        const { id, steamId } = await completedAnalysis();
+        for (let i = 0; i < 2; i++) {
+          const r = await app.inject({
+            method: "POST",
+            url: `/v1/analyses/${id}/coaching`,
+            headers,
+            payload: { steamId, lang: "pt" },
+          });
+          expect(r.statusCode).toBe(200);
+          expect(r.json().coaching).toMatchObject({
+            mode: "provider",
+            summary: "Mock review.",
+          });
+          // Non-admins never learn which model or provider answered.
+          expect(Object.keys(r.json().call).sort()).toEqual([
+            "attempts",
+            "latencyMs",
+          ]);
+          expect(JSON.stringify(r.json())).not.toMatch(
+            /mock\/qwen3|local-mock/,
+          );
+        }
+        expect(hits).toHaveLength(2);
+        expect(JSON.stringify(hits[0]!.body)).toContain("Brazilian Portuguese");
+        mode = "error";
+        const failed = await app.inject({
+          method: "POST",
+          url: `/v1/analyses/${id}/coaching`,
+          headers,
+          payload: { steamId },
+        });
+        expect(failed.statusCode).toBe(502);
+        expect(JSON.stringify(failed.json())).not.toMatch(
+          /mock\/qwen3|local-mock|sk-test/,
+        );
+        expect(failed.json().code).toBe("ai_http");
+        for (const [payload, status] of [
+          [{ steamId: "unknown-player" }, 404],
+          [{ steamId: "bad id!" }, 400],
+        ] as const)
+          expect(
+            (
+              await app.inject({
+                method: "POST",
+                url: `/v1/analyses/${id}/coaching`,
+                headers,
+                payload,
+              })
+            ).statusCode,
+          ).toBe(status);
+        expect(
+          (
+            await app.inject({
+              method: "POST",
+              url: `/v1/analyses/${id}/coaching`,
+              headers: { authorization: "Bearer other-owner" },
+              payload: { steamId },
+            })
+          ).statusCode,
+        ).not.toBe(200);
+      });
+      it("personalizes, persists reviews and tracks progress", async () => {
+        const { id, steamId } = await completedAnalysis();
+        const empty = (
+          await app.inject({ url: "/v1/coach/profile", headers })
+        ).json();
+        expect(empty).toMatchObject({
+          preferences: { style: "balanced" },
+          linkedToSteam: false,
+        });
+        expect(
+          (
+            await app.inject({
+              method: "PUT",
+              url: "/v1/coach/profile",
+              headers,
+              payload: { playerSteamId: "bad id!" },
+            })
+          ).statusCode,
+        ).toBe(400);
+        const saved = await app.inject({
+          method: "PUT",
+          url: "/v1/coach/profile",
+          headers,
+          payload: {
+            preferences: {
+              style: "aggressive",
+              role: "entry",
+              instructions: "Be blunt",
+            },
+            playerSteamId: steamId,
+          },
+        });
+        expect(saved.json()).toMatchObject({
+          preferences: {
+            style: "aggressive",
+            role: "entry",
+            instructions: "Be blunt",
+          },
+          playerSteamId: steamId,
+        });
+        const first = await app.inject({
+          method: "POST",
+          url: `/v1/analyses/${id}/coaching`,
+          headers,
+          payload: { steamId },
+        });
+        expect(first.statusCode).toBe(200);
+        expect(first.json().reviewId).toBeTruthy();
+        expect(first.json().personalization.preferences.style).toBe(
+          "aggressive",
+        );
+        expect(JSON.stringify(hits.at(-1)!.body)).toContain("AGGRESSIVE");
+        expect(JSON.stringify(hits.at(-1)!.body)).toContain("Be blunt");
+        // A second match: the coach now sees the previous plan and the learned history.
+        const second = await completedAnalysis();
+        await app.inject({
+          method: "POST",
+          url: `/v1/analyses/${second.id}/coaching`,
+          headers,
+          payload: { steamId },
+        });
+        const body = JSON.stringify(hits.at(-1)!.body);
+        expect(body).toContain("previousPlans");
+        expect(body).toContain("Trade your entry fragger");
+        expect(body).toContain("playerHistory");
+        expect(
+          (
+            await app.inject({
+              method: "POST",
+              url: `/v1/coach/reviews/${first.json().reviewId}/rating`,
+              headers,
+              payload: { rating: 5 },
+            })
+          ).statusCode,
+        ).toBe(200);
+        expect(
+          (
+            await app.inject({
+              method: "POST",
+              url: `/v1/coach/reviews/${first.json().reviewId}/rating`,
+              headers: { authorization: "Bearer other-owner" },
+              payload: { rating: 1 },
+            })
+          ).statusCode,
+        ).not.toBe(200);
+        const progress = (
+          await app.inject({ url: "/v1/coach/progress", headers })
+        ).json();
+        expect(progress.playerSteamId).toBe(steamId);
+        expect(progress.timeline.length).toBeGreaterThanOrEqual(2);
+        expect(progress.profile.matches).toBeGreaterThanOrEqual(2);
+        expect(progress.reviews.length).toBeGreaterThanOrEqual(2);
+        expect(
+          progress.reviews.find(
+            (r: { id: string }) => r.id === first.json().reviewId,
+          ).rating,
+        ).toBe(5);
+        expect(JSON.stringify(progress)).not.toMatch(/NaN|Infinity/);
+        // Per-map tabs and the general plan; no model identity for non-admins.
+        expect(Array.isArray(progress.maps)).toBe(true);
+        expect(progress).toHaveProperty("generalPlan");
+        expect(progress).toHaveProperty("generalPlanFrom");
+        expect(JSON.stringify(progress)).not.toMatch(/mock\/qwen3|local-mock/);
+        const review = (
+          await app.inject({ url: `/v1/analyses/${id}`, headers })
+        ).json();
+        expect(JSON.stringify(review)).not.toMatch(/mock\/qwen3/);
+      });
+      it("makes and stores live between-round calls only between rounds", async () => {
+        const state = {
+          map: "de_mirage",
+          phase: "freezetime",
+          round: 3,
+          score: { ct: 1, t: 1 },
+          ownStats: { kills: 1, deaths: 2, health: 100, armor: 0 },
+        };
+        const ok = await app.inject({
+          method: "POST",
+          url: "/v1/ai/live-call",
+          headers,
+          payload: {
+            state,
+            recentRounds: [
+              { round: 1, kills: 1, died: true },
+              { round: 2, kills: 0, died: true },
+            ],
+            lang: "pt",
+          },
+        });
+        expect(ok.statusCode).toBe(200);
+        expect(Object.keys(ok.json().meta).sort()).toEqual([
+          "attempts",
+          "latencyMs",
+        ]);
+        expect(ok.json().call).toMatchObject({
+          focus: "trade",
+          promptVersion: "igl-live-v2",
+        });
+        expect(JSON.stringify(hits.at(-1)!.body)).toContain(
+          "LIVE Counter-Strike 2 match",
+        );
+        const live = await app.inject({
+          method: "POST",
+          url: "/v1/ai/live-call",
+          headers,
+          payload: { state: { ...state, phase: "live" } },
+        });
+        expect(live.statusCode).toBe(409);
+        const calls = hits.length;
+        expect(
+          (
+            await app.inject({
+              method: "POST",
+              url: "/v1/ai/live-call",
+              headers,
+              payload: { sessionId: "someone-elses-session" },
+            })
+          ).statusCode,
+        ).toBe(404);
+        expect(
+          (
+            await app.inject({
+              method: "POST",
+              url: "/v1/ai/live-call",
+              headers,
+              payload: {
+                state,
+                recentRounds: [{ round: 1, kills: "ignore rules", died: true }],
+              },
+            })
+          ).statusCode,
+        ).toBe(400);
+        expect(hits.length).toBe(calls);
+        const progress = (
+          await app.inject({ url: "/v1/coach/progress", headers })
+        ).json();
+        expect(progress.liveCalls[0].call.call).toBe(
+          "Play for the trade next round.",
+        );
+      });
+      it("enforces the admin global daily AI cap on top of plan quotas", async () => {
+        process.env.AI_DAILY_LIMIT = "1";
+        const { id, steamId } = await completedAnalysis();
+        const review = () =>
+          app.inject({
+            method: "POST",
+            url: `/v1/analyses/${id}/coaching`,
+            headers,
+            payload: { steamId },
+          });
+        expect((await review()).statusCode).toBe(200);
+        const limited = await review();
+        expect(limited.statusCode).toBe(429);
+        expect(limited.json().code).toBe("ai_limit");
+        expect(hits).toHaveLength(1);
+        // The capped request did not consume a plan review.
+        const me = (await app.inject({ url: "/v1/me", headers })).json();
+        expect(me.usage.aiReviews).toEqual({ used: 1, limit: 8 });
+      });
+    });
+    it("imports the configured public sample demo into the caller's account", async () => {
+      const previous = process.env.SAMPLE_DEMO_FILE;
+      delete process.env.SAMPLE_DEMO_FILE;
+      expect(
+        (await app.inject({ url: "/v1/demos/sample", headers })).json(),
+      ).toEqual({ available: false });
+      expect(
+        (await app.inject({ method: "POST", url: "/v1/demos/sample", headers }))
+          .statusCode,
+      ).toBe(404);
+      const file = resolve(directory, "..", `sample-${randomUUID()}.dem`);
+      await writeFile(file, "sample-bytes");
+      process.env.SAMPLE_DEMO_FILE = file;
+      expect(
+        (await app.inject({ url: "/v1/demos/sample", headers })).json(),
+      ).toEqual({ available: true });
+      const r = await app.inject({
+        method: "POST",
+        url: "/v1/demos/sample",
+        headers,
+      });
+      expect(r.statusCode).toBe(202);
+      expect((await repo.match("owner", r.json().id))?.filename).toBe(
+        "sample-public-cs2.dem",
+      );
+      expect(
+        (await app.inject({ method: "POST", url: "/v1/demos/sample" }))
+          .statusCode,
+      ).toBe(401);
+      await rm(file, { force: true });
+      if (previous === undefined) delete process.env.SAMPLE_DEMO_FILE;
+      else process.env.SAMPLE_DEMO_FILE = previous;
     });
     it("retention durably removes metadata and filesystem objects", async () => {
       const { id } = (await upload(Buffer.from("expired"))).json();
@@ -333,19 +803,37 @@ describe.skipIf(!databaseUrl)(
         const http = await app.inject({ url: "/v1/analyses/" + id, headers });
         expect(http.statusCode).toBe(200);
         expect(http.json().analysis.players.length).toBeGreaterThan(0);
+        const player = http.json().analysis.players[0];
+        expect(player.advanced.kast).toBeDefined();
+        // Without AI configuration the endpoint refuses instead of faking output.
+        const saved = { ...process.env };
+        for (const k of Object.keys(process.env))
+          if (k.startsWith("AI_") || k.startsWith("OPENAI_"))
+            delete process.env[k];
+        const review = await app.inject({
+          method: "POST",
+          url: `/v1/analyses/${id}/coaching`,
+          headers,
+          payload: { steamId: player.steamId },
+        });
+        process.env = saved;
+        expect(review.statusCode).toBe(503);
+        expect(review.json().code).toBe("ai_not_configured");
       },
       30000,
     );
     it("waits for active worker before closing its PostgreSQL pool", async () => {
-      const isolated = new PgRepository(testDatabaseUrl);
+      const isolated = new TestDatabase(testDatabaseUrl);
       let release!: (value: undefined) => void;
       const pending = new Promise<undefined>((resolvePending) => {
         release = resolvePending;
       });
-      vi.spyOn(isolated, "claimJob").mockImplementation(() => pending);
+      const jobQueue = new PgJobQueueRepository(isolated.db);
+      vi.spyOn(jobQueue, "claim").mockImplementation(() => pending);
       const server = await buildApp({
-        repository: isolated,
-        closeRepositoryOnClose: true,
+        overrides: { jobQueue },
+        database: isolated,
+        closeDatabaseOnClose: true,
         devices: [],
         owners: [],
         webOrigin: "http://127.0.0.1:3000",
