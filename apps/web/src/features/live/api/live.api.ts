@@ -108,10 +108,28 @@ export function createLiveApi(
         );
       }
     },
-    liveCall: (request) =>
-      http.post<LiveCallResult>("ai/live-call", liveCallBody(request), {
-        timeoutMs: AI_TIMEOUT_MS,
-      }),
+    liveCall: async (request) => {
+      const r = await http.post<Partial<LiveCallResult> | null>(
+        "ai/live-call",
+        liveCallBody(request),
+        { timeoutMs: AI_TIMEOUT_MS },
+      );
+      // Never render a half-formed call (the HUD reads call/why/focus/confidence).
+      const c = r?.call as Partial<LiveCallResult["call"]> | undefined;
+      if (!r || typeof c?.call !== "string" || !c.call.trim())
+        throw new Error("The coach returned an unexpected answer.");
+      const str = (v: unknown, fallback: string) =>
+        typeof v === "string" && v.trim() ? v : fallback;
+      return {
+        ...(r as LiveCallResult),
+        call: {
+          call: c.call,
+          why: str(c.why, ""),
+          focus: str(c.focus, "general"),
+          confidence: str(c.confidence, "medium"),
+        },
+      };
+    },
     openSocket: (sessionId, ticket) =>
       new WebSocket(socketUrl(wsBase, sessionId, ticket)),
   };

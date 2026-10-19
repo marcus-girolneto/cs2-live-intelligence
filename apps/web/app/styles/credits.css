@@ -2125,7 +2125,7 @@ svg.down {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  align-items: end;
+  align-items: flex-end;
 }
 .integ-pk label {
   flex: 1 1 240px;

@@ -108,4 +108,6 @@ export const pt: Record<string, string> = {
   "Available between rounds": "Disponível entre os rounds",
   "Call every round": "Chamar a cada round",
   "Thinking…": "Pensando…",
+  "The coach returned an unexpected answer.":
+    "O coach respondeu algo inesperado.",
 };
