@@ -1,6 +1,6 @@
 "use client";
 import { useI18n } from "@/shared/i18n";
-import { Card, Copy, External, Gamepad, ShieldCheck } from "@/shared/icons";
+import { Card, Copy, External, Gamepad } from "@/shared/icons";
 import { Callout, Skeleton } from "@/shared/ui";
 import { useIntegrations } from "../../hooks/useIntegrations";
 import { webhookUrl } from "../../model/integrations";
@@ -40,7 +40,6 @@ export function IntegrationsPanel({
   return (
     <div className="integ-panel">
       <Callout tone="info">
-        <ShieldCheck size={14} />{" "}
         {t(
           "Changes apply immediately and are stored encrypted in the database — no restart needed.",
         )}

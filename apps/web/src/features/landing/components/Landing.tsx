@@ -6,17 +6,13 @@ import { PricingSection } from "@/features/billing";
 import { Brand, LangToggle } from "@/features/shell";
 import { BRAND, LogoMark, Wordmark } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
-import {
-  Crosshair,
-  Lock,
-  Monitor,
-  ShieldCheck,
-  Target,
-  Check,
-  Eye,
-} from "@/shared/icons";
-import { PAINS, FAQ, STEPS } from "../model/content";
-import { PreviewCard } from "./PreviewCard";
+import { Crosshair, Lock, ShieldCheck, Check, Eye } from "@/shared/icons";
+import { FAQ, STEPS } from "../model/content";
+import { FrustrationBoard } from "./FrustrationBoard";
+import { ModeShowcase } from "./ModeShowcase";
+import { ScreenshotStrip } from "./ScreenshotStrip";
+import { TryIt } from "./TryIt";
+import { TwoModes } from "./TwoModes";
 export function Landing() {
   const { t, lang } = useI18n();
   const [failed, setFailed] = useState(false);
@@ -75,39 +71,17 @@ export function Landing() {
                 <Check size={14} /> {t("No password shared")}
               </li>
               <li>
-                <Check size={14} /> {t("Fair play: post-match only")}
+                <Check size={14} /> {t("Fair play by design")}
               </li>
             </ul>
           </div>
-          <PreviewCard />
+          <ModeShowcase />
         </section>
 
-        <section className="landing-section" aria-labelledby="pain-title">
-          <div className="ls-head">
-            <span className="eyebrow">
-              {t("Real insights, from your demo")}
-            </span>
-            <h2 id="pain-title">
-              {t("Stop guessing. See what is actually happening.")}
-            </h2>
-            <p className="lead">
-              {t("Examples of what the coach tells you after a single match:")}
-            </p>
-          </div>
-          <div className="pain-grid">
-            {PAINS.map(({ icon: Icon, tone, quote, fix }) => (
-              <article key={quote} className={`pain ${tone}`}>
-                <span className="pain-icon">
-                  <Icon size={22} />
-                </span>
-                <p className="pain-quote">“{t(quote)}”</p>
-                <p className="pain-fix">
-                  <Target size={14} /> {t(fix)}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <TwoModes />
+        <FrustrationBoard />
+        <TryIt />
+        <ScreenshotStrip />
 
         <section className="landing-section" aria-labelledby="how-title">
           <div className="ls-head">
@@ -126,15 +100,6 @@ export function Landing() {
               </li>
             ))}
           </ol>
-          <div className="how-extra">
-            <Monitor size={22} />
-            <p>
-              <strong>{t("Bonus: second screen.")}</strong>{" "}
-              {t(
-                "Put your phone next to the keyboard and get a live HUD plus AI IGL calls between rounds — never during a fight.",
-              )}
-            </p>
-          </div>
         </section>
 
         <section

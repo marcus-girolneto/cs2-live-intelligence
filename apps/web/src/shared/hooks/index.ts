@@ -9,3 +9,4 @@ export { useLocalStorage } from "./useLocalStorage";
 export { useMediaQuery } from "./useMediaQuery";
 export { useNow } from "./useNow";
 export { usePolling } from "./usePolling";
+export { REDUCED_MOTION, useInView } from "./useInView";
