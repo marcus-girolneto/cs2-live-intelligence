@@ -52,6 +52,7 @@ export const progressByMapSchema = z.object({
 });
 export type ProgressByMapDto = z.infer<typeof progressByMapSchema>;
 
+/** @deprecated The pre-journey progress point (replaced by ProgressTimelineEntryDto). */
 export type ProgressPointDto = {
   analysisId: string;
   filename: string;
@@ -89,15 +90,134 @@ export type LiveCallSummaryDto = {
   model?: string;
   createdAt: string;
 };
-/** GET /v1/coach/progress. */
+export type ProgressMetricKey =
+  | "adr"
+  | "kd"
+  | "kast"
+  | "hsPct"
+  | "accuracy"
+  | "tradedDeathsPct"
+  | "openingWinPct"
+  | "utilityDamagePerRound"
+  | "crosshairMedianDeg"
+  | "isolatedDeathsPct";
+export type ProgressMetricsDto = Partial<Record<ProgressMetricKey, number>>;
+export type TargetMetricDto = ProgressMetricKey | "none";
+/** A plan item of a review on the progress timeline (id = `${reviewId}:${index}`). */
+export type ProgressPlanItemDto = {
+  id: string;
+  text: string;
+  scope: "map" | "general";
+  map?: string;
+  targetMetric: TargetMetricDto;
+  direction: "up" | "down";
+};
+export type AdherenceDto = {
+  planItemId: string;
+  text: string;
+  fromAnalysisId: string;
+  status: "applied" | "partly" | "not_applied" | "unknown";
+  metric: TargetMetricDto;
+  before: number | null;
+  after: number | null;
+  /** Meaningful change for the metric (null for "none"). */
+  threshold: number | null;
+};
+/** One match of the tracked player (GET /v1/coach/progress `timeline`, oldest first). */
+export type ProgressTimelineEntryDto = {
+  analysisId: string;
+  playedAt: string;
+  /** Demo dates are not readable from Valve file names: the upload time is used. */
+  dateSource: "upload";
+  map: string | null;
+  result: {
+    roundsWon: number | null;
+    roundsLost: number | null;
+    won: boolean | null;
+  };
+  metrics: ProgressMetricsDto;
+  deltaVsPrevious: ProgressMetricsDto;
+  review?: {
+    reviewId: string;
+    tier: "quick" | "deep";
+    createdAt: string;
+    verdict?: string;
+    planItems: ProgressPlanItemDto[];
+  };
+  /** How the plan of the latest earlier review was applied in this match. */
+  adherence?: AdherenceDto[];
+};
+export type ProgressTrendDto = {
+  /** Change per match (least squares over the last up-to-10 matches). */
+  slope: number;
+  n: number;
+  confidence: "low" | "medium" | "high";
+};
+export type ProgressMatchRefDto = {
+  analysisId: string;
+  playedAt: string;
+  map: string | null;
+  adr: number;
+};
+export type ProgressSummaryDto = {
+  matches: number;
+  firstPlayedAt: string | null;
+  lastPlayedAt: string | null;
+  trend: Partial<Record<"adr" | "kd" | "kast" | "hsPct", ProgressTrendDto>>;
+  /** (applied + 0.5 * partly) / judged plan items; null when nothing was judged. */
+  planAdherenceRate: number | null;
+  bestMatch: ProgressMatchRefDto | null;
+  worstMatch: ProgressMatchRefDto | null;
+  streak: { kind: "win" | "loss"; count: number } | null;
+};
+/** Which player the account is in its demos. */
+export type ProgressIdentityDto = {
+  status: "steam" | "chosen" | "missing";
+  candidates: {
+    steamId: string;
+    /** Display only. */
+    name?: string;
+    matches: number;
+    reviews: number;
+  }[];
+};
+/** GET /v1/coach/progress?map= (only the account's own matches). */
 export type CoachProgressDto = ProgressByMapDto & {
+  identity: ProgressIdentityDto;
   playerSteamId: string | null;
   linkedToSteam: boolean;
   analyzedMatches: number;
+  map?: string;
   profile: unknown;
-  timeline: ProgressPointDto[];
+  timeline: ProgressTimelineEntryDto[];
+  summary: ProgressSummaryDto;
   reviews: ReviewSummaryDto[];
   liveCalls: LiveCallSummaryDto[];
+};
+/** PUT /v1/coach/identity body (analysisIds defaults to "all"). */
+export type CoachIdentityRequest = {
+  steamId: string;
+  analysisIds?: string[] | "all";
+};
+export type CoachIdentityDto = {
+  steamId: string;
+  /** Matches now marked as yours by this choice. */
+  updated: number;
+  /** Your matches where this player appears. */
+  matches: number;
+};
+/** GET /v1/matches/ownership?ids= and PATCH /v1/matches/:id/ownership. */
+export type MatchOwnershipDto = {
+  jobId: string;
+  ownership: "mine" | "external";
+  playerSteamId?: string;
+  playerName?: string;
+  matchedBy: "steam" | "chosen" | "user" | "none";
+};
+export type MatchOwnershipListDto = { items: MatchOwnershipDto[] };
+export type MatchOwnershipRequest = {
+  ownership: "mine" | "external";
+  playerSteamId?: string;
 };
 /** POST /v1/analyses/:id/coaching body (tier defaults to quick). */
 export type PlayerReviewRequest = {
