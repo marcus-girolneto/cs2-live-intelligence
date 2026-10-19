@@ -1,0 +1,845 @@
+{
+  "schemaVersion": "1.0",
+  "parserVersion": "synthetic-enriched-1",
+  "map": "de_mirage",
+  "complete": true,
+  "completeness": {
+    "kills": true,
+    "damage": true,
+    "rounds": true
+  },
+  "tickRate": 64,
+  "players": [
+    {
+      "steamId": "a",
+      "name": "Player A"
+    },
+    {
+      "steamId": "b",
+      "name": "Player B"
+    },
+    {
+      "steamId": "c",
+      "name": "Player C"
+    },
+    {
+      "steamId": "d",
+      "name": "Player D"
+    }
+  ],
+  "rounds": [
+    {
+      "number": 1,
+      "participants": ["a", "b", "c", "d"],
+      "winner": "CT",
+      "reason": "t_eliminated",
+      "economy": [
+        {
+          "steamId": "a",
+          "team": "CT",
+          "equipmentValue": 850,
+          "money": 150,
+          "armor": 100,
+          "helmet": false
+        },
+        {
+          "steamId": "b",
+          "team": "CT",
+          "equipmentValue": 200,
+          "money": 600,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "c",
+          "team": "T",
+          "equipmentValue": 200,
+          "money": 600,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "d",
+          "team": "T",
+          "equipmentValue": 1000,
+          "money": 0,
+          "armor": 100,
+          "helmet": false
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "participants": ["a", "b", "c", "d"],
+      "winner": "T",
+      "reason": "bomb_exploded",
+      "economy": [
+        {
+          "steamId": "a",
+          "team": "CT",
+          "equipmentValue": 4400,
+          "money": 500,
+          "armor": 100,
+          "helmet": true,
+          "primary": "M4A1-S"
+        },
+        {
+          "steamId": "b",
+          "team": "CT",
+          "equipmentValue": 3000,
+          "money": 0,
+          "armor": 100,
+          "helmet": true,
+          "primary": "FAMAS"
+        },
+        {
+          "steamId": "c",
+          "team": "T",
+          "equipmentValue": 700,
+          "money": 1200,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "d",
+          "team": "T",
+          "equipmentValue": 200,
+          "money": 1500,
+          "armor": 0,
+          "helmet": false
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "participants": ["a", "b", "c", "d"],
+      "winner": "T",
+      "reason": "ct_eliminated",
+      "economy": [
+        {
+          "steamId": "a",
+          "team": "T",
+          "equipmentValue": 200,
+          "money": 600,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "b",
+          "team": "T",
+          "equipmentValue": 850,
+          "money": 150,
+          "armor": 100,
+          "helmet": false
+        },
+        {
+          "steamId": "c",
+          "team": "CT",
+          "equipmentValue": 200,
+          "money": 600,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "d",
+          "team": "CT",
+          "equipmentValue": 200,
+          "money": 600,
+          "armor": 0,
+          "helmet": false
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "participants": ["a", "b", "c", "d"],
+      "winner": "CT",
+      "reason": "t_eliminated",
+      "economy": [
+        {
+          "steamId": "a",
+          "team": "T",
+          "equipmentValue": 2900,
+          "money": 100,
+          "armor": 100,
+          "helmet": true,
+          "primary": "Nova"
+        },
+        {
+          "steamId": "b",
+          "team": "T",
+          "equipmentValue": 4700,
+          "money": 0,
+          "armor": 100,
+          "helmet": true,
+          "primary": "AK-47"
+        },
+        {
+          "steamId": "c",
+          "team": "CT",
+          "equipmentValue": 1400,
+          "money": 2000,
+          "armor": 0,
+          "helmet": false
+        },
+        {
+          "steamId": "d",
+          "team": "CT",
+          "equipmentValue": 5000,
+          "money": 300,
+          "armor": 100,
+          "helmet": true,
+          "primary": "M4A4"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "grenade1",
+      "type": "grenade",
+      "tick": 900,
+      "round": 1,
+      "throwerId": "a",
+      "throwerTeam": "CT",
+      "grenade": "flash",
+      "pos": {
+        "x": 1.0,
+        "y": 2.0,
+        "z": 3.0
+      },
+      "place": "TopofMid",
+      "roundTime": 8.0
+    },
+    {
+      "id": "flashed2",
+      "type": "flashed",
+      "tick": 905,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "d",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "durationSeconds": 2.5
+    },
+    {
+      "id": "flashed3",
+      "type": "flashed",
+      "tick": 905,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "CT",
+      "durationSeconds": 1.0
+    },
+    {
+      "id": "shot4",
+      "type": "shot",
+      "tick": 1000,
+      "round": 1,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "USP-S",
+      "roundTime": 10.0
+    },
+    {
+      "id": "damage5",
+      "type": "damage",
+      "tick": 1000,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 30,
+      "armorDamage": 0,
+      "weapon": "USP-S",
+      "hitgroup": "chest",
+      "roundTime": 10.0,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "shot6",
+      "type": "shot",
+      "tick": 1010,
+      "round": 1,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "USP-S",
+      "roundTime": 10.0
+    },
+    {
+      "id": "shot7",
+      "type": "shot",
+      "tick": 1020,
+      "round": 1,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "USP-S",
+      "roundTime": 10.0
+    },
+    {
+      "id": "damage8",
+      "type": "damage",
+      "tick": 1020,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 70,
+      "armorDamage": 0,
+      "weapon": "USP-S",
+      "hitgroup": "head",
+      "roundTime": 10.0,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "kill9",
+      "type": "kill",
+      "tick": 1020,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": true,
+      "weapon": "USP-S",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 12.5,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "TopofMid",
+      "victimPlace": "Middle",
+      "roundTime": 10.0
+    },
+    {
+      "id": "kill10",
+      "type": "kill",
+      "tick": 1500,
+      "round": 1,
+      "attackerId": "d",
+      "victimId": "a",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "headshot": false,
+      "weapon": "Glock-18",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 9.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Middle",
+      "victimPlace": "TopofMid",
+      "roundTime": 18.0
+    },
+    {
+      "id": "kill11",
+      "type": "kill",
+      "tick": 1600,
+      "round": 1,
+      "attackerId": "b",
+      "victimId": "d",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": false,
+      "weapon": "P2000",
+      "flashAssist": true,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 15.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "TopofMid",
+      "victimPlace": "Middle",
+      "roundTime": 19.5,
+      "assisterId": "a"
+    },
+    {
+      "id": "round_end12",
+      "type": "round_end",
+      "tick": 1700,
+      "round": 1,
+      "winner": "CT",
+      "reason": "t_eliminated"
+    },
+    {
+      "id": "grenade13",
+      "type": "grenade",
+      "tick": 1900,
+      "round": 2,
+      "throwerId": "a",
+      "throwerTeam": "CT",
+      "grenade": "he",
+      "place": "TopofMid",
+      "roundTime": 20.0
+    },
+    {
+      "id": "damage14",
+      "type": "damage",
+      "tick": 1950,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "d",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 40,
+      "armorDamage": 0,
+      "weapon": "HE Grenade",
+      "hitgroup": "generic",
+      "roundTime": 21.0,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "shot15",
+      "type": "shot",
+      "tick": 2000,
+      "round": 2,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "M4A1-S",
+      "roundTime": 22.0
+    },
+    {
+      "id": "shot16",
+      "type": "shot",
+      "tick": 2008,
+      "round": 2,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "M4A1-S",
+      "roundTime": 22.1
+    },
+    {
+      "id": "damage17",
+      "type": "damage",
+      "tick": 2008,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 25,
+      "armorDamage": 0,
+      "weapon": "M4A1-S",
+      "hitgroup": "stomach",
+      "roundTime": 22.1,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "shot18",
+      "type": "shot",
+      "tick": 2016,
+      "round": 2,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "M4A1-S",
+      "roundTime": 22.3
+    },
+    {
+      "id": "shot19",
+      "type": "shot",
+      "tick": 2024,
+      "round": 2,
+      "shooterId": "a",
+      "shooterTeam": "CT",
+      "weapon": "M4A1-S",
+      "roundTime": 22.4
+    },
+    {
+      "id": "damage20",
+      "type": "damage",
+      "tick": 2024,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 20,
+      "armorDamage": 0,
+      "weapon": "M4A1-S",
+      "hitgroup": "left_leg",
+      "roundTime": 22.4,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "damage21",
+      "type": "damage",
+      "tick": 2030,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "CT",
+      "healthDamage": 10,
+      "armorDamage": 0,
+      "weapon": "M4A1-S",
+      "hitgroup": "chest",
+      "roundTime": 22.5,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "kill22",
+      "type": "kill",
+      "tick": 2050,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "d",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": false,
+      "weapon": "M4A1-S",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 20.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "TopofMid",
+      "victimPlace": "Middle",
+      "roundTime": 25.0
+    },
+    {
+      "id": "kill23",
+      "type": "kill",
+      "tick": 2100,
+      "round": 2,
+      "attackerId": "c",
+      "victimId": "a",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "headshot": true,
+      "weapon": "Glock-18",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 8.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Middle",
+      "victimPlace": "TopofMid",
+      "roundTime": 30.0
+    },
+    {
+      "id": "kill24",
+      "type": "kill",
+      "tick": 2200,
+      "round": 2,
+      "attackerId": "c",
+      "victimId": "b",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "headshot": false,
+      "weapon": "Glock-18",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 8.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Middle",
+      "victimPlace": "Window",
+      "roundTime": 35.0
+    },
+    {
+      "id": "bomb25",
+      "type": "bomb",
+      "tick": 2300,
+      "round": 2,
+      "action": "plant",
+      "playerId": "c",
+      "site": "A",
+      "roundTime": 40.0
+    },
+    {
+      "id": "bomb26",
+      "type": "bomb",
+      "tick": 2900,
+      "round": 2,
+      "action": "explode",
+      "playerId": "c",
+      "site": "A",
+      "roundTime": 80.0
+    },
+    {
+      "id": "round_end27",
+      "type": "round_end",
+      "tick": 2900,
+      "round": 2,
+      "winner": "T",
+      "reason": "bomb_exploded"
+    },
+    {
+      "id": "damage28",
+      "type": "damage",
+      "tick": 3000,
+      "round": 3,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "healthDamage": 100,
+      "armorDamage": 0,
+      "weapon": "Knife",
+      "hitgroup": "generic",
+      "roundTime": 40.0,
+      "attackerPlace": "Apartments"
+    },
+    {
+      "id": "kill29",
+      "type": "kill",
+      "tick": 3000,
+      "round": 3,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "headshot": false,
+      "weapon": "Knife",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 1.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Apartments",
+      "victimPlace": "Apartments",
+      "roundTime": 40.0
+    },
+    {
+      "id": "kill30",
+      "type": "kill",
+      "tick": 3100,
+      "round": 3,
+      "attackerId": "b",
+      "victimId": "d",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "headshot": true,
+      "weapon": "Glock-18",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 10.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Apartments",
+      "victimPlace": "BombsiteB",
+      "roundTime": 45.0
+    },
+    {
+      "id": "round_end31",
+      "type": "round_end",
+      "tick": 3200,
+      "round": 3,
+      "winner": "T",
+      "reason": "ct_eliminated"
+    },
+    {
+      "id": "shot32",
+      "type": "shot",
+      "tick": 4000,
+      "round": 4,
+      "shooterId": "a",
+      "shooterTeam": "T",
+      "weapon": "Nova",
+      "roundTime": 12.0
+    },
+    {
+      "id": "damage33",
+      "type": "damage",
+      "tick": 4000,
+      "round": 4,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "healthDamage": 20,
+      "armorDamage": 0,
+      "weapon": "Nova",
+      "hitgroup": "chest",
+      "roundTime": 12.0,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "damage34",
+      "type": "damage",
+      "tick": 4000,
+      "round": 4,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "T",
+      "victimTeam": "CT",
+      "healthDamage": 15,
+      "armorDamage": 0,
+      "weapon": "Nova",
+      "hitgroup": "stomach",
+      "roundTime": 12.0,
+      "attackerPlace": "TopofMid"
+    },
+    {
+      "id": "shot35",
+      "type": "shot",
+      "tick": 4060,
+      "round": 4,
+      "shooterId": "a",
+      "shooterTeam": "T",
+      "weapon": "Nova",
+      "roundTime": 13.0
+    },
+    {
+      "id": "kill36",
+      "type": "kill",
+      "tick": 4100,
+      "round": 4,
+      "attackerId": "d",
+      "victimId": "a",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": false,
+      "weapon": "M4A4",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 11.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Middle",
+      "victimPlace": "TopofMid",
+      "roundTime": 15.0
+    },
+    {
+      "id": "kill37",
+      "type": "kill",
+      "tick": 4200,
+      "round": 4,
+      "attackerId": "c",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": false,
+      "weapon": "M4A4",
+      "flashAssist": false,
+      "penetrated": false,
+      "noScope": false,
+      "throughSmoke": false,
+      "attackerBlind": false,
+      "distance": 11.0,
+      "attackerPos": {
+        "x": -100.5,
+        "y": 200.0,
+        "z": 0.0
+      },
+      "victimPos": {
+        "x": -300.0,
+        "y": 250.5,
+        "z": 0.0
+      },
+      "attackerPlace": "Middle",
+      "victimPlace": "Apartments",
+      "roundTime": 50.0
+    },
+    {
+      "id": "round_end38",
+      "type": "round_end",
+      "tick": 4300,
+      "round": 4,
+      "winner": "CT",
+      "reason": "t_eliminated"
+    }
+  ]
+}

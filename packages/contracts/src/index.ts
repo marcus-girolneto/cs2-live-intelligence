@@ -88,3 +88,6 @@ export type ServerMessage =
     }
   | { type: "heartbeat"; at: string };
 export const STALE_AFTER_MS = 5000;
+
+export * from "./platform.js";
+export * as api from "./api/index.js";

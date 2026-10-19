@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0",
+  "parserVersion": "synthetic-golden-1",
+  "map": "de_mirage",
+  "complete": true,
+  "completeness": { "kills": true, "damage": true, "rounds": true },
+  "players": [
+    { "steamId": "a", "name": "Player A" },
+    { "steamId": "b", "name": "Player B" },
+    { "steamId": "c", "name": "Player C" }
+  ],
+  "rounds": [
+    { "number": 1, "participants": ["a", "b", "c"], "winner": "CT" },
+    { "number": 2, "participants": ["a", "b", "c"], "winner": "T" }
+  ],
+  "events": [
+    {
+      "id": "damage1",
+      "type": "damage",
+      "tick": 100,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 100
+    },
+    {
+      "id": "kill1",
+      "type": "kill",
+      "tick": 101,
+      "round": 1,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": true
+    },
+    {
+      "id": "end1",
+      "type": "round_end",
+      "tick": 110,
+      "round": 1,
+      "winner": "CT"
+    },
+    {
+      "id": "damage2",
+      "type": "damage",
+      "tick": 200,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "healthDamage": 50
+    },
+    {
+      "id": "kill2",
+      "type": "kill",
+      "tick": 201,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "b",
+      "attackerTeam": "CT",
+      "victimTeam": "T",
+      "headshot": false
+    },
+    {
+      "id": "teamkill",
+      "type": "kill",
+      "tick": 202,
+      "round": 2,
+      "attackerId": "a",
+      "victimId": "c",
+      "attackerTeam": "CT",
+      "victimTeam": "CT",
+      "headshot": false
+    },
+    {
+      "id": "end2",
+      "type": "round_end",
+      "tick": 210,
+      "round": 2,
+      "winner": "T"
+    }
+  ]
+}
