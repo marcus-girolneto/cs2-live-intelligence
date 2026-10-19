@@ -335,6 +335,19 @@ func ParseFile(path string, maxBytes int64) (Demo, error) {
 	return out, err
 }
 
+// oneLine keeps only the first line of a library error: a panic inside a library callback is
+// converted to an error that carries a full stack trace (paths, goroutines).
+type oneLine struct{ err error }
+
+func (e oneLine) Error() string {
+	msg, _, _ := strings.Cut(e.err.Error(), "\n")
+	return msg
+}
+func (e oneLine) Unwrap() error { return e.err }
+
+// panicHook lets tests raise a panic from inside a library callback (nil in production).
+var panicHook func()
+
 // ParseFileWithReplay also returns the replay artifact when wantReplay is set. The normalized
 // document is identical either way.
 func ParseFileWithReplay(path string, maxBytes int64, wantReplay bool) (out Demo, replay *Replay, err error) {
@@ -368,16 +381,25 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 	if info.Size() > maxBytes {
 		return out, nil, errors.New("demo exceeds input size limit")
 	}
-	reader := bufio.NewReader(io.LimitReader(f, maxBytes+1))
-	magic, err := reader.Peek(8)
-	if err != nil || string(magic) != "PBDEMS2\x00" {
+	magic := make([]byte, 8)
+	if _, err = io.ReadFull(f, magic); err != nil || string(magic) != "PBDEMS2\x00" {
 		return out, nil, errors.New("invalid CS2 demo header: expected PBDEMS2")
 	}
+	if err = validateFrames(f, info.Size()); err != nil {
+		return out, nil, err
+	}
+	if _, err = f.Seek(0, io.SeekStart); err != nil {
+		return out, nil, err
+	}
+	reader := bufio.NewReader(io.LimitReader(f, maxBytes+1))
 	p := dem.NewParser(reader)
 	defer p.Close()
 	// v5 has no separate header step: the map name arrives with the server info message.
 	mapName := ""
 	p.RegisterNetMessageHandler(func(m *msg.CSVCMsg_ServerInfo) {
+		if panicHook != nil {
+			panicHook()
+		}
 		if name := m.GetMapName(); name != "" {
 			mapName = name
 		}
@@ -566,7 +588,7 @@ func parseFile(path string, maxBytes int64, wantReplay bool) (out Demo, replay *
 		if b.limitErr != nil {
 			return out, nil, b.limitErr
 		}
-		return out, nil, fmt.Errorf("demo parse: %w", err)
+		return out, nil, fmt.Errorf("demo parse: %w", oneLine{err})
 	}
 	if b.limitErr != nil {
 		return out, nil, b.limitErr

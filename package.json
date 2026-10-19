@@ -12,6 +12,7 @@
     "test": "turbo test && pnpm test:go",
     "test:go": "(cd apps/collector && go test -race ./...) && (cd apps/demo-parser && go test -race ./...)",
     "test:e2e": "playwright test",
+    "test:fuzz": "cd apps/demo-parser && go test ./internal/normalize -run '^$' -fuzz FuzzNormalize -fuzztime 20s",
     "mock": "cd apps/collector && go run ./cmd/mock",
     "test:integration": "pnpm --filter @cs2/api test",
     "local:up": "docker compose -f compose.yaml -f compose.local.yaml up -d --build",

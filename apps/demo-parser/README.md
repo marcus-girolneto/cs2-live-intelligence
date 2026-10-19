@@ -66,3 +66,18 @@ Real CS2 parse is verified with a public generic fixture. [Provenance, license, 
   v4.5.1 failed on them with `unable to find existing entity`.
 - v5 does not report C4 explosion damage (no attacker) as player-hurt events. Player metrics are
   unaffected: ADR and every damage metric only count damage dealt by players.
+
+## Fuzzing
+
+`FuzzNormalize` (`internal/normalize/fuzz_test.go`) feeds arbitrary bytes through the whole
+parse path (library, normalization, replay) and fails on a panic past the recover boundary, on
+more than 10 s per input or on more than 1 GiB allocated for an input of at most 2 MiB. Its
+regression corpus (`internal/normalize/testdata/fuzz/FuzzNormalize`) runs with every `go test`;
+the fuzzing engine runs only on demand, bounded: `pnpm test:fuzz` (20 s).
+
+Findings fixed so far: a 23-byte file declaring a 2–4 GiB frame (or a malformed size varint)
+made the library allocate that size before failing. `validateFrames` now walks the frame
+headers before parsing and rejects unknown commands, truncated frames, frames over 32 MiB and
+snappy blocks declaring more than 64 MiB (or more than the 22x snappy expansion bound). Panics
+inside library callbacks are recovered by the library's dispatcher and returned as a one-line
+error (no stack trace); anything else stops at `ParseFileWithReplay`'s `recover`.

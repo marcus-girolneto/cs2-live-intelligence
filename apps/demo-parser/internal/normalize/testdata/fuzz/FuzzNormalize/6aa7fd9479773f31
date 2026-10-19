@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("PBDEMS2\x0000000000A0\xff\xff\xff\xff\xfb")

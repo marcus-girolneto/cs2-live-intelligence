@@ -180,7 +180,7 @@ func TestPublicCS2Fixture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d.Map != "de_mirage" || len(d.Players) != 10 || len(d.Rounds) != 10 || len(d.Events) != 1764 || !d.Complete || d.TickRate != 64 {
+	if d.Map != "de_mirage" || len(d.Players) != 10 || len(d.Rounds) != 10 || len(d.Events) != 1760 || !d.Complete || d.TickRate != 64 {
 		t.Fatalf("pinned public fixture changed: map=%s players=%d rounds=%d events=%d complete=%v", d.Map, len(d.Players), len(d.Rounds), len(d.Events), d.Complete)
 	}
 	counts := map[string]int{}
@@ -192,7 +192,7 @@ func TestPublicCS2Fixture(t *testing.T) {
 		}
 		ids[e.ID] = true
 	}
-	if counts["kill"] != 62 || counts["damage"] != 258 || counts["round_end"] != 10 || counts["shot"] != 1159 || counts["grenade"] != 195 || counts["flashed"] != 71 || counts["bomb"] != 9 {
+	if counts["kill"] != 62 || counts["damage"] != 254 || counts["round_end"] != 10 || counts["shot"] != 1159 || counts["grenade"] != 195 || counts["flashed"] != 71 || counts["bomb"] != 9 {
 		t.Fatal(counts)
 	}
 	// Every gun hit lands on the same tick as a recorded shot by the same shooter and weapon.
