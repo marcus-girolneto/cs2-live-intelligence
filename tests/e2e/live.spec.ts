@@ -47,12 +47,13 @@ test("100 mock updates cross collector, API and owner WebSocket into browser", a
       }
     };
   });
-  await page.goto("/");
-  await page.getByLabel("Owner token").fill("e2e-browser-secret");
+  // Local mode authenticates server-side; no token is typed into the browser.
+  await page.goto("/live");
+  await page.getByText("Advanced: connect to a specific session").click();
   await page.getByLabel("Session ID").fill("dev-session");
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(page.getByTestId("connection-status")).toContainText(
-    /^(Waiting for telemetry|Live)$/,
+    /^(Waiting for game data|Live)$/,
   );
   await mock();
   await expect
@@ -64,8 +65,8 @@ test("100 mock updates cross collector, API and owner WebSocket into browser", a
       return r.ok() ? (await r.json()).sequence : 0;
     })
     .toBe(100);
-  await expect(page.getByTestId("map")).toHaveText("de_dust2");
-  await expect(page.getByTestId("phase")).toHaveText("gameover");
+  await expect(page.getByTestId("map")).toHaveText("Dust II");
+  await expect(page.getByTestId("phase")).toHaveText("Game over");
   await expect(page.getByTestId("kills")).toHaveText("20");
   // Directly time one complete local transport path, with real browser rendering as the end point.
   const started = Date.now();
@@ -114,8 +115,8 @@ test("100 mock updates cross collector, API and owner WebSocket into browser", a
   await request.post("http://127.0.0.1:3102/gsi", {
     data: { auth: { token: "e2e-gsi-secret" } },
   });
-  await expect(page.getByTestId("kills")).toHaveText("Not available");
-  await expect(page.getByTestId("map")).toHaveText("Not available");
+  await expect(page.getByTestId("kills")).toHaveText("—");
+  await expect(page.getByTestId("map")).toHaveText("—");
   await page.screenshot({
     path: testInfo.outputPath("dashboard.png"),
     fullPage: true,
@@ -149,5 +150,5 @@ test("100 mock updates cross collector, API and owner WebSocket into browser", a
       map: { name: "de_dust2", round: 12 },
     },
   });
-  await expect(page.getByTestId("map")).toHaveText("de_dust2");
+  await expect(page.getByTestId("map")).toHaveText("Dust II");
 });
