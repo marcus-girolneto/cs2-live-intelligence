@@ -10,4 +10,8 @@ export const pt: Record<string, string> = {
   "Sign out": "Sair",
   "Signing out…": "Saindo…",
   "Signed in with Steam": "Conectado com a Steam",
+  Analyze: "Analisar",
+  Game: "Jogo",
+  "Expand menu": "Expandir menu",
+  "Collapse menu": "Recolher menu",
 };
