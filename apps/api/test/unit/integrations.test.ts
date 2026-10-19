@@ -18,7 +18,7 @@ import { IntegrationsService } from "../../src/modules/integrations/integrations
 import { RefreshingSetting, ZonedClock } from "../../src/shared/clock/clock.js";
 import { appError } from "./fakes.js";
 
-const STEAM_KEY = "ABCDEF0123456789ABCDEF0123456789";
+const STEAM_KEY = "ABCDEF0123456789ABCDEF0123456789"; // gitleaks:allow (test fixture)
 const STRIPE_KEY = "sk_test_unitSecretKey9876"; // gitleaks:allow (fake test value)
 const WEBHOOK = "whsec_unitWebhookSecret5555"; // gitleaks:allow (fake test value)
 
@@ -169,7 +169,7 @@ describe("IntegrationsService and the cached config provider", () => {
     const view = await service.updateStripe("boss", {
       secretKey: STRIPE_KEY,
       webhookSecret: WEBHOOK,
-      publishableKey: "pk_test_publishable123",
+      publishableKey: "pk_test_publishable123", // gitleaks:allow
     });
     const stored = repo.rows.get("stripe.secretKey")!;
     expect(stored.ciphertext.startsWith("v1:")).toBe(true);
@@ -182,7 +182,7 @@ describe("IntegrationsService and the cached config provider", () => {
       source: "database",
       secretKeyLast4: "9876",
       webhookConfigured: true,
-      publishableKey: "pk_test_publishable123",
+      publishableKey: "pk_test_publishable123", // gitleaks:allow
       enabled: true,
       active: true,
       webhookUrl: "https://api.example/v1/billing/webhook",

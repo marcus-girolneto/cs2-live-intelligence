@@ -12,7 +12,7 @@ import { signStripePayload } from "../src/infrastructure/billing/stripe-payment-
 
 const databaseUrl = process.env.DATABASE_URL;
 const STEAM_ID = "76561197960287930";
-const STEAM_KEY = "0123456789ABCDEF0123456789ABCDEF";
+const STEAM_KEY = "0123456789ABCDEF0123456789ABCDEF"; // gitleaks:allow (test fixture)
 const STRIPE_KEY = "sk_test_integrationKey4242"; // gitleaks:allow (fake test value)
 const WEBHOOK = "whsec_integrationWebhook77"; // gitleaks:allow (fake test value)
 
@@ -243,7 +243,7 @@ describe.skipIf(!databaseUrl)("admin integrations (Postgres)", () => {
     const saved = await call("PUT", "/v1/admin/integrations/stripe", boss, {
       secretKey: STRIPE_KEY,
       webhookSecret: WEBHOOK,
-      publishableKey: "pk_test_publishable42",
+      publishableKey: "pk_test_publishable42", // gitleaks:allow
       paymentMethods: { BRL: ["card", "pix"] },
     });
     expect(saved.statusCode).toBe(200);
@@ -255,7 +255,7 @@ describe.skipIf(!databaseUrl)("admin integrations (Postgres)", () => {
       secretKeyLast4: "4242",
       webhookConfigured: true,
       webhookSource: "database",
-      publishableKey: "pk_test_publishable42",
+      publishableKey: "pk_test_publishable42", // gitleaks:allow
       enabled: true,
       active: true,
       paymentMethods: { BRL: ["card", "pix"], USD: ["card"] },
@@ -279,7 +279,7 @@ describe.skipIf(!databaseUrl)("admin integrations (Postgres)", () => {
       currencies: ["BRL", "USD"],
       intervals: ["month", "year"],
       paymentMethods: { BRL: ["card", "pix"], USD: ["card"] },
-      publishableKey: "pk_test_publishable42",
+      publishableKey: "pk_test_publishable42", // gitleaks:allow
     });
     await repo.pool.query(
       `update plans set stripe_prices='{"BRL_month":"price_basic_brl"}'::jsonb where id='basic'`,
