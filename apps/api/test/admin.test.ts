@@ -467,6 +467,7 @@ describe.skipIf(!databaseUrl)(
           review_quick: { source: "database", model: "review-model" },
           review_deep: { source: "database", model: "review-model" },
           report: { source: "database", model: "review-model" },
+          personal_coach: { source: "database", model: "review-model" },
           live: { source: "database", model: "live-model" },
         },
       });
@@ -483,6 +484,7 @@ describe.skipIf(!databaseUrl)(
           review_deep: { configured: true },
           live: { configured: true },
           report: { configured: true },
+          personal_coach: { configured: true },
         },
       });
       expect((await call("POST", "/v1/ai/test", userHeaders)).statusCode).toBe(
@@ -666,6 +668,8 @@ describe.skipIf(!databaseUrl)(
         dailyLimit: null,
         maxInputBytes: null,
         sampleDemoEnabled: true,
+        personalCoachIntervalDays: 7,
+        personalCoachNewMatches: 3,
       });
       expect(
         (

@@ -236,36 +236,66 @@ describe.skipIf(!databaseUrl)(
           const data = JSON.parse(userMsg.slice(userMsg.indexOf("{"))) as {
             facts?: { id: string }[];
             trends?: unknown;
+            basedOnMatches?: number;
           };
-          const content = data.trends
-            ? {
-                headline: "Solid month",
-                summary: "S.",
-                strengths: ["A"],
-                focus: ["B"],
-                plan: ["C"],
-              }
-            : {
-                verdict: "V",
-                summary: "Mock.",
-                insights: [
-                  {
-                    observation: "x",
-                    evidenceIds: [
-                      data.facts!.find((f) => f.id.startsWith("deep-"))?.id ??
-                        data.facts![0]!.id,
-                    ],
-                    confidence: "low",
-                    actionablePractice: "y",
-                    caveats: [],
-                    kind: "improve",
-                    scope: "general",
-                  },
-                ],
-                keyMoments: [],
-                drills: [],
-                plan: [{ text: "z", scope: "general" }],
-              };
+          const coachPlan =
+            data.basedOnMatches !== undefined
+              ? {
+                  headline: "Trade more, peek less",
+                  workingWell: [
+                    { text: "Good ADR", evidence: [data.facts![0]!.id] },
+                  ],
+                  notWorking: [{ text: "Invented", evidence: ["not-a-fact"] }],
+                  focusAreas: [
+                    {
+                      area: "Trading",
+                      why: "w",
+                      targetMetric: data.facts![0]!.id,
+                      target: 99,
+                    },
+                  ],
+                  weeklyProgram: [
+                    {
+                      week: 1,
+                      goals: ["g"],
+                      drills: [{ name: "d", minutesPerDay: 15, howTo: "h" }],
+                    },
+                  ],
+                  perMap: [],
+                  nextReviewSuggestion: "Deep review next.",
+                }
+              : undefined;
+          const content = coachPlan
+            ? coachPlan
+            : data.trends
+              ? {
+                  headline: "Solid month",
+                  summary: "S.",
+                  strengths: ["A"],
+                  focus: ["B"],
+                  plan: ["C"],
+                }
+              : {
+                  verdict: "V",
+                  summary: "Mock.",
+                  insights: [
+                    {
+                      observation: "x",
+                      evidenceIds: [
+                        data.facts!.find((f) => f.id.startsWith("deep-"))?.id ??
+                          data.facts![0]!.id,
+                      ],
+                      confidence: "low",
+                      actionablePractice: "y",
+                      caveats: [],
+                      kind: "improve",
+                      scope: "general",
+                    },
+                  ],
+                  keyMoments: [],
+                  drills: [],
+                  plan: [{ text: "z", scope: "general" }],
+                };
           res.writeHead(200, { "content-type": "application/json" });
           res.end(
             JSON.stringify({
@@ -329,6 +359,7 @@ describe.skipIf(!databaseUrl)(
         "credit_wallets",
         "subscriptions",
         "reports",
+        "personal_coach_plans",
         "demo_jobs",
         "billing_events",
       ])
@@ -1005,6 +1036,100 @@ describe.skipIf(!databaseUrl)(
       expect(
         (await app.inject({ url: "/v1/reports", headers: pro })).json().reports,
       ).toHaveLength(2);
+    });
+
+    it("Personal Coach: Pro only (teaser for others), cooldown unless 3 new analyses, auto-regenerates", async () => {
+      const free = await app.inject({
+        url: "/v1/coach/personal",
+        headers: user,
+      });
+      expect(free.statusCode).toBe(402);
+      expect(free.json()).toMatchObject({
+        code: "plan_required",
+        feature: "personal_coach",
+        upgradeTo: "pro",
+        teaser: { analyzedMatches: 0, reviews: 0 },
+      });
+      await repo.pool.query(
+        "insert into subscriptions(owner_id,plan_id,status,source) values('pro','pro','active','admin')",
+      );
+      expect(
+        (
+          await app.inject({
+            method: "POST",
+            url: "/v1/coach/personal/generate",
+            headers: pro,
+          })
+        ).json(),
+      ).toMatchObject({ code: "not_enough_data" });
+      const { steamId } = await analysisFor("pro");
+      await app.inject({
+        method: "PUT",
+        url: "/v1/coach/profile",
+        headers: pro,
+        payload: { playerSteamId: steamId },
+      });
+      const before = hits;
+      const made = await app.inject({
+        method: "POST",
+        url: "/v1/coach/personal/generate",
+        headers: pro,
+        payload: { lang: "en" },
+      });
+      expect(made.statusCode).toBe(200);
+      expect(hits - before).toBe(1);
+      const view = made.json();
+      expect(view.latest.plan).toMatchObject({
+        headline: "Trade more, peek less",
+        promptVersion: "personal-coach-v1",
+        basedOnMatches: 1,
+      });
+      expect(view.latest.plan.workingWell).toHaveLength(1);
+      expect(view.latest.plan.notWorking).toHaveLength(0);
+      const fact = view.latest.plan.facts.find(
+        (f: { id: string }) =>
+          f.id === view.latest.plan.focusAreas[0].targetMetric,
+      );
+      expect(view.latest.plan.focusAreas[0].current).toBe(fact.value);
+      expect(view.latest.provider).toBeUndefined();
+      expect(view).toMatchObject({
+        analyzedMatches: 1,
+        newMatchesSinceLast: 0,
+        autoRegenerateAfterMatches: 3,
+      });
+      expect(view.nextAvailableAt).toBe("2026-10-26T15:00:00.000Z");
+      expect((await me(pro)).credits.balance).toBe(0);
+      const cooldown = await app.inject({
+        method: "POST",
+        url: "/v1/coach/personal/generate",
+        headers: pro,
+      });
+      expect(cooldown.statusCode).toBe(429);
+      expect(cooldown.json()).toMatchObject({
+        code: "personal_coach_cooldown",
+        newMatchesNeeded: 3,
+      });
+      // Three new analyses: the hourly job regenerates automatically.
+      for (let i = 0; i < 3; i++) await analysisFor("pro");
+      now += 3_600_000;
+      await dailyJobs();
+      const after = (
+        await app.inject({ url: "/v1/coach/personal", headers: pro })
+      ).json();
+      expect(after.history).toHaveLength(2);
+      expect(after.latest).toMatchObject({ trigger: "auto" });
+      expect(after.latest.plan.basedOnMatches).toBe(4);
+      // A week later manual regeneration opens again.
+      now += 8 * DAY;
+      expect(
+        (
+          await app.inject({
+            method: "POST",
+            url: "/v1/coach/personal/generate",
+            headers: pro,
+          })
+        ).statusCode,
+      ).toBe(200);
     });
   },
 );

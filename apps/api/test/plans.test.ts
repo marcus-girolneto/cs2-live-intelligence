@@ -255,6 +255,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         reel: false,
         deepHistory: false,
         priorityQueue: false,
+        personalCoach: false,
       },
       credits: { monthly: 15, quickCost: 1, deepCost: 3 },
       benefits: ["clipExport"],
@@ -270,6 +271,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         "reel",
         "deepHistory",
         "priorityQueue",
+        "personalCoach",
       ],
     });
     const me = (await app.inject({ url: "/v1/me", headers: user })).json();

@@ -26,6 +26,7 @@ import { registerBillingRoutes } from "./modules/billing/billing.routes.js";
 import { registerCoachingRoutes } from "./modules/coaching/coaching.routes.js";
 import { registerCreditsRoutes } from "./modules/credits/credits.routes.js";
 import { registerReportsRoutes } from "./modules/reports/reports.routes.js";
+import { registerPersonalCoachRoutes } from "./modules/personal-coach/personal-coach.routes.js";
 import { registerDevicesRoutes } from "./modules/devices/devices.routes.js";
 import { registerFeedbackRoutes } from "./modules/feedback/feedback.routes.js";
 import { registerLiveRoutes } from "./modules/live/live.routes.js";
@@ -78,6 +79,11 @@ async function registerJobs(
   registerAiStatusRoutes(app, jobs.aiStatusController, guards);
   registerReplayRoutes(app, jobs.replayController, guards.withStyle("coded"));
   registerReportsRoutes(app, jobs.reportsController, guards.withStyle("coded"));
+  registerPersonalCoachRoutes(
+    app,
+    jobs.personalCoachController,
+    guards.withStyle("coded"),
+  );
   const worker = await startContainerWorkers(jobs, container.config.jobs!);
   app.addHook("onClose", async () => worker.stop());
   container.metrics.addGauge(

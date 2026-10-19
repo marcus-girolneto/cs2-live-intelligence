@@ -37,6 +37,8 @@ export const featuresSchema = z
     deepHistory: z.boolean(),
     /** Demo processing jobs are claimed before other plans' jobs. */
     priorityQueue: z.boolean(),
+    /** Long-term Personal Coach plans (GET/POST /v1/coach/personal). */
+    personalCoach: z.boolean(),
   })
   .strict();
 export const FEATURE_KEYS = Object.keys(

@@ -1,3 +1,4 @@
+import { ViewerPolicy } from "../modules/coaching/viewer.policy.js";
 import type { Logger } from "../shared/logging/logger.js";
 
 /** Ports of the periodic account jobs. */
@@ -10,11 +11,15 @@ export interface PlanCreditGrants {
 export interface ScheduledReports {
   scheduled(ownerId: string): Promise<unknown>;
 }
+export interface AutoCoach {
+  autoRegenerate(ownerId: string, viewer: ViewerPolicy): Promise<boolean>;
+}
 
 /**
  * Hourly account jobs: grants the current period's plan credits to every entitled subscription
  * (idempotent per owner, plan and period start; covers admin-granted plans and monthly credits
- * of yearly subscriptions) and writes the Pro monthly reports in the first days of a month.
+ * of yearly subscriptions), writes the Pro monthly reports in the first days of a month and
+ * regenerates Personal Coach plans once enough new analyses arrived.
  */
 export class DailyJobsWorker {
   private running?: Promise<void>;
@@ -23,6 +28,7 @@ export class DailyJobsWorker {
     private readonly credits: PlanCreditGrants,
     private readonly reports: ScheduledReports | undefined,
     private readonly logger: Logger,
+    private readonly coach?: AutoCoach,
   ) {}
 
   run(): Promise<void> {
@@ -38,6 +44,8 @@ export class DailyJobsWorker {
         if ((await this.credits.syncPlanCredits(ownerId)) === "granted")
           granted++;
         if (this.reports && (await this.reports.scheduled(ownerId))) reports++;
+        if (this.coach)
+          await this.coach.autoRegenerate(ownerId, ViewerPolicy.for(false));
       } catch (error) {
         this.logger.info(
           { ownerId, err: String(error) },

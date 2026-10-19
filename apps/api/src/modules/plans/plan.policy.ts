@@ -26,6 +26,7 @@ export const FALLBACK_FREE: PlanRecord = {
     reel: false,
     deepHistory: false,
     priorityQueue: false,
+    personalCoach: false,
   },
   stripePrices: {},
   active: true,
@@ -85,6 +86,7 @@ export const PlanPolicy = {
         reel: true,
         deepHistory: true,
         priorityQueue: true,
+        personalCoach: true,
       },
     };
   },

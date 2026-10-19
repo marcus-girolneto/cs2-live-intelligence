@@ -163,7 +163,9 @@ export const productPaths = {
     ),
   },
   "/v1/admin/ai/assignments": {
-    get: operation("Admin only: provider + model per purpose (review_quick, review_deep, live, report; legacy key review = both review tiers)"),
+    get: operation(
+      "Admin only: provider + model per purpose (review_quick, review_deep, live, report; legacy key review = both review tiers)",
+    ),
     put: operation(
       "Admin only: set or clear (null) the provider + model per purpose",
     ),

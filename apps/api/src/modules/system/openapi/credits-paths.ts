@@ -64,6 +64,17 @@ export const creditsPaths = {
       { requestBody: body(json("{lang?: en|pt}")) },
     ),
   },
+  "/v1/coach/personal": {
+    get: operation(
+      "Pro Personal Coach {latest: {id, createdAt, trigger: manual|auto, plan:{schemaVersion, promptVersion: personal-coach-v1, headline, workingWell[{text, evidence[factId]}], notWorking[...], focusAreas[{area, why, targetMetric, current, target}], weeklyProgram[{week, goals[], drills[{name, minutesPerDay, howTo}]}], perMap[{map, notes}], nextReviewSuggestion, generatedAt, basedOnMatches, facts[{id, label, value, unit, trend, better, matches, map?}], caveats}} | null, history[{id, createdAt, headline, basedOnMatches}], analyzedMatches, newMatchesSinceLast, nextAvailableAt (null = can generate now), autoRegenerateAfterMatches}; 402 {code: plan_required, feature: personal_coach, upgradeTo, teaser:{analyzedMatches, reviews, plansGiven}}",
+    ),
+  },
+  "/v1/coach/personal/generate": {
+    post: operation(
+      "Pro: build a new plan {lang?} (AI purpose personal_coach, no credits) → same body as GET; 429 {code: personal_coach_cooldown, nextAvailableAt, newMatchesNeeded} inside the interval (admin settings personalCoachIntervalDays, default 7, unless personalCoachNewMatches new analyses, default 3, which also auto-regenerates hourly); 409 not_enough_data",
+      { requestBody: body(json("{lang?: en|pt}")) },
+    ),
+  },
   "/v1/admin/credits/settings": {
     get: operation(
       "Admin: {settings:{welcomeCredits, quickCost, deepCost, proDeepCost, dailySafetyCap, minSteamAgeDays, maxGrantsPerNetwork, networkWindowDays}}",

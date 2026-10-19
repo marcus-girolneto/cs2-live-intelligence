@@ -75,6 +75,7 @@ export const plan = (
     reel: id === "pro",
     deepHistory: id === "pro",
     priorityQueue: id === "pro",
+    personalCoach: id === "pro",
   },
   stripePrices: {},
   active,

@@ -37,10 +37,14 @@ export interface AiConfigSource {
 export class AssignedProviderSource implements AiConfigSource {
   constructor(private readonly factory: AiConfigFactory) {}
   resolve(purpose: AiPurpose, snap: AiSnapshot): ResolvedAi | undefined {
-    const fallback = PURPOSE_FALLBACK[purpose];
-    const assignment =
-      snap.assignments[purpose] ??
-      (fallback ? snap.assignments[fallback] : undefined);
+    // Follow the fallback chain (e.g. personal_coach → review_deep → review_quick).
+    let assignment = snap.assignments[purpose];
+    for (
+      let p = PURPOSE_FALLBACK[purpose];
+      !assignment && p;
+      p = PURPOSE_FALLBACK[p]
+    )
+      assignment = snap.assignments[p];
     const row = assignment
       ? snap.providers.find((p) => p.id === assignment.providerId)
       : undefined;

@@ -17,6 +17,7 @@ export type AppSettingsViewDto = {
       review_deep: "database" | "env";
       live: "database" | "env";
       report: "database" | "env";
+      personal_coach: "database" | "env";
     };
   };
 };
@@ -33,11 +34,12 @@ export class AppSettingsService {
   async view(): Promise<AppSettingsViewDto> {
     this.ai.invalidate();
     const snap = await this.ai.load();
-    const [review, deep, live, report] = await Promise.all([
+    const [review, deep, live, report, coach] = await Promise.all([
       this.ai.resolve("review_quick"),
       this.ai.resolve("review_deep"),
       this.ai.resolve("live"),
       this.ai.resolve("report"),
+      this.ai.resolve("personal_coach"),
     ]);
     return {
       settings: snap.settings,
@@ -57,6 +59,7 @@ export class AppSettingsService {
           review_deep: deep.source,
           live: live.source,
           report: report.source,
+          personal_coach: coach.source,
         },
       },
     };

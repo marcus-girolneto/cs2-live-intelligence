@@ -65,6 +65,7 @@ const FEATURES = [
   "reel",
   "deepHistory",
   "priorityQueue",
+  "personalCoach",
 ] as const;
 const quota = (v: unknown): number | null =>
   typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;

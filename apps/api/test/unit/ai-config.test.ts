@@ -169,6 +169,7 @@ describe("AiAccessService", () => {
     review: () => Promise.reject(new Error("unused")),
     liveCall: () => Promise.reject(new Error("unused")),
     monthlyReport: () => Promise.reject(new Error("unused")),
+    personalCoach: () => Promise.reject(new Error("unused")),
     connectivityCheck: async (c: AiConfig) => ({
       ok: true as const,
       provider: c.provider,
@@ -236,6 +237,7 @@ describe("AiAccessService", () => {
         review_deep: { configured: true },
         live: { configured: true },
         report: { configured: true },
+        personal_coach: { configured: true },
       },
     });
     expect(await access.status(true)).toMatchObject({

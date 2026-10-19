@@ -5,23 +5,27 @@ import { z } from "zod";
  * a stronger one to deep); "report" writes the Pro monthly report narrative. Resolution falls
  * back review_deep → review_quick and report → review_quick, then to the AI_* environment.
  */
-export type AiPurpose = "review_quick" | "review_deep" | "live" | "report";
+export type AiPurpose =
+  "review_quick" | "review_deep" | "live" | "report" | "personal_coach";
 export const AI_PURPOSES: AiPurpose[] = [
   "review_quick",
   "review_deep",
   "live",
   "report",
+  "personal_coach",
 ];
 /** Assignment fallbacks (a purpose without its own assignment uses the next one). */
 export const PURPOSE_FALLBACK: Partial<Record<AiPurpose, AiPurpose>> = {
   review_deep: "review_quick",
   report: "review_quick",
+  personal_coach: "review_deep",
 };
 /** Legacy purpose names accepted on input ("review" = both review tiers). */
 export function purposeOf(value: unknown): AiPurpose {
   return value === "live" ||
     value === "review_deep" ||
     value === "report" ||
+    value === "personal_coach" ||
     value === "review_quick"
     ? value
     : "review_quick";
@@ -55,6 +59,10 @@ export const appSettingsSchema = z
     // null = use AI_MAX_INPUT_BYTES (default 200000).
     maxInputBytes: z.number().int().min(1_000).max(5_000_000).nullable(),
     sampleDemoEnabled: z.boolean(),
+    /** Personal Coach: minimum days between regenerations... */
+    personalCoachIntervalDays: z.number().int().min(1).max(90),
+    /** ...unless this many new analyses arrived (also the auto-regeneration threshold). */
+    personalCoachNewMatches: z.number().int().min(1).max(50),
   })
   .strict();
 export type AppSettings = z.infer<typeof appSettingsSchema>;
@@ -62,6 +70,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   dailyLimit: null,
   maxInputBytes: null,
   sampleDemoEnabled: true,
+  personalCoachIntervalDays: 7,
+  personalCoachNewMatches: 3,
 };
 
 const providerName = z.string().trim().min(1).max(64);
@@ -132,6 +142,7 @@ export const assignmentsSchema = z
     review_deep: assignment.nullable().optional(),
     live: assignment.nullable().optional(),
     report: assignment.nullable().optional(),
+    personal_coach: assignment.nullable().optional(),
   })
   .strict()
   .transform(({ review, ...rest }) => ({

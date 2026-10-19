@@ -146,6 +146,7 @@ function setup(gatewayError?: Error, acquireError?: Error) {
       return { coaching: COACHING, call: META };
     },
     monthlyReport: () => Promise.reject(new Error("unused")),
+    personalCoach: () => Promise.reject(new Error("unused")),
     liveCall: async () => {
       if (gatewayError) throw gatewayError;
       return { call: { promptVersion: "live-1" } as LiveCall, meta: META };

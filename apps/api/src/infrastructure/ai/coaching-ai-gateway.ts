@@ -8,11 +8,18 @@ import {
   type LiveCall,
   type LiveCoachInput,
   aiMonthlyReport,
+  aiPersonalCoach,
+  type CoachAggregates,
   type DeepResult,
   type ModelResult,
   type Personalization,
 } from "@cs2/coaching";
-import type { Analysis, Coaching, MonthlyReport } from "@cs2/contracts";
+import type {
+  Analysis,
+  Coaching,
+  MonthlyReport,
+  PersonalCoachPlan,
+} from "@cs2/contracts";
 
 export type CoachLanguage = "en" | "pt";
 export type ModelMeta = Omit<ModelResult, "data">;
@@ -58,6 +65,13 @@ export interface AiGateway {
     config: AiConfig,
     lang: CoachLanguage,
   ): Promise<{ report: MonthlyReport; call: ModelMeta }>;
+  /** Long-term plan from the Personal Coach aggregates (purpose "personal_coach"). */
+  personalCoach(
+    aggregates: CoachAggregates,
+    config: AiConfig,
+    lang: CoachLanguage,
+    generatedAt: string,
+  ): Promise<{ plan: PersonalCoachPlan; call: ModelMeta }>;
 }
 
 /** Port: deterministic (model-free) coaching attached to every processed upload. */
@@ -91,6 +105,14 @@ export class CoachingAiGateway implements AiGateway, OfflineCoach {
     lang: CoachLanguage,
   ): Promise<{ report: MonthlyReport; call: ModelMeta }> {
     return aiMonthlyReport(report, config, lang);
+  }
+  personalCoach(
+    aggregates: CoachAggregates,
+    config: AiConfig,
+    lang: CoachLanguage,
+    generatedAt: string,
+  ): Promise<{ plan: PersonalCoachPlan; call: ModelMeta }> {
+    return aiPersonalCoach(aggregates, config, lang, generatedAt);
   }
   async connectivityCheck(config: AiConfig): Promise<ConnectivityResult> {
     const result = await callModel(config, {

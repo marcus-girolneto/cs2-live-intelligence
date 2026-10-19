@@ -21,6 +21,9 @@ import { ReportsController } from "../modules/reports/reports.controller.js";
 import { PgReportsRepository } from "../modules/reports/reports.repository.js";
 import { ReportsService } from "../modules/reports/reports.service.js";
 import { DailyJobsWorker } from "../workers/daily-jobs.worker.js";
+import { PersonalCoachController } from "../modules/personal-coach/personal-coach.controller.js";
+import { PgPersonalCoachRepository } from "../modules/personal-coach/personal-coach.repository.js";
+import { PersonalCoachService } from "../modules/personal-coach/personal-coach.service.js";
 import { FeedbackController } from "../modules/feedback/feedback.controller.js";
 import { PgFeedbackRepository } from "../modules/feedback/feedback.repository.js";
 import { FeedbackService } from "../modules/feedback/feedback.service.js";
@@ -156,7 +159,49 @@ export function createJobsContext(
     clock,
     logger,
   );
-  const daily = new DailyJobsWorker(plans, credits.credits, reports, logger);
+  const personalCoach = new PersonalCoachService(
+    new PgPersonalCoachRepository(db),
+    {
+      playerSteamId: async (ownerId) =>
+        (await coaching.profile(ownerId)).playerSteamId,
+      completedAnalyses: (ownerId, limit) =>
+        matches.completedAnalyses(ownerId, limit),
+      reviews: async (ownerId) =>
+        (await coaching.reviews(ownerId, 200)).map((r) => {
+          const c = r.coaching as {
+            plan?: string[];
+            planItems?: { text: string; scope?: string; map?: string }[];
+          };
+          return {
+            createdAt: r.createdAt,
+            rating: r.rating,
+            planItems: c.planItems ?? (c.plan ?? []).map((text) => ({ text })),
+          };
+        }),
+      deepReviews: (ownerId, steamId) =>
+        coaching.deepReviewsBetween(
+          ownerId,
+          steamId,
+          "1970-01-01T00:00:00Z",
+          "9999-12-31T00:00:00Z",
+        ),
+      liveCalls: async (ownerId) =>
+        (await coaching.liveCalls(ownerId, 1000)).length,
+      enabled: (ownerId) => plans.feature(ownerId, "personalCoach"),
+      settings: () => aiSettings.settings(),
+    },
+    aiAccess,
+    aiGateway,
+    clock,
+    logger,
+  );
+  const daily = new DailyJobsWorker(
+    plans,
+    credits.credits,
+    reports,
+    logger,
+    personalCoach,
+  );
   return {
     maxBytes,
     workers,
@@ -200,6 +245,7 @@ export function createJobsContext(
       new ReelService(matches, features),
     ),
     reportsController: new ReportsController(reports, guards),
+    personalCoachController: new PersonalCoachController(personalCoach, guards),
     daily,
     feedbackController: new FeedbackController(
       new FeedbackService(new PgFeedbackRepository(db)),
