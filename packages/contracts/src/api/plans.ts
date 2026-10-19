@@ -23,6 +23,7 @@ export type PlanFeatures = {
   reel: boolean;
   deepHistory: boolean;
   priorityQueue: boolean;
+  personalCoach: boolean;
 };
 export type SubscriptionStatus =
   "active" | "trialing" | "past_due" | "canceled";

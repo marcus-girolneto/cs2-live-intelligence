@@ -1,3 +1,4 @@
+import type { PersonalCoachPlan } from "../personal-coach.js";
 import { z } from "zod";
 
 export type CoachPreferencesDto = Record<string, unknown>;
@@ -162,4 +163,26 @@ export type MatchReelDto = {
     title: string;
     score: number;
   }[];
+};
+
+/** GET /v1/coach/personal and POST /v1/coach/personal/generate (Pro). */
+export type PersonalCoachDto = {
+  latest: {
+    id: string;
+    createdAt: string;
+    trigger: "manual" | "auto";
+    plan: PersonalCoachPlan;
+    provider?: string;
+    model?: string;
+  } | null;
+  history: {
+    id: string;
+    createdAt: string;
+    headline: string;
+    basedOnMatches: number;
+  }[];
+  analyzedMatches: number;
+  newMatchesSinceLast: number;
+  nextAvailableAt: string | null;
+  autoRegenerateAfterMatches: number;
 };

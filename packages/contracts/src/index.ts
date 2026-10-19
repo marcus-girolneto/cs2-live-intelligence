@@ -92,4 +92,5 @@ export const STALE_AFTER_MS = 5000;
 export * from "./platform.js";
 export * from "./deep.js";
 export * from "./report.js";
+export * from "./personal-coach.js";
 export * as api from "./api/index.js";
