@@ -54,8 +54,9 @@ wired in the composition root. No module imports another module's `Pg*` class.
 
 Rules enforced by review: no file over ~300 lines, small functions, no `any`, explicit return
 types on public methods, and `process.env` read only in `config/env.ts` (`loadConfig()` for
-boot settings validated with zod; `RuntimeEnv` for settings operators change without a
-restart: AI\_\* fallback, Steam Web API key, admin bootstrap, sample demo, Stripe price ids).
+boot settings validated with zod; `RuntimeEnv` for optional bootstrap fallbacks read per use:
+AI\_\*, Steam/Stripe keys, `APP_TIMEZONE`, admin bootstrap, sample demo). Operator-tunable values
+live in Postgres and are edited by admins (AI config, app settings, the `integrations` module).
 
 ## Patterns (and where)
 
@@ -95,7 +96,8 @@ restart: AI\_\* fallback, Steam Web API key, admin bootstrap, sample demo, Strip
   JSON mode) selected inside `@cs2/coaching` from the `AiConfig`.
 - **Factory** — `ai-config/ai-config.factory.ts` (`AiConfigFactory`: every `AiConfig` from
   DB or env goes through `loadAiConfig`); `infrastructure/billing/payment-gateway-factory.ts`
-  (`createPaymentGateway`).
+  (`ConfiguredPaymentGatewaySource`: Stripe or the Null Object chosen per call from the
+  admin-managed credentials of `integrations/integration-config.provider.ts`).
 - **Null Object** — `infrastructure/billing/null-payment-gateway.ts`: billing disabled answers
   503 `billing_disabled` without `if (gateway)` checks.
 - **Unit of Work** — `shared/db/unit-of-work.ts` (`PgUnitOfWork`, `DirectUnitOfWork` for

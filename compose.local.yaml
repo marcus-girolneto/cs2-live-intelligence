@@ -5,59 +5,30 @@ services:
       target: api
     init: true
     restart: unless-stopped
+    # Bootstrap/infrastructure only. Everything operators tune (AI providers and models, app
+    # settings incl. time zone and upload limit, Steam Web API key, Stripe) is managed by admins
+    # in the app and stored in Postgres; it survives rebuilds and restarts.
     environment:
-      APP_ENV: local
-      ALLOW_DEV_AUTH: "true"
+      # local: development identities (WEB_TOKEN/DEVICE_TOKEN) are enabled; anything else = production.
+      APP_ENV: ${APP_ENV:-local}
       API_HOST: 0.0.0.0
       API_PORT: "4000"
-      API_PUBLIC_URL: http://127.0.0.1:4000
-      WEB_ORIGIN: http://127.0.0.1:3000
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://127.0.0.1:4000}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://127.0.0.1:3000}
       DATABASE_URL: postgres://cs2:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/cs2live
-      OWNER_ID: dev-owner
-      DEVICE_ID: dev-device
+      OWNER_ID: ${OWNER_ID:-dev-owner}
+      DEVICE_ID: ${DEVICE_ID:-dev-device}
       DEVICE_TOKEN: ${DEVICE_TOKEN:?Set DEVICE_TOKEN in .env}
       WEB_TOKEN: ${WEB_TOKEN:?Set WEB_TOKEN in .env}
+      # Encrypts stored credentials (AES-256-GCM). Keep it stable once secrets are stored.
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
+      # SteamID64s promoted to admin when they sign in with Steam (comma-separated).
+      ADMIN_STEAM_IDS: ${ADMIN_STEAM_IDS:-}
       OBJECT_STORAGE_DIR: /data/objects
       DEMO_PARSER_BIN: /usr/local/bin/demo-parser
-      # AI provider: any OpenAI-compatible API (OpenAI, OpenRouter, Ollama, ...). See .env.example.
-      AI_PROVIDER: ${AI_PROVIDER:-}
-      AI_BASE_URL: ${AI_BASE_URL:-}
-      AI_API_KEY: ${AI_API_KEY:-}
-      AI_MODEL: ${AI_MODEL:-}
-      AI_API_STYLE: ${AI_API_STYLE:-}
-      AI_JSON_MODE: ${AI_JSON_MODE:-}
-      AI_MAX_TOKENS_PARAM: ${AI_MAX_TOKENS_PARAM:-}
-      AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-}
-      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-}
-      AI_MAX_ATTEMPTS: ${AI_MAX_ATTEMPTS:-}
-      AI_TEMPERATURE: ${AI_TEMPERATURE:-}
-      AI_HEADERS: ${AI_HEADERS:-}
-      AI_EXTRA_BODY: ${AI_EXTRA_BODY:-}
-      AI_DAILY_LIMIT: ${AI_DAILY_LIMIT:-}
-      AI_MAX_INPUT_BYTES: ${AI_MAX_INPUT_BYTES:-}
-      AI_ALLOW_HTTP: ${AI_ALLOW_HTTP:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-}
-      # Roles: admins from ADMIN_STEAM_IDS; ADMIN_BOOTSTRAP=first-login makes the first
-      # Steam sign-in admin when none exists. APP_ENCRYPTION_KEY encrypts stored API keys.
-      ADMIN_STEAM_IDS: ${ADMIN_STEAM_IDS:-}
-      ADMIN_BOOTSTRAP: ${ADMIN_BOOTSTRAP:-}
-      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
-      # Plans/quotas day boundary and optional Stripe billing (disabled when keys are empty).
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
-      STRIPE_PRICE_BASIC_MONTHLY: ${STRIPE_PRICE_BASIC_MONTHLY:-}
-      STRIPE_PRICE_BASIC_YEARLY: ${STRIPE_PRICE_BASIC_YEARLY:-}
-      STRIPE_PRICE_PRO_MONTHLY: ${STRIPE_PRICE_PRO_MONTHLY:-}
-      STRIPE_PRICE_PRO_YEARLY: ${STRIPE_PRICE_PRO_YEARLY:-}
-      STRIPE_PAYMENT_METHODS_BRL: ${STRIPE_PAYMENT_METHODS_BRL:-card}
-      STRIPE_PAYMENT_METHODS_USD: ${STRIPE_PAYMENT_METHODS_USD:-card}
-      # Public sample demo that new accounts can import ("Load sample match").
+      # Public sample demo that new accounts can import (admins toggle it in Settings).
       SAMPLE_DEMO_FILE: /data/sample/public-cs2.dem
-      # Optional: Steam display name and avatar after Steam sign-in.
-      STEAM_WEB_API_KEY: ${STEAM_WEB_API_KEY:-}
-      # Optional extra trusted CA (e.g. a corporate TLS-inspecting proxy). Empty by default.
+      # Optional extra trusted CA (EXTRA_CA_CERTS_FILE on the host; empty file by default).
       NODE_EXTRA_CA_CERTS: /etc/cs2/extra-ca.pem
     ports:
       - "127.0.0.1:4000:4000"
@@ -96,7 +67,7 @@ services:
     environment:
       API_URL: http://127.0.0.1:4000/v1/telemetry/gsi
       GSI_LISTEN: 127.0.0.1:3002
-      DEVICE_ID: dev-device
+      DEVICE_ID: ${DEVICE_ID:-dev-device}
       DEVICE_TOKEN: ${DEVICE_TOKEN:?Set DEVICE_TOKEN in .env}
       GSI_AUTH_TOKEN: ${GSI_AUTH_TOKEN:?Set GSI_AUTH_TOKEN in .env}
     depends_on:
@@ -129,7 +100,8 @@ services:
     init: true
     restart: unless-stopped
     environment:
-      APP_ENV: local
+      APP_ENV: ${APP_ENV:-local}
+      # Effective only with APP_ENV=local (local session cookie and simulator controls).
       ENABLE_DEV_AUTH: "true"
       # Sign-in with Steam is required. Set DEV_AUTO_LOGIN=true only for automated tests:
       # it signs every visitor in as the local development owner.
@@ -140,7 +112,7 @@ services:
       GSI_AUTH_TOKEN: ${GSI_AUTH_TOKEN:?Set GSI_AUTH_TOKEN in .env}
       SIMULATOR_URL: http://api:3010
       API_URL: http://api:4000
-      WEB_ORIGIN: http://127.0.0.1:3000
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://127.0.0.1:3000}
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

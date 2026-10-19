@@ -34,11 +34,10 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 Requires Docker Compose and Python 3.11+.
 
 ```sh
-cp .env.example .env                       # fill in local values
-python3 scripts/local-setup.py --with-demo # builds and starts everything
+python3 scripts/local-setup.py --with-demo # writes .env with fresh secrets, builds and starts everything
 ```
 
-Open **http://127.0.0.1:3000** and sign in with Steam. The first Steam account becomes admin when `ADMIN_BOOTSTRAP=first-login` (or list SteamID64s in `ADMIN_STEAM_IDS`). Configure the AI provider in **Admin → AI providers**, or with `AI_PROVIDER` / `AI_API_KEY` / `AI_MODEL` in `.env` as a fallback. If your network inspects TLS, point `EXTRA_CA_CERTS_FILE` at its CA certificate. Optional: `STEAM_WEB_API_KEY` for richer profiles, `STRIPE_*` for payments.
+`.env` holds only bootstrap values (`APP_ENV`, `POSTGRES_PASSWORD`, `APP_ENCRYPTION_KEY`, `WEB_TOKEN`, `DEVICE_TOKEN`, `GSI_AUTH_TOKEN`, `OWNER_ID`, `DEVICE_ID`, `ADMIN_STEAM_IDS`, optional `EXTRA_CA_CERTS_FILE`); see `.env.example`. Put your SteamID64 in `ADMIN_STEAM_IDS`, open **http://127.0.0.1:3000** and sign in with Steam. Everything else is configured by admins in the app and stored in Postgres, so it survives restarts and rebuilds: AI providers and models (**Admin → AI**), app settings such as time zone, upload limit and daily AI cap (**Admin → Settings**), and the Steam Web API key and Stripe billing (**Admin → Integrations**). See [docs/OPERATIONS.md](docs/OPERATIONS.md#configuration-environment-vs-admin).
 
 `pnpm local:up` / `pnpm local:down` start and stop the stack (volumes are kept). Ports: web 3000, API 4000, Postgres 55432 — all bound to loopback.
 

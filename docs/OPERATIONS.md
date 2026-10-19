@@ -2,9 +2,39 @@
 
 ## Start and stop
 
-Python 3.11+ and Docker Compose are sufficient for the container stack. `python3 scripts/local-setup.py --with-demo` creates private random local credentials if .env is absent, builds and starts Postgres/API/web, downloads the checksum-pinned public fixture and queues its real analysis. Existing .env is preserved. Open http://127.0.0.1:3000 and use WEB_TOKEN from .env in the explicitly local identity form. The demo is available at /history. This mode is bound to loopback and is not a public deployment.
+Python 3.11+ and Docker Compose are sufficient for the container stack. `python3 scripts/local-setup.py --with-demo` creates private random local credentials if .env is absent, builds and starts Postgres/API/web, downloads the checksum-pinned public fixture and queues its real analysis. Existing .env is preserved. Open http://127.0.0.1:3000 and sign in with Steam (`ADMIN_STEAM_IDS` makes you admin). The demo is available at /history. This mode is bound to loopback and is not a public deployment.
 
 `docker compose -f compose.yaml -f compose.local.yaml ps` shows health; `logs --tail=100 api web` shows service diagnostics. `pnpm local:down` stops services without deleting volumes. Avoid `down -v` unless intentionally deleting both database and demos. API is one replica with in-process WebSocket fanout. Do not scale horizontally without shared fanout and coordinated ticket state.
+
+## Configuration: environment vs admin
+
+The environment is bootstrap/infrastructure only. `scripts/local-setup.py` writes exactly these to a new `.env`; compose derives the rest (`DATABASE_URL` from `POSTGRES_PASSWORD`, ports, URLs, storage and parser paths, the sample demo path, and development auth from `APP_ENV=local`).
+
+| Variable                                      | Purpose                                                                                                                                            |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                     | `local` enables the development identities and simulator; anything else is production.                                                             |
+| `POSTGRES_PASSWORD`                           | Database password; compose builds `DATABASE_URL`.                                                                                                  |
+| `APP_ENCRYPTION_KEY`                          | 32 random bytes (base64) encrypting stored credentials (AES-256-GCM). Never change it after secrets are stored (empty = legacy WEB_TOKEN-derived). |
+| `WEB_TOKEN`, `DEVICE_TOKEN`, `GSI_AUTH_TOKEN` | Local session, collector device and Game State Integration secrets.                                                                                |
+| `OWNER_ID`, `DEVICE_ID`                       | Ids of the local development identity.                                                                                                             |
+| `ADMIN_STEAM_IDS`                             | SteamID64s promoted to admin when they sign in with Steam.                                                                                         |
+| `EXTRA_CA_CERTS_FILE`                         | Optional, machine-specific CA (PEM) for TLS-inspecting networks.                                                                                   |
+
+Optional overrides with defaults: `DEV_AUTO_LOGIN=false`, `POSTGRES_PORT=55432`, `API_PUBLIC_URL`, `WEB_ORIGIN`, `ALLOW_DEV_AUTH=false` (disables development identities even with `APP_ENV=local`).
+
+Everything else is stored in Postgres, edited by admins and applied without a restart:
+
+| What                                                                                      | Where (admin UI / API)                                            |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| AI providers, keys (encrypted) and model per purpose                                      | Admin → AI · `/v1/admin/ai/providers`, `/v1/admin/ai/assignments` |
+| Daily AI cap, AI input size, sample demo, upload limit, Personal Coach cadence, time zone | Admin → Settings · `GET/PUT /v1/admin/settings`                   |
+| Steam Web API key                                                                         | Admin → Integrations · `PUT /v1/admin/integrations/steam`         |
+| Stripe secret key, webhook secret, publishable key, enabled switch, payment methods       | Admin → Integrations · `PUT /v1/admin/integrations/stripe`        |
+| Plan prices and Stripe price ids, credit packs                                            | Admin → Plans / Credits                                           |
+
+Integration secrets live in `app_secrets` as AES-256-GCM ciphertext bound to the secret name; they are write-only (the API returns `configured`, `source` and the last 4 characters) and every change is audited without values. `POST /v1/admin/integrations/{steam|stripe}/test` checks the credential in effect (Steam: GetPlayerSummaries for the admin's own SteamID; Stripe: `GET /v1/balance`). Stripe billing is active when it is enabled and both the secret key and the webhook secret are set; the webhook endpoint is `<API_PUBLIC_URL>/v1/billing/webhook` (events `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_failed`).
+
+Legacy bootstrap fallbacks are still read by the API when present in its environment (the database value always wins and the admin view shows `source: "env"`): `STEAM_WEB_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_PAYMENT_METHODS_<CUR>`, `STRIPE_PRICE_*`, `APP_TIMEZONE`, `AI_*`/`OPENAI_*`, `ADMIN_BOOTSTRAP`. Compose no longer passes them to the container; move such values into the database with the admin API instead.
 
 ## Collector pairing
 
@@ -24,7 +54,7 @@ API /health is process liveness; /ready checks database connectivity. /metrics r
 
 ## Optional provider
 
-Without OPENAI_API_KEY the app returns explicitly labeled deterministic feedback. To enable model coaching, set a valid OPENAI_API_KEY and explicit OPENAI_MODEL supporting Responses structured outputs, then restart API. The adapter uses https://api.openai.com/v1/responses, store=false, a fixed schema, evidence-only input, 768 output tokens, at most two attempts, 15s call deadlines and a per-owner daily quota. Evidence citations are validated. Names and raw events are excluded from prompts. An actual provider call, model access, output quality and account billing require separate validation. Offline tests use controlled responses and cannot prove external availability or semantic faithfulness. Provider failures produce a failed analysis rather than invented coaching.
+AI providers, keys and models are configured by admins (Admin → AI) and stored encrypted in Postgres; changes apply without a restart. The `AI_*` / `OPENAI_*` variables remain an optional bootstrap fallback for purposes without an assignment when the API runs outside Docker. The adapter uses https://api.openai.com/v1/responses, store=false, a fixed schema, evidence-only input, 768 output tokens, at most two attempts, 15s call deadlines and a per-owner daily quota. Evidence citations are validated. Names and raw events are excluded from prompts. An actual provider call, model access, output quality and account billing require separate validation. Offline tests use controlled responses and cannot prove external availability or semantic faithfulness. Provider failures produce a failed analysis rather than invented coaching.
 
 Official implementation reference: https://developers.openai.com/api/docs/guides/structured-outputs (retrieved 2026-10-19).
 

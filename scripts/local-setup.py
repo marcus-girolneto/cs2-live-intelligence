@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Start the local stack and optionally load the checksum-pinned public demo."""
 import argparse
+import base64
 import json
 from pathlib import Path
 import secrets
@@ -10,19 +11,43 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Only bootstrap/infrastructure variables go to .env; everything else is managed by admins in
+# the app and stored in Postgres (see .env.example and docs/OPERATIONS.md).
+ESSENTIAL = ['APP_ENV', 'POSTGRES_PASSWORD', 'APP_ENCRYPTION_KEY', 'WEB_TOKEN', 'DEVICE_TOKEN',
+             'GSI_AUTH_TOKEN', 'OWNER_ID', 'DEVICE_ID', 'ADMIN_STEAM_IDS', 'EXTRA_CA_CERTS_FILE']
+
+def write_env(env_file):
+    """Writes .env from .env.example (comments kept) with fresh random secrets."""
+    generated = {
+        'POSTGRES_PASSWORD': secrets.token_urlsafe(24),
+        'APP_ENCRYPTION_KEY': base64.b64encode(secrets.token_bytes(32)).decode(),
+        'WEB_TOKEN': secrets.token_urlsafe(32),
+        'DEVICE_TOKEN': secrets.token_urlsafe(32),
+        'GSI_AUTH_TOKEN': secrets.token_urlsafe(32),
+    }
+    lines = []
+    for line in (ROOT / '.env.example').read_text().splitlines():
+        name = line.split('=', 1)[0] if '=' in line and not line.startswith('#') else None
+        if name in generated:
+            line = f'{name}={generated[name]}'
+        lines.append(line)
+    written = {l.split('=', 1)[0] for l in lines if '=' in l and not l.startswith('#')}
+    missing = [n for n in ESSENTIAL if n not in written]
+    if missing:
+        raise RuntimeError('.env.example is missing ' + ', '.join(missing))
+    env_file.write_text('\n'.join(lines) + '\n')
+    env_file.chmod(0o600)
+    print('Wrote .env with fresh secrets. Set ADMIN_STEAM_IDS to your SteamID64 to become admin.')
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--with-demo', action='store_true')
     args = parser.parse_args()
     env_file = ROOT / '.env'
     if not env_file.exists():
-        value = (ROOT / '.env.example').read_text()
-        for placeholder in ['replace-device-token', 'replace-browser-token', 'replace-local-gsi-token']:
-            value = value.replace(placeholder, secrets.token_urlsafe(32))
-        env_file.write_text(value)
-        env_file.chmod(0o600)
+        write_env(env_file)
     subprocess.run(['docker','compose','-f','compose.yaml','-f','compose.local.yaml','up','-d','--build','--wait'],cwd=ROOT,check=True)
-    print('Local app: http://127.0.0.1:3000 (no sign-in needed in local mode).')
+    print('Local app: http://127.0.0.1:3000 (sign in with Steam; admins configure AI, Steam and Stripe under Admin).')
     if not args.with_demo:
         return
     subprocess.run(['python3','apps/demo-parser/scripts/fetch-fixture.py'],cwd=ROOT,check=True)
