@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"cs2live/collector/internal/collector"
+	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
@@ -28,7 +29,24 @@ func main() {
 	seq := flag.String("sequence-file", env("SEQUENCE_FILE", ""), "durable sequence file for fixed ID")
 	queue := flag.Int("queue-size", 256, "bounded pending envelopes")
 	size := flag.Int64("max-payload", 65536, "maximum GSI bytes")
+	credentialFile := flag.String("credentials-file", env("CREDENTIALS_FILE", ""), "private JSON produced by cmd/pair")
 	flag.Parse()
+	if *credentialFile != "" {
+		data, err := os.ReadFile(*credentialFile)
+		if err != nil {
+			log.Fatal("cannot read credentials file")
+		}
+		var creds struct {
+			DeviceID string `json:"deviceId"`
+			Token    string `json:"token"`
+			APIURL   string `json:"apiUrl"`
+		}
+		if json.Unmarshal(data, &creds) != nil || creds.DeviceID == "" || creds.Token == "" || creds.APIURL == "" {
+			log.Fatal("invalid credentials file")
+		}
+		*device, *token, *api = creds.DeviceID, creds.Token, creds.APIURL
+	}
+
 	if err := collector.ValidateListen(*listen); err != nil {
 		log.Fatal(err)
 	}
