@@ -1,6 +1,12 @@
 "use client";
 import Link from "next/link";
-import { MatchRow, type MatchSummary, SampleImport } from "@/features/matches";
+import {
+  MatchRow,
+  mineFirst,
+  type MatchSummary,
+  SampleImport,
+  useOwnership,
+} from "@/features/matches";
 import type { MatchDto } from "@/shared/api-types";
 import { useI18n } from "@/shared/i18n";
 import { ArrowRight, Crosshair, Upload } from "@/shared/icons";
@@ -16,6 +22,8 @@ export function LatestMatches({
   summaries: Map<string, MatchSummary>;
 }) {
   const { t } = useI18n();
+  const { owners, auto } = useOwnership(latest);
+  const ordered = mineFirst(latest, owners);
   return (
     <Panel
       className="dash-matches"
@@ -50,10 +58,12 @@ export function LatestMatches({
         </EmptyState>
       ) : (
         <div className="match-list stagger">
-          {latest.map((m) => (
+          {ordered.map((m) => (
             <MatchRow
               key={m.id}
               match={m}
+              owner={owners.get(m.id)}
+              auto={auto.get(m.id)}
               summary={summaries.get(m.analysisId ?? m.id)}
               href={`/history?match=${encodeURIComponent(m.id)}`}
             />

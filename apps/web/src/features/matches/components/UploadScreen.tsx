@@ -11,7 +11,11 @@ import { Check, Play, ShieldCheck, Upload as UploadIcon } from "@/shared/icons";
 import { CrosshairLoader, Callout, PageHeader } from "@/shared/ui";
 import { useMatchesApi } from "../api/context";
 import { useDemoUpload } from "../hooks/useDemoUpload";
-import { megabytes, uploadLimitBytes } from "../model/upload";
+import {
+  megabytes,
+  uploadErrorMessage,
+  uploadLimitBytes,
+} from "../model/upload";
 import { UploadProgress } from "./UploadProgress";
 import { SampleImport } from "./SampleImport";
 /** /upload: drag-and-drop .dem upload with consent and daily usage. */
@@ -82,7 +86,14 @@ export function UploadScreen() {
     } catch (e) {
       setBusy(false);
       if (upgrade.handle(e)) return;
-      setError(e instanceof Error ? t(e.message) : t("Upload failed."));
+      const friendly = uploadErrorMessage(e);
+      setError(
+        friendly
+          ? t(friendly.text)
+          : e instanceof Error
+            ? t(e.message)
+            : t("Upload failed."),
+      );
     }
   }
   const size = file ? formatNumber(file.size / 1024 / 1024, 1, locale) : null;

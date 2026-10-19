@@ -1,6 +1,13 @@
 import type { AnalysisResult } from "@/features/analysis";
 import type { MatchDto, MatchListDto, SettingsDto } from "@/shared/api-types";
 import {
+  normalizeAutoReviews,
+  normalizeOwnership,
+  type AutoReview,
+  type OwnershipKind,
+  type Ownership,
+} from "../model/ownership";
+import {
   platformHttp,
   platformUploader,
   seg,
@@ -28,6 +35,16 @@ export interface MatchesApi {
     },
   ): Promise<{ id: string }>;
   sendFeedback(rating: number, comment: string): Promise<void>;
+  /** Whether you played in each demo (job ids). */
+  getOwnership(ids: string[]): Promise<Map<string, Ownership>>;
+  /** Marks a demo as yours (optionally as a given player) or as someone else's. */
+  setOwnership(
+    id: string,
+    ownership: OwnershipKind,
+    playerSteamId?: string,
+  ): Promise<void>;
+  /** Auto-review state per demo (job ids). */
+  getAutoReviews(ids: string[]): Promise<Map<string, AutoReview>>;
 }
 
 export function createMatchesApi(
@@ -55,6 +72,28 @@ export function createMatchesApi(
     sendFeedback: async (rating, comment) => {
       await http.post("feedback", { rating, comment });
     },
+    getOwnership: async (ids) =>
+      ids.length
+        ? normalizeOwnership(
+            await http.get(
+              `matches/ownership?ids=${ids.map(encodeURIComponent).join(",")}`,
+            ),
+          )
+        : new Map(),
+    setOwnership: async (id, ownership, playerSteamId) => {
+      await http.patch(`matches/${seg(id)}/ownership`, {
+        ownership,
+        ...(playerSteamId ? { playerSteamId } : {}),
+      });
+    },
+    getAutoReviews: async (ids) =>
+      ids.length
+        ? normalizeAutoReviews(
+            await http.get(
+              `matches/auto-reviews?ids=${ids.map(encodeURIComponent).join(",")}`,
+            ),
+          )
+        : new Map(),
   };
 }
 export const matchesApi = createMatchesApi();

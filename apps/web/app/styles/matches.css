@@ -1,0 +1,219 @@
+/* Match list ownership: mine / external tabs, row menu, tags and the "is this you?" banner. */
+.match-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+.match-filters .segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+.match-filters .count {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.mf-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.mf-selects select {
+  width: auto;
+  min-width: 150px;
+}
+.match-row-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: var(--s1);
+}
+.match-row.external {
+  background: transparent;
+  border-style: dashed;
+}
+.match-row.external .match-main strong {
+  color: var(--text-2);
+}
+.match-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--s2);
+  margin-top: 4px;
+}
+.m-tag {
+  font: 500 12px/1.6 var(--body);
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  color: var(--text-2);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.m-tag.mine {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+.m-tag.good {
+  border-color: var(--good);
+  color: var(--good);
+}
+.m-tag.warn {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.row-menu {
+  position: relative;
+  display: flex;
+}
+.match-row-wrap {
+  position: relative;
+}
+.match-row-wrap:has(.row-menu-list) {
+  z-index: 40;
+}
+.row-menu-btn {
+  width: 40px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.row-menu-btn:hover,
+.row-menu-btn[aria-expanded="true"] {
+  color: var(--text);
+  border-color: var(--line-2);
+}
+.row-menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  list-style: none;
+  margin: 0;
+  padding: var(--s1);
+  min-width: 260px;
+  max-width: calc(100vw - 32px);
+  background: var(--panel-3);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.row-menu-list button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: 400 14px/1.4 var(--body);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.row-menu-list button:hover,
+.row-menu-list button:focus-visible {
+  background: var(--panel-2);
+  outline: none;
+}
+.own-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  margin: var(--s4) 0;
+  padding: var(--s3) var(--s4);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.own-banner.mine {
+  border-color: rgba(79, 209, 139, 0.4);
+  background: var(--good-soft);
+}
+.own-banner.mine svg {
+  color: var(--good);
+}
+.own-banner.ext svg,
+.own-banner.ask svg {
+  color: var(--info);
+  flex: none;
+}
+.own-banner.ask {
+  display: grid;
+}
+.own-banner.ask p {
+  margin: 0;
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+}
+.own-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+}
+.chip-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 500 14px var(--body);
+  cursor: pointer;
+}
+.chip-btn:hover,
+.chip-btn:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.pick-list {
+  list-style: none;
+  margin: 0 0 var(--s4);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--s2);
+}
+.pick-list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 500 14px var(--body);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.pick-list button:hover,
+.pick-list button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+@media (max-width: 640px) {
+  .mf-selects,
+  .mf-selects select {
+    width: 100%;
+  }
+  .mf-selects select {
+    flex: 1;
+    min-width: 0;
+  }
+}

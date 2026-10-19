@@ -34,6 +34,8 @@ export type ReelClip = ClipRef & { kind: "highlight" | "mistake" };
 /** Matches, analyses and AI reviews used by the /coach flow. */
 export interface CoachApi {
   listMatches(): Promise<MatchDto[]>;
+  /** Whether you played in this demo (null when unknown). */
+  matchOwnership(matchId: string): Promise<"mine" | "external" | null>;
   getAnalysis(analysisId: string): Promise<AnalysisLike>;
   requestReview(
     analysisId: string,
@@ -52,6 +54,13 @@ export function createCoachApi(http: HttpClient = platformHttp): CoachApi {
   return {
     listMatches: () =>
       http.get<MatchListDto>("matches").then((r) => r.matches ?? []),
+    matchOwnership: async (matchId) => {
+      const r = await http.get<{
+        items?: { jobId?: unknown; ownership?: unknown }[];
+      }>(`matches/ownership?ids=${encodeURIComponent(matchId)}`);
+      const o = (r.items ?? []).find((i) => i.jobId === matchId)?.ownership;
+      return o === "mine" || o === "external" ? o : null;
+    },
     getAnalysis: (analysisId) =>
       http.get<AnalysisLike>(`analyses/${seg(analysisId)}`),
     requestReview: (analysisId, steamId, lang, tier = "quick") =>

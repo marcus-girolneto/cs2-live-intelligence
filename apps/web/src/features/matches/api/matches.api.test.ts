@@ -46,4 +46,26 @@ describe("MatchesApi", () => {
     await api.sendFeedback(4, "ok");
     expect(http.calls[1]!.options.json).toEqual({ rating: 4, comment: "ok" });
   });
+  it("reads ownership and auto-reviews by ids and patches ownership", async () => {
+    const http = new FakeHttpClient()
+      .on("GET", "matches/ownership?ids=j1,j2", {
+        items: [{ jobId: "j1", ownership: "mine", playerName: "Caio" }],
+      })
+      .on("GET", "matches/auto-reviews?ids=j1", {
+        items: [{ jobId: "j1", status: "done", reviewId: "r1" }],
+      })
+      .on("PATCH", "matches/j2/ownership", {});
+    const api = createMatchesApi(http);
+    expect((await api.getOwnership(["j1", "j2"])).get("j1")?.playerName).toBe(
+      "Caio",
+    );
+    expect((await api.getAutoReviews(["j1"])).get("j1")?.reviewId).toBe("r1");
+    await api.setOwnership("j2", "mine", "765");
+    expect(http.calls.at(-1)?.options.json).toEqual({
+      ownership: "mine",
+      playerSteamId: "765",
+    });
+    expect((await api.getOwnership([])).size).toBe(0);
+    expect(http.calls).toHaveLength(3);
+  });
 });

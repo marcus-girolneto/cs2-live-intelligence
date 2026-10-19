@@ -62,4 +62,45 @@ export const pt: Record<string, string> = {
   "Load sample match": "Carregar partida de exemplo",
   "New here? Load a real public CS2 match into your account to try everything right away.":
     "Novo por aqui? Carregue uma partida pública real de CS2 na sua conta para testar tudo agora.",
+  "External demo — insights won't count toward your progress.":
+    "Demo externa — os insights não contam para a sua evolução.",
+  "Whose matches": "De quem são as partidas",
+  Date: "Data",
+  "No matches with these filters.": "Nenhuma partida com esses filtros.",
+  "You: {name}": "Você: {name}",
+  "You're not in this match": "Você não está nesta partida",
+  "Found you in this match as {name}.":
+    "Encontramos você nesta partida como {name}.",
+  "This is my match": "Esta partida é minha",
+  "Is this you?": "É você?",
+  "We couldn't find you in this match — is one of these players you?":
+    "Não encontramos você nesta partida — algum destes jogadores é você?",
+  "It's someone else's demo": "É demo de outra pessoa",
+  "Which player are you in this match?": "Qual jogador é você nesta partida?",
+  "Only your own matches count toward your progress.":
+    "Só as suas partidas contam para a sua evolução.",
+  "Options for {match}": "Opções de {match}",
+  "This is my match → pick which player I am":
+    "Esta partida é minha → escolher qual jogador sou eu",
+  "Not my match": "Não é minha partida",
+  All: "Todas",
+  "External demos": "Demos externas",
+  "Any date": "Qualquer data",
+  "Last 7 days": "Últimos 7 dias",
+  "Last 30 days": "Últimos 30 dias",
+  "AI review ready": "Review de IA pronta",
+  "AI review in progress": "Review de IA em andamento",
+  "Not enough credits": "Créditos insuficientes",
+  "You're not in this demo": "Você não está nesta demo",
+  "AI review failed": "A review de IA falhou",
+  "Could not load the players of this match.":
+    "Não foi possível carregar os jogadores desta partida.",
+  "This file isn't a CS2 demo. In CS2, download the match from Watch → Your Matches and upload the .dem file.":
+    "Este arquivo não é uma demo de CS2. No CS2, baixe a partida em Assistir → Suas partidas e envie o arquivo .dem.",
+  "This demo is too short to analyze. Upload a full match (at least a few rounds).":
+    "Esta demo é curta demais para analisar. Envie uma partida completa (pelo menos alguns rounds).",
+  "This demo is larger than the upload limit.":
+    "Esta demo é maior que o limite de envio.",
+  "You're uploading too fast. Wait a minute and try again.":
+    "Você está enviando rápido demais. Espere um minuto e tente de novo.",
 };

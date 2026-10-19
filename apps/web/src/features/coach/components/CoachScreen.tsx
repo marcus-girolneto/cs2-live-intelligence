@@ -7,9 +7,10 @@ import { MapBadge } from "@/features/maps";
 import { BRAND } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
 import { formatDate, mapName } from "@/shared/format";
-import { Brain, Crosshair, Upload } from "@/shared/icons";
+import { Brain, Crosshair, Info, Upload } from "@/shared/icons";
 import { Callout, EmptyState, PageHeader, PageLoader } from "@/shared/ui";
 import { useCoachSession } from "../hooks/useCoachSession";
+import { useMatchOwnership } from "../hooks/useMatchOwnership";
 import type { ClipRef } from "../model/coaching";
 import { CoachWorkspace } from "./CoachWorkspace";
 import { MatchPicker } from "./MatchPicker";
@@ -19,6 +20,7 @@ import { Stepper } from "./Stepper";
 export function CoachScreen() {
   const { t, locale } = useI18n();
   const s = useCoachSession();
+  const ownership = useMatchOwnership(s.card?.matchId ?? null);
   const { usage, isAdmin, limits } = useUsage();
   const now = useNow();
   const upgrade = useUpgrade();
@@ -110,6 +112,16 @@ export function CoachScreen() {
               {t("Change match")}
             </button>
           </div>
+          {ownership === "external" && (
+            <p className="own-banner ext" role="status">
+              <Info size={16} />
+              <span>
+                {t(
+                  "External demo — insights won't count toward your progress.",
+                )}
+              </span>
+            </p>
+          )}
           <CoachWorkspace s={s} meter={meter} onPlay={play} />
         </>
       )}

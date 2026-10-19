@@ -8,5 +8,11 @@ export { SampleImport } from "./components/SampleImport";
 export { StatusPill } from "./components/StatusPill";
 export { UploadScreen } from "./components/UploadScreen";
 export { PENDING, type MatchSummary } from "./model/status";
+export { useOwnership } from "./hooks/useOwnership";
+export {
+  mineFirst,
+  type Ownership,
+  type OwnershipKind,
+} from "./model/ownership";
 /** Portuguese dictionary of this feature (merged by src/composition/i18n.ts). */
 export { pt as i18nPt } from "./i18n/pt";

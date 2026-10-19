@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  uploadErrorMessage,
   etaSeconds,
   percent,
   pushSample,
@@ -57,5 +58,20 @@ describe("uploadLimitBytes", () => {
       uploadLimitBytes({ plan: { limits: { maxUploadBytes: 900 } } }, 500),
     ).toBe(500);
     expect(uploadLimitBytes({ maxUploadBytes: "x" }, 500)).toBe(500);
+  });
+});
+
+describe("uploadErrorMessage", () => {
+  it("turns API error codes into friendly messages", () => {
+    expect(
+      uploadErrorMessage({ status: 400, code: "not_cs2_demo" })?.text,
+    ).toMatch(/isn't a CS2 demo/);
+    expect(
+      uploadErrorMessage({ status: 400, code: "too_small" })?.text,
+    ).toMatch(/too short/);
+    expect(uploadErrorMessage({ status: 413 })?.text).toMatch(/larger than/);
+    expect(uploadErrorMessage({ status: 429 })?.text).toMatch(/too fast/);
+    expect(uploadErrorMessage({ status: 402, code: "plan_limit" })).toBeNull();
+    expect(uploadErrorMessage(new Error("x"))).toBeNull();
   });
 });

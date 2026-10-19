@@ -74,4 +74,14 @@ describe("CoachApi", () => {
       [5, "highlight", "Ace"],
     ]);
   });
+  it("reads whether a demo is yours", async () => {
+    const http = new FakeHttpClient().on("GET", "matches/ownership?ids=m1", {
+      items: [{ jobId: "m1", ownership: "external" }],
+    });
+    await expect(createCoachApi(http).matchOwnership("m1")).resolves.toBe(
+      "external",
+    );
+    const none = new FakeHttpClient().on("GET", "matches/ownership?ids=m2", {});
+    await expect(createCoachApi(none).matchOwnership("m2")).resolves.toBeNull();
+  });
 });

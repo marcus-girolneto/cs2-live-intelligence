@@ -13,13 +13,14 @@ import {
   Callout,
   EmptyState,
   PageHeader,
-  Panel,
   Skeleton,
 } from "@/shared/ui";
 import { useMatchesApi } from "../api/context";
+import { useOwnership } from "../hooks/useOwnership";
 import { PENDING, type MatchSummary } from "../model/status";
 import { FeedbackForm } from "./FeedbackForm";
-import { MatchRow } from "./MatchRow";
+import { MatchListPanel } from "./MatchListPanel";
+import { OwnershipBanner } from "./OwnershipBanner";
 import { SampleImport } from "./SampleImport";
 /** /history: match list (polled while processing) and the selected analysis. */
 export function HistoryScreen() {
@@ -32,7 +33,6 @@ export function HistoryScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const [summaries, setSummaries] = useState<Map<string, MatchSummary>>(
     new Map(),
   );
@@ -119,7 +119,14 @@ export function HistoryScreen() {
       });
     return m;
   }, [summaries, result]);
-  const visible = showAll ? matches : matches.slice(0, 4);
+  const { owners, auto, mark } = useOwnership(matches);
+  const players = useMemo(
+    () =>
+      (result?.analysis.players ?? [])
+        .filter((p) => p.steamId)
+        .map((p) => ({ steamId: p.steamId, name: p.name || p.steamId })),
+    [result],
+  );
   return (
     <main className="page">
       <PageHeader
@@ -157,30 +164,15 @@ export function HistoryScreen() {
           <SampleImport />
         </EmptyState>
       ) : (
-        <Panel className="flat matches-panel">
-          <div className="match-list stagger">
-            {visible.map((m) => (
-              <MatchRow
-                key={m.id}
-                match={m}
-                summary={mapFor.get(m.analysisId ?? m.id)}
-                selected={selected?.id === m.id}
-                onClick={() => void select(m.id)}
-              />
-            ))}
-          </div>
-          {matches.length > 4 && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setShowAll((s) => !s)}
-            >
-              {showAll
-                ? t("Show fewer")
-                : t("Show all {n} matches", { n: matches.length })}
-            </button>
-          )}
-        </Panel>
+        <MatchListPanel
+          matches={matches}
+          summaries={mapFor}
+          owners={owners}
+          auto={auto}
+          selectedId={selected?.id ?? null}
+          onSelect={(id) => void select(id)}
+          mark={mark}
+        />
       )}
       {selected && PENDING.includes(selected.status) && (
         <RadarLoader
@@ -200,6 +192,14 @@ export function HistoryScreen() {
       )}
       {loadingAnalysis && !result && (
         <PageLoader label={t("Loading analysis…")} />
+      )}
+      {result && selected && (
+        <OwnershipBanner
+          owner={owners.get(selected.id)}
+          players={players}
+          onMine={(p) => mark(selected.id, "mine", p)}
+          onExternal={() => mark(selected.id, "external")}
+        />
       )}
       {result && <AnalysisView key={result.id} result={result} />}
       {result && <FeedbackForm />}

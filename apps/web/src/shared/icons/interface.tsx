@@ -43,6 +43,13 @@ export const Logout = icon(
   <path d="M15 4h3.5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H15M10 16.5 14.5 12 10 7.5M14.5 12H3.5" />,
 );
 export const Menu = icon(<path d="M4 7h16M4 12h16M4 17h10" />);
+export const More = icon(
+  <g fill="currentColor" stroke="none">
+    <circle cx="5" cy="12" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="19" cy="12" r="1.8" />
+  </g>,
+);
 export const Close = icon(<path d="M6 6l12 12M18 6 6 18" />);
 export const ChevronRight = icon(<path d="m9 5 7 7-7 7" />);
 export const ChevronDown = icon(<path d="m5 9 7 7 7-7" />);

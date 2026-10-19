@@ -60,3 +60,34 @@ export function uploadLimitBytes(account: unknown, cap: number): number {
       return Math.min(v, cap);
   return cap;
 }
+
+/**
+ * A friendly message for a failed upload (EN source; translate with t()). Returns null
+ * for errors that are not about the upload itself (e.g. plan limits, handled elsewhere).
+ */
+export function uploadErrorMessage(e: unknown): {
+  text: string;
+  params?: Record<string, string>;
+} | null {
+  const status =
+    e && typeof e === "object" && "status" in e ? Number(e.status) : NaN;
+  const code =
+    e && typeof e === "object" && "code" in e && typeof e.code === "string"
+      ? e.code
+      : null;
+  if (code === "not_cs2_demo")
+    return {
+      text: "This file isn't a CS2 demo. In CS2, download the match from Watch → Your Matches and upload the .dem file.",
+    };
+  if (code === "too_small")
+    return {
+      text: "This demo is too short to analyze. Upload a full match (at least a few rounds).",
+    };
+  if (code === "too_large" || status === 413)
+    return { text: "This demo is larger than the upload limit." };
+  if (status === 429)
+    return {
+      text: "You're uploading too fast. Wait a minute and try again.",
+    };
+  return null;
+}
