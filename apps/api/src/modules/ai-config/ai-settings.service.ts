@@ -54,7 +54,13 @@ export class AssignedProviderSource implements AiConfigSource {
       source: "database",
       providerId: row.id,
       providerName: row.name,
-      result: this.factory.fromProvider(row, assignment.model, snap.settings),
+      result: this.factory.fromProvider(
+        row,
+        assignment.model,
+        snap.settings,
+        purpose,
+        assignment,
+      ),
     };
   }
 }
@@ -66,7 +72,7 @@ export class EnvironmentSource implements AiConfigSource {
     return {
       purpose,
       source: "env",
-      result: this.factory.fromEnvironment(snap.settings),
+      result: this.factory.fromEnvironment(snap.settings, purpose),
     };
   }
 }

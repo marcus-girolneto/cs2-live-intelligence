@@ -144,9 +144,36 @@ const modelName = z
   .min(1)
   .max(200)
   .regex(/^[^\s]+$/, "no whitespace");
-const assignment = z
-  .object({ providerId: z.string().uuid(), model: modelName })
+/** Reasoning effort sent to reasoning models (OpenRouter/OpenAI style). */
+export const REASONING_EFFORTS = ["minimal", "low", "medium", "high"] as const;
+export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
+/** Optional per-assignment model options (stored in ai_assignments.options). */
+export const assignmentOptionsSchema = z
+  .object({
+    maxOutputTokens: z.number().int().min(256).max(200_000).optional(),
+    reasoningEffort: z.enum(REASONING_EFFORTS).optional(),
+  })
   .strict();
+export type AssignmentOptions = z.infer<typeof assignmentOptionsSchema>;
+const assignment = z
+  .object({
+    providerId: z.string().uuid(),
+    model: modelName,
+    maxOutputTokens: z
+      .number()
+      .int()
+      .min(256)
+      .max(200_000)
+      .nullable()
+      .optional(),
+    reasoningEffort: z.enum(REASONING_EFFORTS).nullable().optional(),
+  })
+  .strict()
+  .transform(({ maxOutputTokens, reasoningEffort, ...rest }) => ({
+    ...rest,
+    ...(maxOutputTokens != null ? { maxOutputTokens } : {}),
+    ...(reasoningEffort != null ? { reasoningEffort } : {}),
+  }));
 /**
  * PUT /v1/admin/ai/assignments — null unassigns a purpose. The legacy "review" key sets both
  * review_quick and review_deep (explicit keys win).
@@ -174,7 +201,10 @@ export const assignmentsSchema = z
   unknown
 >;
 export type AssignmentsDto = Partial<
-  Record<AiPurpose, { providerId: string; model: string } | null>
+  Record<
+    AiPurpose,
+    ({ providerId: string; model: string } & AssignmentOptions) | null
+  >
 >;
 /** POST /v1/admin/ai/providers/:id/test. */
 export const providerTestSchema = z
@@ -203,7 +233,7 @@ export type AiAssignment = {
   providerId: string;
   model: string;
   updatedAt: string;
-};
+} & AssignmentOptions;
 export type AssignmentMap = Partial<Record<AiPurpose, AiAssignment>>;
 /** GET/PUT assignments response: also the legacy "review" key (= review_quick). */
 export type AssignmentMapView = AssignmentMap & { review?: AiAssignment };

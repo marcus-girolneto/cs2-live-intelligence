@@ -290,3 +290,93 @@ describe("AI error mapping", () => {
     });
   });
 });
+
+describe("per-purpose output budgets and assignment options", () => {
+  it("defaults the output budget per purpose and lets the assignment override it", async () => {
+    const { repo, settings } = setup(ENV);
+    repo.assigned = {
+      review_quick: { providerId: "p1", model: "small", updatedAt: "" },
+      review_deep: {
+        providerId: "p1",
+        model: "reasoner",
+        updatedAt: "",
+        maxOutputTokens: 20_000,
+        reasoningEffort: "low",
+      },
+    };
+    const quick = await settings.resolve("review_quick");
+    expect(quick.result.ok && quick.result.config.maxOutputTokens).toBe(16_000);
+    const deep = await settings.resolve("review_deep");
+    expect(deep.result.ok && deep.result.config.maxOutputTokens).toBe(20_000);
+    expect(deep.result.ok && deep.result.config.extraBody).toEqual({
+      reasoning: { effort: "low" },
+    });
+    // personal_coach falls back to the deep assignment (its options included).
+    const personal = await settings.resolve("personal_coach");
+    expect(personal.result.ok && personal.result.config.model).toBe("reasoner");
+    // Unassigned purposes use the environment with the purpose's budget.
+    const live = await settings.resolve("live");
+    expect(live.result.ok && live.result.config.maxOutputTokens).toBe(8_000);
+  });
+  it("a provider profile budget beats the purpose default; env AI_MAX_OUTPUT_TOKENS too", async () => {
+    const { repo, settings } = setup({ ...ENV, AI_MAX_OUTPUT_TOKENS: "3000" });
+    repo.providerRows = [
+      {
+        ...provider,
+        options: {
+          maxOutputTokens: 5000,
+          extraBody: { reasoning: { exclude: true } },
+        },
+      },
+    ];
+    repo.assigned = {
+      review_quick: {
+        providerId: "p1",
+        model: "m",
+        updatedAt: "",
+        reasoningEffort: "high",
+      },
+    };
+    const quick = await settings.resolve("review_quick");
+    expect(quick.result.ok && quick.result.config.maxOutputTokens).toBe(5000);
+    expect(quick.result.ok && quick.result.config.extraBody).toEqual({
+      reasoning: { exclude: true, effort: "high" },
+    });
+    const live = await settings.resolve("live");
+    expect(live.result.ok && live.result.config.maxOutputTokens).toBe(3000);
+  });
+  it("uses OpenAI's reasoning_effort dialect for OpenAI chat profiles", async () => {
+    const { withReasoning } =
+      await import("../../src/modules/ai-config/ai-config.factory.js");
+    expect(withReasoning({}, "low", "openai", "chat")).toEqual({
+      reasoning_effort: "low",
+    });
+    expect(withReasoning({}, "low", "openai", "responses")).toEqual({
+      reasoning: { effort: "low" },
+    });
+    expect(withReasoning({ a: 1 }, undefined, "openrouter", "chat")).toEqual({
+      a: 1,
+    });
+  });
+  it("validates assignment options", async () => {
+    const { assignmentsSchema } =
+      await import("../../src/modules/ai-config/ai-config.dto.js");
+    const id = "3f2b6c1e-9a4d-4c8e-b1f2-7d6e5a4b3c2d";
+    expect(
+      assignmentsSchema.parse({
+        live: {
+          providerId: id,
+          model: "m",
+          maxOutputTokens: 6000,
+          reasoningEffort: null,
+        },
+      }),
+    ).toEqual({ live: { providerId: id, model: "m", maxOutputTokens: 6000 } });
+    for (const bad of [
+      { providerId: id, model: "m", maxOutputTokens: 10 },
+      { providerId: id, model: "m", reasoningEffort: "max" },
+      { providerId: id, model: "m", tools: [] },
+    ])
+      expect(assignmentsSchema.safeParse({ live: bad }).success).toBe(false);
+  });
+});

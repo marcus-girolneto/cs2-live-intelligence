@@ -1,3 +1,4 @@
+import { unwrapData } from "@cs2/coaching";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
@@ -233,7 +234,7 @@ describe.skipIf(!databaseUrl)(
           }
           const body = JSON.parse(raw) as { messages: { content: string }[] };
           const userMsg = body.messages[1]!.content;
-          const data = JSON.parse(userMsg.slice(userMsg.indexOf("{"))) as {
+          const data = unwrapData(userMsg) as {
             facts?: { id: string }[];
             trends?: unknown;
             basedOnMatches?: number;
@@ -433,7 +434,7 @@ describe.skipIf(!databaseUrl)(
       });
       expect(deep.json().coaching).toMatchObject({
         tier: "deep",
-        provenance: { promptVersion: "igl-review-v7-deep" },
+        provenance: { promptVersion: "igl-review-v8-deep" },
       });
       expect(deep.json().coaching.deep.utility).toBeDefined();
       expect(deep.json().coaching.insights[0].evidenceIds[0]).toMatch(/^deep-/);
@@ -1084,7 +1085,7 @@ describe.skipIf(!databaseUrl)(
       const view = made.json();
       expect(view.latest.plan).toMatchObject({
         headline: "Trade more, peek less",
-        promptVersion: "personal-coach-v1",
+        promptVersion: "personal-coach-v2",
         basedOnMatches: 1,
       });
       expect(view.latest.plan.workingWell).toHaveLength(1);

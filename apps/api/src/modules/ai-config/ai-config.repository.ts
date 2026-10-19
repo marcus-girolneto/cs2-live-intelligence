@@ -1,7 +1,12 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
 import { isoDate, stringOrNull } from "../../shared/db/rows.js";
-import type { AiPurpose, AssignmentMap } from "./ai-config.dto.js";
+import {
+  assignmentOptionsSchema,
+  type AiPurpose,
+  type AssignmentMap,
+  type AssignmentOptions,
+} from "./ai-config.dto.js";
 
 /** A stored provider profile; secrets are AES-GCM ciphertexts. */
 export interface AiProviderRecord {
@@ -18,8 +23,23 @@ export interface AiProviderRecord {
   updatedAt: string;
 }
 export type AssignmentChanges = Partial<
-  Record<AiPurpose, { providerId: string; model: string } | null>
+  Record<
+    AiPurpose,
+    ({ providerId: string; model: string } & AssignmentOptions) | null
+  >
 >;
+
+/** The stored options of an assignment (only the known keys). */
+export const assignmentOptions = (
+  value: AssignmentOptions,
+): AssignmentOptions => ({
+  ...(value.maxOutputTokens !== undefined
+    ? { maxOutputTokens: value.maxOutputTokens }
+    : {}),
+  ...(value.reasoningEffort !== undefined
+    ? { reasoningEffort: value.reasoningEffort }
+    : {}),
+});
 
 export interface AiConfigRepository {
   providers(): Promise<AiProviderRecord[]>;
@@ -90,15 +110,18 @@ export class PgAiConfigRepository
 
   async assignments(): Promise<AssignmentMap> {
     const r = await this.db.execute(
-      sql`select purpose,provider_id,model,updated_at from ai_assignments`,
+      sql`select purpose,provider_id,model,options,updated_at from ai_assignments`,
     );
     const out: AssignmentMap = {};
-    for (const row of r.rows)
+    for (const row of r.rows) {
+      const options = assignmentOptionsSchema.safeParse(row.options ?? {});
       out[row.purpose as AiPurpose] = {
         providerId: row.provider_id as string,
         model: row.model as string,
+        ...(options.success ? options.data : {}),
         updatedAt: isoDate(row.updated_at),
       };
+    }
     return out;
   }
 
@@ -112,7 +135,7 @@ export class PgAiConfigRepository
           );
         else
           await tx.execute(
-            sql`insert into ai_assignments(purpose,provider_id,model) values(${purpose},${value.providerId},${value.model}) on conflict(purpose) do update set provider_id=excluded.provider_id,model=excluded.model,updated_at=now()`,
+            sql`insert into ai_assignments(purpose,provider_id,model,options) values(${purpose},${value.providerId},${value.model},${JSON.stringify(assignmentOptions(value))}::jsonb) on conflict(purpose) do update set provider_id=excluded.provider_id,model=excluded.model,options=excluded.options,updated_at=now()`,
           );
       }
     });

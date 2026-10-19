@@ -1,3 +1,4 @@
+import { unwrapData } from "@cs2/coaching";
 import { afterAll, beforeAll, beforeEach, describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, readFile, writeFile } from "node:fs/promises";
@@ -130,7 +131,7 @@ describe.skipIf(!databaseUrl)(
           const user = body.messages[1]!.content;
           let parsed: { facts?: { id: string }[]; recentRounds?: unknown } = {};
           try {
-            parsed = JSON.parse(user.slice(user.indexOf("{")));
+            parsed = unwrapData(user) as typeof parsed;
           } catch {
             /* connectivity check */
           }

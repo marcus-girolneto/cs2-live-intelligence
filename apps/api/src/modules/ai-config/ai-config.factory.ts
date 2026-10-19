@@ -1,9 +1,15 @@
-import { loadAiConfig, type AiConfigResult } from "@cs2/coaching";
+import {
+  loadAiConfig,
+  PURPOSE_LIMITS,
+  type AiConfigResult,
+} from "@cs2/coaching";
 import type { RuntimeEnv } from "../../config/env.js";
 import type { SecretCipher } from "../../infrastructure/secrets/aes-gcm-secret-cipher.js";
 import {
   providerOptionsSchema,
+  type AiPurpose,
   type AppSettings,
+  type AssignmentOptions,
   type ProviderOptions,
 } from "./ai-config.dto.js";
 import type { AiProviderRecord } from "./ai-config.repository.js";
@@ -60,9 +66,22 @@ export class AiConfigFactory {
     p: PlainProvider,
     model: string,
     settings: AppSettings,
+    purpose?: AiPurpose,
+    assignment: AssignmentOptions = {},
   ): Record<string, string | undefined> {
     const parsed = providerOptionsSchema.safeParse(p.options);
     const o: ProviderOptions = parsed.success ? parsed.data : {};
+    // Output budget: assignment, then provider profile, then the purpose's built-in default.
+    const maxOutputTokens =
+      assignment.maxOutputTokens ??
+      o.maxOutputTokens ??
+      (purpose ? PURPOSE_LIMITS[purpose].maxOutputTokens : undefined);
+    const extraBody = withReasoning(
+      o.extraBody ?? {},
+      assignment.reasoningEffort,
+      p.provider,
+      o.apiStyle,
+    );
     return {
       AI_PROVIDER: p.provider,
       AI_BASE_URL: p.baseUrl ?? undefined,
@@ -71,7 +90,7 @@ export class AiConfigFactory {
       AI_API_STYLE: o.apiStyle,
       AI_JSON_MODE: o.jsonMode,
       AI_MAX_TOKENS_PARAM: o.maxTokensParam,
-      AI_MAX_OUTPUT_TOKENS: o.maxOutputTokens?.toString(),
+      AI_MAX_OUTPUT_TOKENS: maxOutputTokens?.toString(),
       AI_TIMEOUT_MS: o.timeoutMs?.toString(),
       AI_MAX_ATTEMPTS: o.maxAttempts?.toString(),
       AI_TEMPERATURE:
@@ -79,10 +98,9 @@ export class AiConfigFactory {
           ? undefined
           : String(o.temperature),
       AI_HEADERS: p.headersJson,
-      AI_EXTRA_BODY:
-        o.extraBody && Object.keys(o.extraBody).length
-          ? JSON.stringify(o.extraBody)
-          : undefined,
+      AI_EXTRA_BODY: Object.keys(extraBody).length
+        ? JSON.stringify(extraBody)
+        : undefined,
       AI_ALLOW_HTTP: o.allowHttp ? "true" : undefined,
       ...this.limits(settings),
     };
@@ -107,17 +125,38 @@ export class AiConfigFactory {
     row: AiProviderRecord,
     model: string,
     settings: AppSettings,
+    purpose?: AiPurpose,
+    assignment: AssignmentOptions = {},
   ): AiConfigResult {
     try {
-      return loadAiConfig(this.providerEnv(this.decrypt(row), model, settings));
+      return loadAiConfig(
+        this.providerEnv(
+          this.decrypt(row),
+          model,
+          settings,
+          purpose,
+          assignment,
+        ),
+      );
     } catch {
       return { ok: false, reason: UNDECRYPTABLE, missing: [] };
     }
   }
 
   /** Config from the AI_* environment (fallback when a purpose has no assignment). */
-  fromEnvironment(settings: AppSettings): AiConfigResult {
-    return loadAiConfig({ ...this.env.aiFallback(), ...this.limits(settings) });
+  fromEnvironment(settings: AppSettings, purpose?: AiPurpose): AiConfigResult {
+    const env = this.env.aiFallback();
+    return loadAiConfig({
+      ...env,
+      ...(purpose && !env.AI_MAX_OUTPUT_TOKENS?.trim()
+        ? {
+            AI_MAX_OUTPUT_TOKENS: String(
+              PURPOSE_LIMITS[purpose].maxOutputTokens,
+            ),
+          }
+        : {}),
+      ...this.limits(settings),
+    });
   }
 
   /** Validates a profile's shape (placeholder model/key: only the shape matters). */
@@ -130,4 +169,25 @@ export class AiConfigFactory {
       ),
     );
   }
+}
+
+/**
+ * Adds the assignment's reasoning effort to the request extras in the provider's dialect:
+ * OpenAI chat uses "reasoning_effort"; the Responses API and OpenRouter use
+ * {"reasoning": {"effort"}}. Without an effort the profile's extras are unchanged.
+ */
+export function withReasoning(
+  extraBody: Record<string, unknown>,
+  effort: AssignmentOptions["reasoningEffort"],
+  provider: string,
+  apiStyle: ProviderOptions["apiStyle"],
+): Record<string, unknown> {
+  if (!effort) return extraBody;
+  if (provider === "openai" && apiStyle !== "responses")
+    return { ...extraBody, reasoning_effort: effort };
+  const current =
+    typeof extraBody.reasoning === "object" && extraBody.reasoning !== null
+      ? (extraBody.reasoning as Record<string, unknown>)
+      : {};
+  return { ...extraBody, reasoning: { ...current, effort } };
 }

@@ -21,6 +21,7 @@ import {
   type AiPurpose,
   type AssignmentMap,
   type AssignmentMapView,
+  type AssignmentOptions,
   type AssignmentsDto,
   type CreateProviderDto,
   type ProviderViewDto,
@@ -187,7 +188,13 @@ export class AiProviderAdminService {
       if (!value) continue;
       const row = rows.find((r) => r.id === value.providerId);
       if (!row) throw new ValidationError(`Unknown provider for ${purpose}`);
-      const result = this.factory.fromProvider(row, value.model, settings);
+      const result = this.factory.fromProvider(
+        row,
+        value.model,
+        settings,
+        purpose,
+        value,
+      );
       if (!result.ok)
         throw new ValidationError(`${purpose}: ${result.reason}`, {
           details: { missing: result.missing },
@@ -202,6 +209,8 @@ export class AiProviderAdminService {
     adminId: string,
     id: string,
     requestedModel?: string,
+    purpose?: AiPurpose,
+    options: AssignmentOptions = {},
   ): Promise<ConnectivityResult> {
     const { rows, assigned } = await this.snapshot();
     const row = rows.find((r) => r.id === id);
@@ -218,11 +227,14 @@ export class AiProviderAdminService {
       row,
       model,
       await this.settings.settings(),
+      purpose,
+      options,
     );
     if (!config.ok) throw invalid(config)!;
     await this.audit.record(adminId, "ai.provider.test", {
       providerId: row.id,
       model,
+      ...(purpose ? { purpose } : {}),
     });
     try {
       return await this.gateway.connectivityCheck(config.config);
@@ -248,10 +260,14 @@ export class AiProviderAdminService {
         `Pass a providerId: ${purpose} has no assigned provider.`,
       );
     const sameProvider = assigned?.providerId === id;
+    const chosen = model ?? (sameProvider ? assigned?.model : undefined);
+    // The purpose's budget applies; the assignment's options when testing that same model.
     return this.test(
       adminId,
       id,
-      model ?? (sameProvider ? assigned?.model : undefined),
+      chosen,
+      purpose,
+      sameProvider && assigned?.model === chosen ? assigned : {},
     );
   }
 

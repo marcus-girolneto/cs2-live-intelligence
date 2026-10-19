@@ -1,3 +1,4 @@
+import { unwrapData } from "@cs2/coaching";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -71,7 +72,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         }
         const body = JSON.parse(raw) as { messages: { content: string }[] };
         const user = body.messages[1]!.content;
-        const facts = JSON.parse(user.slice(user.indexOf("{"))) as {
+        const facts = unwrapData(user) as {
           facts?: { id: string }[];
         };
         const content = facts.facts
