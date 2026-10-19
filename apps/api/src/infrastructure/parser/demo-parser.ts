@@ -7,6 +7,8 @@ import { join } from "node:path";
 export interface DemoParser {
   /** `replayPath`: where to also write the replay artifact. Rejects with a safe message. */
   parse(demoPath: string, replayPath?: string): Promise<unknown>;
+  /** The parser's version string (e.g. `demoinfocs-golang/v5@v5.2.0+cs2live.4`). */
+  version?(): Promise<string>;
 }
 
 /** Normalized documents of 500 MB demos are far beyond a pipe buffer: read from a file. */
@@ -66,6 +68,34 @@ export class ProcessDemoParser implements DemoParser {
     private readonly diagnose: (detail: string) => void = (detail) =>
       console.warn(JSON.stringify({ event: "demo_parser_failed", detail })),
   ) {}
+
+  private cachedVersion: Promise<string> | undefined;
+
+  /** `demo-parser -version`, once per process (the binary does not change while running). */
+  version(): Promise<string> {
+    this.cachedVersion ??= new Promise<string>((resolveVersion, reject) => {
+      execFile(
+        this.binary,
+        ["-version"],
+        {
+          timeout: 10_000,
+          maxBuffer: 64 * 1024,
+          encoding: "utf8",
+          env: { PATH: this.path() ?? "/usr/bin:/bin" },
+        },
+        (error, stdout) => {
+          const version = String(stdout).trim();
+          if (error || !/^[\w./@+-]{3,128}$/.test(version))
+            return reject(new Error("Demo parser version unavailable"));
+          resolveVersion(version);
+        },
+      );
+    }).catch((error: unknown) => {
+      this.cachedVersion = undefined;
+      throw error;
+    });
+    return this.cachedVersion;
+  }
 
   async parse(demoPath: string, replayPath?: string): Promise<unknown> {
     const size = await stat(demoPath).then(

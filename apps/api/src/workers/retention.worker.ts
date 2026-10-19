@@ -5,6 +5,10 @@ import {
   type ReplayStorage,
 } from "../infrastructure/storage/replay-storage.js";
 import type { RetentionRepository } from "../modules/matches/retention.repository.js";
+import {
+  eventsJobId,
+  type AnalysisEventsStore,
+} from "../infrastructure/storage/events-storage.js";
 
 const STALE_MS = 3600000;
 
@@ -17,6 +21,7 @@ export class RetentionWorker {
     private readonly retention: RetentionRepository,
     private readonly storage: ObjectStorage,
     private readonly replays: ReplayStorage,
+    private readonly events?: Pick<AnalysisEventsStore, "remove">,
   ) {}
 
   async run(): Promise<void> {
@@ -24,6 +29,7 @@ export class RetentionWorker {
     for (const key of await this.retention.pendingDeletions()) {
       await this.storage.remove(key);
       await this.replays.remove(key.slice(0, -4));
+      await this.events?.remove(key.slice(0, -4));
       await this.retention.deletedFile(key);
     }
     // Crash between filesystem upload and DB insert cannot leave an object forever.
@@ -33,9 +39,12 @@ export class RetentionWorker {
   }
 
   private async sweep(name: string, known: Set<string>): Promise<void> {
-    // Replay artifacts follow their demo; parser temp files are swept when stale.
-    const replayOf = replayJobId(name);
-    if (replayOf !== undefined || /^\.replay-.*\.tmp$/.test(name)) {
+    // Replay and events artifacts follow their demo; temp files are swept when stale.
+    const replayOf = replayJobId(name) ?? eventsJobId(name);
+    if (
+      replayOf !== undefined ||
+      /^\.(replay|events|link)-.*\.tmp$/.test(name)
+    ) {
       if (replayOf !== undefined && known.has(replayOf + ".dem")) return;
       if ((await this.storage.entryAgeMs(name)) > STALE_MS)
         await this.storage.removeEntry(name);

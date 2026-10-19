@@ -25,6 +25,11 @@ export function registerMatchesRoutes(
   app.post("/v1/demos/sample", user, controller.importSample);
   app.get("/v1/matches", user, controller.list);
   app.get<{ Params: { id: string } }>("/v1/matches/:id", user, controller.get);
+  app.get(
+    "/v1/admin/analyses/reprocess/status",
+    { preHandler: guards.requireAdmin },
+    controller.reprocessStatus,
+  );
   app.post(
     "/v1/admin/analyses/reprocess",
     { preHandler: guards.requireAdmin },

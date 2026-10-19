@@ -14,6 +14,13 @@ export type MatchListDto = { matches: MatchDto[] };
 export type QueuedJobDto = { id: string; status: "queued" };
 export type SampleAvailabilityDto = { available: boolean };
 export type ReprocessResultDto = { queued: number };
+/** GET /v1/admin/analyses/reprocess/status (currentVersion null before the worker started). */
+export type ReprocessStatusDto = {
+  pending: number;
+  done: number;
+  failed: number;
+  currentVersion: string | null;
+};
 
 /** Stored analysis document plus its offline coaching (both loosely typed JSON). */
 export type StoredAnalysis = {

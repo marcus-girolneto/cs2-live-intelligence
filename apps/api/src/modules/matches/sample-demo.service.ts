@@ -12,6 +12,7 @@ import type { ConsentLookup } from "../privacy/privacy.repository.js";
 import type { QueuedJobDto, SampleAvailabilityDto } from "./matches.dto.js";
 import type { MatchesRepository } from "./matches.repository.js";
 import type { UploadQuota } from "./upload.service.js";
+import type { AnalysisDedupe } from "./analysis-dedupe.js";
 
 /** Port: the operator-provided public sample demo (SAMPLE_DEMO_FILE). */
 export interface SampleDemoSource {
@@ -64,6 +65,7 @@ export class SampleDemoService {
     private readonly consent: ConsentLookup,
     private readonly quota: UploadQuota,
     private readonly maxBytes: number,
+    private readonly dedupe?: Pick<AnalysisDedupe, "tryComplete">,
   ) {}
 
   async availability(): Promise<SampleAvailabilityDto> {
@@ -91,12 +93,17 @@ export class SampleDemoService {
       throw new NotFoundError("The sample demo file is not available.");
     }
     try {
-      return await this.matches.createJob(ownerId, {
+      const queued = await this.matches.createJob(ownerId, {
         id,
         filename: SAMPLE_FILENAME,
         objectKey,
         ...stored,
       });
+      // Every account imports the same file: after the first parse it completes by copy.
+      await this.dedupe
+        ?.tryComplete({ id, checksum: stored.checksum })
+        .catch(() => false);
+      return queued;
     } catch {
       await this.storage.remove(objectKey);
       await reserved.release();

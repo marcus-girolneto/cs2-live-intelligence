@@ -2,6 +2,7 @@ import { readFile, rm, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { gunzip } from "node:zlib";
+import { linkOrCopy } from "./events-storage.js";
 import {
   replayArtifactSchema,
   type ReplayArtifact,
@@ -75,6 +76,11 @@ export class FileReplayStorage implements ReplayStorage {
     } catch {
       return undefined;
     }
+  }
+  /** Gives `to` its own name for the replay of `from` (dedupe); false when `from` has none. */
+  async copy(from: string, to: string): Promise<boolean> {
+    this.cache.delete(to);
+    return linkOrCopy(this.directory, replayKey(from), replayKey(to));
   }
   async remove(jobId: string): Promise<void> {
     this.cache.delete(jobId);

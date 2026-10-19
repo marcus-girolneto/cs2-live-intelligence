@@ -14,6 +14,7 @@ import {
 } from "../../shared/errors/index.js";
 import { DemoRejectedError, demoSniffer } from "./demo-signature.js";
 import { UploadRateLimiter } from "./upload-rate-limit.js";
+import type { AnalysisDedupe } from "./analysis-dedupe.js";
 import type { Reservation } from "../usage/usage.service.js";
 import type { ConsentLookup } from "../privacy/privacy.repository.js";
 import {
@@ -72,6 +73,7 @@ export class UploadService {
     private readonly quota: UploadQuota,
     private readonly limits: Pick<UploadLimits, "maxDemoBytes">,
     private readonly rate: UploadRateLimiter = new UploadRateLimiter(),
+    private readonly dedupe?: Pick<AnalysisDedupe, "tryComplete">,
   ) {}
 
   /**
@@ -137,10 +139,15 @@ export class UploadService {
     }
   }
 
-  /** Queues the stored file; on any failure removes it and returns the quota unit. */
+  /**
+   * Queues the stored file; on any failure removes it and returns the quota unit. A demo already
+   * analysed by the current parser (same checksum, any account) completes right away by copy;
+   * the response stays `queued` (the match list shows it complete on the next poll).
+   */
   async enqueue(slot: UploadSlot, file: NewDemoJob): Promise<QueuedJobDto> {
+    let queued: QueuedJobDto;
     try {
-      return await this.matches.createJob(slot.ownerId, file);
+      queued = await this.matches.createJob(slot.ownerId, file);
     } catch {
       await this.storage.remove(file.objectKey);
       await slot.releaseQuota();
@@ -148,5 +155,9 @@ export class UploadService {
         "Upload quota reached or consent withdrawn",
       );
     }
+    await this.dedupe
+      ?.tryComplete({ id: file.id, checksum: file.checksum })
+      .catch(() => false);
+    return queued;
   }
 }

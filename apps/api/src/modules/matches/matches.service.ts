@@ -6,8 +6,10 @@ import type {
   MatchDto,
   MatchListDto,
   ReprocessResultDto,
+  ReprocessStatusDto,
 } from "./matches.dto.js";
 import type { MatchesRepository } from "./matches.repository.js";
+import type { PipelineRepository } from "./pipeline.repository.js";
 
 /** Owner-scoped match listing and the admin "re-run stored demos" operation. */
 export class MatchesService {
@@ -16,7 +18,25 @@ export class MatchesService {
     private readonly storage: ObjectStorage,
     private readonly audit: AuditTrail,
     private readonly logger: Logger,
+    private readonly pipeline?: Pick<
+      PipelineRepository,
+      "parserVersion" | "reprocessStatus"
+    >,
   ) {}
+
+  /**
+   * Progress of the automatic re-parse after a parser upgrade: analyses still made by an older
+   * parser (pending), by the current one (done) and background re-parses that failed.
+   */
+  async reprocessStatus(): Promise<ReprocessStatusDto> {
+    const currentVersion = (await this.pipeline?.parserVersion()) ?? null;
+    if (!this.pipeline || !currentVersion)
+      return { pending: 0, done: 0, failed: 0, currentVersion };
+    return {
+      ...(await this.pipeline.reprocessStatus(currentVersion)),
+      currentVersion,
+    };
+  }
 
   async list(ownerId: string): Promise<MatchListDto> {
     return { matches: await this.matches.list(ownerId) };

@@ -1,0 +1,351 @@
+import { randomUUID } from "node:crypto";
+import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import type { FastifyInstance } from "fastify";
+import { Pool } from "pg";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { buildApp } from "../src/app.js";
+import { RuntimeEnv } from "../src/config/env.js";
+import { createWorkers } from "../src/composition/demo-pipeline.js";
+import { CoachingAiGateway } from "../src/infrastructure/ai/coaching-ai-gateway.js";
+import { ProcessDemoParser } from "../src/infrastructure/parser/demo-parser.js";
+import { PgPrivacyRepository } from "../src/modules/privacy/privacy.repository.js";
+import {
+  startWorkers,
+  type WorkerHandle,
+} from "../src/workers/worker-scheduler.js";
+import { demoBytes, LENIENT_UPLOAD_RATE } from "./support/demo-bytes.js";
+import { TestDatabase } from "./support/test-database.js";
+
+const databaseUrl = process.env.DATABASE_URL;
+const fixture = process.env.DEMO_FIXTURE;
+const parserBin = process.env.DEMO_PARSER_BIN;
+
+/**
+ * The demo pipeline against Postgres, the real parser and the public fixture: events in object
+ * storage behind the analysis reader, checksum dedupe (immediate and in the worker, one parse for
+ * simultaneous uploads), automatic re-parse after a parser upgrade and the events migration.
+ */
+describe.skipIf(!databaseUrl || !fixture || !parserBin)(
+  "demo pipeline: events storage, dedupe, parser-upgrade reprocess (Postgres)",
+  () => {
+    let admin: Pool;
+    let repo: TestDatabase;
+    let app: FastifyInstance;
+    let directory: string;
+    let worker: WorkerHandle;
+    let worker2: WorkerHandle;
+    let parses = 0;
+    let payload: Buffer;
+    const schema = "pipeline_" + randomUUID().replaceAll("-", "");
+    const alice = { authorization: "Bearer alice-token" };
+    const bob = { authorization: "Bearer bob-token" };
+
+    beforeAll(async () => {
+      admin = new Pool({ connectionString: databaseUrl });
+      await admin.query(`create schema ${schema}`);
+      const url = new URL(databaseUrl!);
+      url.searchParams.set("options", `-c search_path=${schema}`);
+      repo = new TestDatabase(url.toString());
+      await repo.migrate();
+      await repo.seedDev("alice", "alice-token", "alice-device", "ad-token");
+      await repo.seedDev("bob", "bob-token", "bob-device", "bd-token");
+      await repo.seedDev("admin", "admin-token", "admin-device", "xd-token");
+      await repo.pool.query("update users set role='admin' where id='admin'");
+      directory = await mkdtemp(resolve(tmpdir(), "cs2-pipeline-"));
+      payload = await readFile(fixture!);
+      const options = {
+        storageDir: directory,
+        parserBin: parserBin!,
+        disableWorker: true,
+      };
+      app = await buildApp({
+        database: repo,
+        devices: [],
+        owners: [],
+        webOrigin: "http://127.0.0.1:3000",
+        jobs: options,
+        overrides: { uploadRate: LENIENT_UPLOAD_RATE },
+      });
+      const real = new ProcessDemoParser(parserBin!);
+      const makeWorker = () => {
+        const workers = createWorkers(
+          repo.db,
+          options,
+          new RuntimeEnv(),
+          new PgPrivacyRepository(repo.db),
+          new CoachingAiGateway(),
+          {
+            demoParser: {
+              parse: (demo, replay) => {
+                parses++;
+                return real.parse(demo, replay);
+              },
+              version: () => real.version(),
+            },
+          },
+        );
+        return startWorkers(
+          workers.demos,
+          workers.retention,
+          options,
+          undefined,
+          workers.maintenance,
+        );
+      };
+      worker = await makeWorker();
+      // A second worker process (scale-out) for the concurrency test.
+      worker2 = await makeWorker();
+    });
+    beforeEach(async () => {
+      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from file_deletions");
+      await repo.pool.query("delete from usage_counters");
+      for (const owner of ["alice", "bob"]) {
+        await repo.pool.query(
+          "insert into subscriptions(owner_id,plan_id,status,source) values($1,'pro','active','admin') on conflict(owner_id) do update set plan_id='pro',status='active',current_period_end=null",
+          [owner],
+        );
+        await repo.updateSettings(owner, {
+          telemetryConsent: true,
+          analyticsConsent: false,
+          retentionDays: 30,
+        });
+      }
+      for (const file of await readdir(directory))
+        await rm(resolve(directory, file), { force: true });
+      parses = 0;
+    });
+    afterAll(async () => {
+      await worker?.stop();
+      await worker2?.stop();
+      await app?.close();
+      await repo?.close();
+      if (directory) await rm(directory, { recursive: true, force: true });
+      if (admin) {
+        await admin.query(`drop schema ${schema} cascade`);
+        await admin.end();
+      }
+    });
+
+    const upload = (headers: Record<string, string>, body = payload) =>
+      app.inject({
+        method: "POST",
+        url: "/v1/demos/uploads",
+        headers: {
+          ...headers,
+          "content-type": "application/octet-stream",
+          "x-filename": "public-cs2.dem",
+        },
+        payload: body,
+      });
+    const row = async (id: string) =>
+      (await repo.pool.query("select * from demo_jobs where id=$1", [id]))
+        .rows[0];
+    const exists = (name: string) =>
+      stat(resolve(directory, name)).then(
+        () => true,
+        () => false,
+      );
+    async function parsedBy(headers: Record<string, string>) {
+      const { id } = (await upload(headers)).json();
+      await worker.maintenance();
+      await worker.runOnce();
+      return id as string;
+    }
+
+    it("stores events in object storage and every reader gets the full analysis", async () => {
+      const id = await parsedBy(alice);
+      const stored = await row(id);
+      expect(stored.status).toBe("complete");
+      expect(stored.analysis.events).toBeUndefined();
+      expect(stored.events_count).toBeGreaterThan(1000);
+      expect(stored.parser_version).toMatch(/cs2live\./);
+      expect(await exists(`${id}.events.json.gz`)).toBe(true);
+      const view = (
+        await app.inject({ url: `/v1/analyses/${id}`, headers: alice })
+      ).json();
+      expect(view.analysis.events).toHaveLength(stored.events_count);
+      expect(view.analysis.players.length).toBe(10);
+      const meta = await app.inject({
+        url: `/v1/analyses/${id}/replay/meta`,
+        headers: alice,
+      });
+      expect(meta.statusCode).toBe(200);
+      const round = await app.inject({
+        url: `/v1/analyses/${id}/replay?round=2`,
+        headers: alice,
+      });
+      expect(round.statusCode).toBe(200);
+      expect(
+        round.json().events.filter((e: { type: string }) => e.type === "kill")
+          .length,
+      ).toBeGreaterThan(0);
+    }, 60_000);
+
+    it("dedupes by checksum: another account's upload completes at once with its own copies", async () => {
+      const first = await parsedBy(alice);
+      expect(parses).toBe(1);
+      const response = await upload(bob);
+      expect(response.statusCode).toBe(202);
+      const second = response.json().id as string;
+      // Completed by the API before any worker run: no second parse.
+      const copy = await row(second);
+      expect(copy.status).toBe("complete");
+      expect(copy.deduped_from).toBe(first);
+      expect(copy.owner_id).toBe("bob");
+      expect(parses).toBe(1);
+      for (const suffix of [".events.json.gz", ".replay.json.gz"])
+        expect(await exists(second + suffix)).toBe(true);
+      const view = (
+        await app.inject({ url: `/v1/analyses/${second}`, headers: bob })
+      ).json();
+      expect(view.analysis.events).toHaveLength(copy.events_count);
+      // Alice's copy stays private to Alice.
+      expect(
+        (await app.inject({ url: `/v1/analyses/${first}`, headers: bob }))
+          .statusCode,
+      ).toBe(404);
+      // Deleting Alice's account removes only Alice's files.
+      expect(
+        (
+          await app.inject({
+            method: "DELETE",
+            url: "/v1/account",
+            headers: alice,
+          })
+        ).statusCode,
+      ).toBeLessThan(300);
+      await worker.cleanup();
+      for (const suffix of [".dem", ".events.json.gz", ".replay.json.gz"])
+        expect(await exists(first + suffix)).toBe(false);
+      const after = (
+        await app.inject({ url: `/v1/analyses/${second}`, headers: bob })
+      ).json();
+      expect(after.analysis.events).toHaveLength(copy.events_count);
+      expect(
+        (
+          await app.inject({
+            url: `/v1/analyses/${second}/replay/meta`,
+            headers: bob,
+          })
+        ).statusCode,
+      ).toBe(200);
+      await repo.seedDev("alice", "alice-token", "alice-device", "ad-token");
+    }, 60_000);
+
+    it("parses once when two accounts upload the same new demo simultaneously", async () => {
+      await worker.maintenance();
+      const [a, b] = await Promise.all([upload(alice), upload(bob)]);
+      expect([a.statusCode, b.statusCode]).toEqual([202, 202]);
+      // Both workers poll at the same time: one claims and parses, the other finds the same
+      // checksum in progress and claims nothing; afterwards the copy completes by dedupe.
+      await Promise.all([worker.runOnce(), worker2.runOnce()]);
+      await worker2.runOnce();
+      const rows = [await row(a.json().id), await row(b.json().id)];
+      expect(rows.map((r) => r.status)).toEqual(["complete", "complete"]);
+      expect(parses).toBe(1);
+      expect(rows.filter((r) => r.deduped_from).length).toBe(1);
+    }, 60_000);
+
+    it("re-parses analyses of an older parser in the background, behind fresh uploads", async () => {
+      const id = await parsedBy(alice);
+      await repo.pool.query(
+        "update demo_jobs set parser_version='demoinfocs-golang/v5@v5.0.0+cs2live.1', analysis=jsonb_set(analysis,'{provenance,parserVersion}','\"demoinfocs-golang/v5@v5.0.0+cs2live.1\"') where id=$1",
+        [id],
+      );
+      const status = () =>
+        app.inject({
+          url: "/v1/admin/analyses/reprocess/status",
+          headers: { authorization: "Bearer admin-token" },
+        });
+      expect(
+        (
+          await app.inject({
+            url: "/v1/admin/analyses/reprocess/status",
+            headers: alice,
+          })
+        ).statusCode,
+      ).toBe(403);
+      await worker.maintenance();
+      await worker.maintenance(); // idempotent
+      expect((await row(id)).reprocess_state).toBe("queued");
+      const before = (await status()).json();
+      expect(before).toMatchObject({ pending: 1, done: 0, failed: 0 });
+      expect(before.currentVersion).toMatch(/cs2live\./);
+      // A fresh upload is claimed before the background re-parse.
+      const fresh = (await upload(bob, demoBytes("not parseable"))).json().id;
+      await worker.runOnce();
+      expect((await row(fresh)).status).toBe("failed");
+      expect((await row(id)).reprocess_state).toBe("queued");
+      // The analysis stays visible while queued.
+      expect(
+        (await app.inject({ url: `/v1/analyses/${id}`, headers: alice }))
+          .statusCode,
+      ).toBe(200);
+      await worker.runOnce();
+      const done = await row(id);
+      expect(done.status).toBe("complete");
+      expect(done.reprocess_state).toBeNull();
+      expect(done.parser_version).toBe(before.currentVersion);
+      expect((await status()).json()).toMatchObject({
+        pending: 0,
+        done: 1,
+        failed: 0,
+      });
+      // First parse, the failed fresh upload, the background re-parse.
+      expect(parses).toBe(3);
+    }, 60_000);
+
+    it("migrates inline events of existing rows to object storage (idempotent, verified, large)", async () => {
+      const id = randomUUID();
+      await repo.createJob("alice", {
+        id,
+        filename: "legacy.dem",
+        objectKey: id + ".dem",
+        checksum: "legacy-" + id,
+        size: 1,
+      });
+      const events = Array.from({ length: 60_000 }, (_, i) => ({
+        id: `e${i}`,
+        tick: i,
+        round: 1 + (i % 24),
+        type: "shot",
+        shooterId: "76561198000000001",
+        weapon: "ak47",
+      }));
+      const analysis = {
+        schemaVersion: "1.0",
+        source: "demo",
+        provenance: { parserVersion: "legacy", metricVersion: "1" },
+        roundOutcomes: [],
+        events,
+        players: [],
+        evidence: [],
+        caveats: [],
+      };
+      await repo.pool.query(
+        "update demo_jobs set status='complete',analysis=$2::jsonb,coaching='{}'::jsonb where id=$1",
+        [id, JSON.stringify(analysis)],
+      );
+      await worker.maintenance();
+      const moved = await row(id);
+      expect(moved.analysis.events).toBeUndefined();
+      expect(moved.events_count).toBe(60_000);
+      const view = (
+        await app.inject({ url: `/v1/analyses/${id}`, headers: alice })
+      ).json();
+      expect(view.analysis.events).toEqual(events);
+      await worker.maintenance();
+      expect((await row(id)).events_count).toBe(60_000);
+      // Retention removes the events file with the demo.
+      await repo.pool.query(
+        "update demo_jobs set created_at=now()-interval '40 days' where id=$1",
+        [id],
+      );
+      await worker.cleanup();
+      expect(await exists(`${id}.events.json.gz`)).toBe(false);
+    }, 60_000);
+  },
+);

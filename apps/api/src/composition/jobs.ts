@@ -1,11 +1,8 @@
 import type { ApiConfig, JobOptions } from "../config/api-config.js";
 import type { RuntimeEnv } from "../config/env.js";
-import type { OfflineCoach } from "../infrastructure/ai/coaching-ai-gateway.js";
-import { ProcessDemoParser } from "../infrastructure/parser/demo-parser.js";
-import { FsObjectStorage } from "../infrastructure/storage/object-storage.js";
-import { FileReplayStorage } from "../infrastructure/storage/replay-storage.js";
 import { AnalysesController } from "../modules/analyses/analyses.controller.js";
 import { AnalysesService } from "../modules/analyses/analyses.service.js";
+import { HydratingMatchesRepository } from "../modules/analyses/analysis-reader.js";
 import { AiStatusController } from "../modules/ai-config/ai-status.controller.js";
 import { PgCoachPlansRepository } from "../modules/coaching/coach-plans.repository.js";
 import { CoachPlansService } from "../modules/coaching/coach-plans.service.js";
@@ -32,12 +29,9 @@ import { PersonalCoachService } from "../modules/personal-coach/personal-coach.s
 import { FeedbackController } from "../modules/feedback/feedback.controller.js";
 import { PgFeedbackRepository } from "../modules/feedback/feedback.repository.js";
 import { FeedbackService } from "../modules/feedback/feedback.service.js";
-import { PgJobQueueRepository } from "../modules/matches/job-queue.repository.js";
 import { MatchesController } from "../modules/matches/matches.controller.js";
 import { PgMatchesRepository } from "../modules/matches/matches.repository.js";
 import { MatchesService } from "../modules/matches/matches.service.js";
-import type { ConsentLookup } from "../modules/privacy/privacy.repository.js";
-import { PgRetentionRepository } from "../modules/matches/retention.repository.js";
 import {
   FileSampleDemoSource,
   SampleDemoService,
@@ -48,52 +42,12 @@ import { ReplayController } from "../modules/replay/replay.controller.js";
 import { MatchesReplayRepository } from "../modules/replay/replay.repository.js";
 import { ReplayService } from "../modules/replay/replay.service.js";
 import type { Db } from "../shared/db/database.js";
-import { silentLogger, type Logger } from "../shared/logging/logger.js";
-import type { ScheduledJob } from "../workers/worker-scheduler.js";
-import { DemoProcessingWorker } from "../workers/demo-processing.worker.js";
-import { RetentionWorker } from "../workers/retention.worker.js";
+import type { Logger } from "../shared/logging/logger.js";
+import { createWorkers } from "./demo-pipeline.js";
 import type { LiveContext } from "./live.js";
 import type { PlatformContext } from "./platform.js";
 
-/** Background demo processing and retention over Postgres + the filesystem. */
-export function createWorkers(
-  db: Db,
-  options: JobOptions,
-  env: RuntimeEnv,
-  consent: ConsentLookup,
-  coach: OfflineCoach,
-  overrides: ApiConfig["overrides"] = {},
-  logger: Logger = silentLogger,
-) {
-  const storage = new FsObjectStorage(options.storageDir);
-  const replays = new FileReplayStorage(options.storageDir);
-  const parser =
-    overrides.demoParser ??
-    new ProcessDemoParser(
-      options.parserBin,
-      options.parserTimeoutMs,
-      () => env.raw().PATH,
-    );
-  return {
-    storage,
-    replays,
-    demos: new DemoProcessingWorker(
-      overrides.jobQueue ?? new PgJobQueueRepository(db),
-      consent,
-      parser,
-      storage,
-      replays,
-      coach,
-    ),
-    retention: new RetentionWorker(
-      new PgRetentionRepository(db),
-      storage,
-      replays,
-    ),
-    maintenance: [] as ScheduledJob[],
-    logger,
-  };
-}
+export { createWorkers } from "./demo-pipeline.js";
 
 /** Uploads, matches, analyses, coaching, AI status, feedback and replay (needs `jobs`). */
 export function createJobsContext(
@@ -126,7 +80,11 @@ export function createJobsContext(
     config.overrides,
     logger,
   );
-  const matches = new PgMatchesRepository(db);
+  // Every reader gets the full analysis (events re-attached from object storage).
+  const matches = new HydratingMatchesRepository(
+    new PgMatchesRepository(db),
+    workers.events,
+  );
   const uploads = new UploadService(
     matches,
     workers.storage,
@@ -134,6 +92,7 @@ export function createJobsContext(
     quota,
     platform.uploadLimits,
     new UploadRateLimiter(Date.now, config.overrides?.uploadRate),
+    workers.dedupe,
   );
   const sample = new SampleDemoService(
     new FileSampleDemoSource(() => env.sampleDemoFile()),
@@ -143,6 +102,7 @@ export function createJobsContext(
     privacy,
     quota,
     maxBytes,
+    workers.dedupe,
   );
   const coaching = new PgCoachingRepository(db);
   const coachPlans = new CoachPlansService(new PgCoachPlansRepository(db));
@@ -225,7 +185,13 @@ export function createJobsContext(
     maxBytes,
     workers,
     matchesController: new MatchesController(
-      new MatchesService(matches, workers.storage, platform.audit, logger),
+      new MatchesService(
+        matches,
+        workers.storage,
+        platform.audit,
+        logger,
+        workers.pipeline,
+      ),
       uploads,
       sample,
       guards,

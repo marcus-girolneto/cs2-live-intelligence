@@ -202,6 +202,11 @@ export const productPaths = {
       "Admin only: re-queue finished demo jobs whose demo file is still stored, optionally {ownerId}; returns {queued}",
     ),
   },
+  "/v1/admin/analyses/reprocess/status": {
+    get: operation(
+      "Admin only: automatic re-parse after a parser upgrade {pending,done,failed,currentVersion} (complete analyses by an older parser, by the current one, failed background re-parses)",
+    ),
+  },
   "/v1/admin/audit": {
     get: operation("Admin only: recent admin actions (no secrets)"),
   },

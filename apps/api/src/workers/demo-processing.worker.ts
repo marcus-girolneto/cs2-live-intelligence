@@ -3,8 +3,21 @@ import { analyzeDemo } from "@cs2/analytics";
 import type { OfflineCoach } from "../infrastructure/ai/coaching-ai-gateway.js";
 import type { DemoParser } from "../infrastructure/parser/demo-parser.js";
 import type { ReplayStorage } from "../infrastructure/storage/replay-storage.js";
-import type { JobQueueRepository } from "../modules/matches/job-queue.repository.js";
+import type {
+  JobOutcome,
+  JobQueueRepository,
+} from "../modules/matches/job-queue.repository.js";
 import type { ConsentLookup } from "../modules/privacy/privacy.repository.js";
+import type { AnalysisDedupe } from "../modules/matches/analysis-dedupe.js";
+import type { AnalysisEventsStore } from "../infrastructure/storage/events-storage.js";
+
+/** Optional pipeline stages (absent in tests that only exercise parsing). */
+export interface ProcessingPipeline {
+  /** Stores the analysis `events` in object storage instead of the database row. */
+  events?: Pick<AnalysisEventsStore, "write" | "remove">;
+  /** Completes fresh jobs whose demo was already analysed by the current parser. */
+  dedupe?: Pick<AnalysisDedupe, "tryComplete">;
+}
 
 export interface WorkerCounters {
   complete: number;
@@ -18,8 +31,10 @@ export interface DemoLocator {
 }
 
 /**
- * Processes one queued demo at a time: parse (with replay artifact) → consent re-check →
- * analytics → offline coaching → fenced completion. Failures store a safe message only.
+ * Processes one queued demo at a time: checksum dedupe (copy, no parse) or parse (with replay
+ * artifact) → consent re-check → analytics → offline coaching → events to object storage →
+ * fenced completion. Failures store a safe message only. Background re-parses after a parser
+ * upgrade take the same path; their failure keeps the previous analysis.
  */
 export class DemoProcessingWorker {
   readonly counters: WorkerCounters = { complete: 0, failed: 0, errors: 0 };
@@ -34,6 +49,7 @@ export class DemoProcessingWorker {
     private readonly demos: DemoLocator,
     private readonly replays: ReplayStorage,
     private readonly coach: OfflineCoach,
+    private readonly pipeline: ProcessingPipeline = {},
   ) {}
 
   /** Runs one job unless a run is in progress (then returns that run). */
@@ -49,12 +65,31 @@ export class DemoProcessingWorker {
     await this.current;
   }
 
+  /** Moves the bulky events out of the row when an events store is configured. */
+  private async outcome(
+    jobId: string,
+    analysis: ReturnType<typeof analyzeDemo>,
+    coaching: unknown,
+  ): Promise<JobOutcome> {
+    const { events, ...summary } = analysis;
+    if (!this.pipeline.events || !events) return { analysis, coaching };
+    const eventsCount = await this.pipeline.events.write(jobId, events);
+    return { analysis: summary, coaching, eventsCount };
+  }
+
   private async execute(): Promise<void> {
     this.running = true;
     try {
       const job = await this.queue.claim();
       if (!job) return;
       try {
+        if (
+          job.kind !== "reprocess" &&
+          (await this.pipeline.dedupe?.tryComplete(job))
+        ) {
+          this.counters.complete++;
+          return;
+        }
         const input = normalizedDemoSchema.parse(
           await this.parser.parse(
             this.demos.path(job.objectKey),
@@ -65,10 +100,18 @@ export class DemoProcessingWorker {
           throw new Error("Consent withdrawn");
         const analysis = analyzeDemo(input);
         const coaching = await this.coach.coach(analysis);
-        await this.queue.finish(job.id, job.leaseToken, { analysis, coaching });
+        await this.queue.finish(
+          job.id,
+          job.leaseToken,
+          await this.outcome(job.id, analysis, coaching),
+        );
         this.counters.complete++;
       } catch (error) {
-        await this.replays.remove(job.id).catch(() => undefined);
+        // A failed background re-parse keeps the stored analysis and its artifacts.
+        if (job.kind !== "reprocess") {
+          await this.replays.remove(job.id).catch(() => undefined);
+          await this.pipeline.events?.remove(job.id).catch(() => undefined);
+        }
         await this.queue.finish(job.id, job.leaseToken, {
           error: safeMessage(error),
         });

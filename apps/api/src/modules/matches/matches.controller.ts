@@ -9,6 +9,7 @@ import {
   type MatchListDto,
   type NewDemoJob,
   type ReprocessResultDto,
+  type ReprocessStatusDto,
   type SampleAvailabilityDto,
 } from "./matches.dto.js";
 import type { MatchesService } from "./matches.service.js";
@@ -93,6 +94,9 @@ export class MatchesController {
   get = async (
     request: FastifyRequest<{ Params: { id: string } }>,
   ): Promise<MatchDto> => this.matches.get(ownerOf(request), request.params.id);
+
+  reprocessStatus = async (): Promise<ReprocessStatusDto> =>
+    this.matches.reprocessStatus();
 
   reprocess = async (request: FastifyRequest): Promise<ReprocessResultDto> => {
     const body = parseDto(
