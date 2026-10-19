@@ -24,6 +24,9 @@ import { TeamReviewService } from "../modules/coaching/team-review.service.js";
 import { PgAutoReviewRepository } from "../modules/coaching/auto-review.repository.js";
 import { AutoReviewService } from "../modules/coaching/auto-review.service.js";
 import { CoachFollowUpWorker } from "../modules/coaching/follow-up.worker.js";
+import { AiQualityController } from "../modules/ai-config/ai-quality.controller.js";
+import { PgAiQualityRepository } from "../modules/ai-config/ai-quality.repository.js";
+import { AiQualityService } from "../modules/ai-config/ai-quality.service.js";
 import {
   CoachingAiGateway,
   type TeamAiGateway,
@@ -267,6 +270,14 @@ export function createJobsContext(
     reportsController: new ReportsController(reports, guards),
     ownership,
     autoReviews,
+    aiQualityController: new AiQualityController(
+      new AiQualityService(
+        new PgAiQualityRepository(db),
+        aiSettings,
+        matches,
+        platform.audit,
+      ),
+    ),
     followUp: new CoachFollowUpWorker(ownership, autoReviews, logger),
     coachExtrasController: new CoachExtrasController(
       ownership,

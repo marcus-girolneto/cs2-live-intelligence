@@ -156,6 +156,13 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
       "user-device",
       "user-device-token",
     );
+    await repo.seedDev(
+      "boss",
+      "boss-token",
+      "boss-device",
+      "boss-device-token",
+    );
+    await repo.pool.query("update users set role='admin' where id='boss'");
     directory = await mkdtemp(resolve(tmpdir(), "cs2-extras-"));
     server = createServer((req, res) => {
       let raw = "";
@@ -364,5 +371,83 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
     expect(await statuses([external])).toEqual([
       { jobId: external, status: "skipped", reason: "not_in_demo" },
     ]);
+  });
+
+  it("runs prompt A/B by traffic share, aggregates ratings and runs the AI eval (admin)", async () => {
+    const boss = { authorization: "Bearer boss-token" };
+    const adminCall = (
+      method: "GET" | "POST" | "PUT",
+      url: string,
+      payload?: unknown,
+    ) =>
+      app.inject({
+        method,
+        url,
+        headers: boss,
+        ...(payload !== undefined ? { payload: payload as object } : {}),
+      });
+    expect((await call("GET", "/v1/admin/ai/ratings")).statusCode).toBe(403);
+    expect(
+      (await adminCall("GET", "/v1/admin/ai/eval/latest")).statusCode,
+    ).toBe(404);
+    const ab = await adminCall("PUT", "/v1/admin/settings", {
+      promptAb: { review_team: 100 },
+    });
+    expect(ab.statusCode).toBe(200);
+    const id = await analysisFor("user");
+    await repo.grantCredits("user", 4);
+    const r = await call("POST", `/v1/analyses/${id}/team-review`, {
+      steamId: "a",
+    });
+    expect(r.json().teamReview.provenance).toMatchObject({
+      promptVersion: "igl-team-v1-b",
+      variant: "b",
+    });
+    expect(calls.find((c) => c.kind === "team")!.body).toContain("VARIANT B");
+    await call("POST", `/v1/coach/reviews/${r.json().reviewId}/rating`, {
+      rating: 4,
+    });
+    const ratings = (await adminCall("GET", "/v1/admin/ai/ratings")).json()
+      .ratings;
+    expect(ratings).toContainEqual({
+      purpose: "review_team",
+      variant: "b",
+      promptVersion: "igl-team-v1-b",
+      reviews: 1,
+      rated: 1,
+      avgRating: 4,
+    });
+    await adminCall("PUT", "/v1/admin/settings", { promptAb: {} });
+    const analysis = analyzeDemo(
+      JSON.parse(
+        await readFile(
+          resolve(
+            import.meta.dirname,
+            "../../../packages/contracts/fixtures/normalized-demo-enriched.json",
+          ),
+          "utf8",
+        ),
+      ),
+    );
+    const run = await adminCall("POST", "/v1/admin/ai/eval/run", {
+      langs: ["en"],
+      cases: [{ name: "fixture", analysis, steamId: "a" }],
+    });
+    expect(run.statusCode).toBe(200);
+    expect(
+      run
+        .json()
+        .runs.map((x: { purpose: string; ok: boolean }) => [x.purpose, x.ok]),
+    ).toEqual([
+      ["review_quick", true],
+      ["review_deep", true],
+      ["review_team", true],
+    ]);
+    const latest = await adminCall("GET", "/v1/admin/ai/eval/latest");
+    expect(latest.json().summary).toMatchObject({
+      runs: 3,
+      failed: 0,
+      cases: ["fixture"],
+    });
   });
 });

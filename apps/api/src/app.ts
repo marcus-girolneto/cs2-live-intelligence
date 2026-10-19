@@ -25,6 +25,7 @@ import {
 import { registerBillingRoutes } from "./modules/billing/billing.routes.js";
 import { registerCoachingRoutes } from "./modules/coaching/coaching.routes.js";
 import { registerCoachExtrasRoutes } from "./modules/coaching/coach-extras.routes.js";
+import { registerAiQualityRoutes } from "./modules/ai-config/ai-quality.controller.js";
 import { registerCreditsRoutes } from "./modules/credits/credits.routes.js";
 import { registerReportsRoutes } from "./modules/reports/reports.routes.js";
 import { registerPersonalCoachRoutes } from "./modules/personal-coach/personal-coach.routes.js";
@@ -78,6 +79,7 @@ async function registerJobs(
   registerAnalysesRoutes(app, jobs.analysesController, guards);
   registerCoachingRoutes(app, jobs.coachingController, guards);
   registerCoachExtrasRoutes(app, jobs.coachExtrasController, guards);
+  registerAiQualityRoutes(app, jobs.aiQualityController, guards);
   registerFeedbackRoutes(app, jobs.feedbackController, guards);
   registerAiStatusRoutes(app, jobs.aiStatusController, guards);
   registerReplayRoutes(app, jobs.replayController, guards.withStyle("coded"));
