@@ -267,7 +267,8 @@ describe.skipIf(!databaseUrl)(
         id,
         filename: "m.dem",
         objectKey: id + ".dem",
-        checksum: "x",
+        // Distinct files: jobs with one checksum are parsed one at a time (dedupe).
+        checksum: "x-" + id,
         size: 1,
       });
       const job = await repo.claimJob();
@@ -854,7 +855,7 @@ describe.skipIf(!databaseUrl)(
         id: failed,
         filename: "f.dem",
         objectKey: failed + ".dem",
-        checksum: "x",
+        checksum: "x-" + failed,
         size: 1,
       });
       const lease = await repo.claimJob();
@@ -867,7 +868,7 @@ describe.skipIf(!databaseUrl)(
         id: queuedId,
         filename: "q.dem",
         objectKey: queuedId + ".dem",
-        checksum: "x",
+        checksum: "x-" + queuedId,
         size: 1,
       });
       await writeFile(resolve(directory, queuedId + ".dem"), "demo");
