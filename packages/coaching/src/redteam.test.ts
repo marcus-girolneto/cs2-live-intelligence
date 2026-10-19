@@ -30,6 +30,12 @@ import {
   POST_MATCH_SYSTEM_PROMPT,
   REPORT_PROMPT_VERSION,
   REPORT_SYSTEM_PROMPT,
+  TEAM_PROMPT_VERSION,
+  TEAM_SYSTEM_PROMPT,
+  VERIFY_PROMPT_VERSION,
+  VERIFY_SYSTEM_PROMPT,
+  variantPrompt,
+  variantVersion,
   unwrapData,
   type AiConfig,
 } from "./index.js";
@@ -534,6 +540,11 @@ const PINNED: Record<string, string> = {
   [LIVE_PROMPT_VERSION]: "7e4a37307b04ea71",
   [REPORT_PROMPT_VERSION]: "476c2441476a2001",
   [PERSONAL_COACH_PROMPT_VERSION]: "0c436dd53a1883da",
+  [TEAM_PROMPT_VERSION]: "2bb5c420f002e4ec",
+  [VERIFY_PROMPT_VERSION]: "b721fd19305a2a92",
+  [variantVersion(POST_MATCH_PROMPT_VERSION, "b")]: "e1de6e3d1a124c2d",
+  [variantVersion(DEEP_PROMPT_VERSION, "b")]: "71ed06140506e009",
+  [variantVersion(TEAM_PROMPT_VERSION, "b")]: "f5262a09276c6117",
 };
 describe("prompt integrity", () => {
   const prompts: [string, string][] = [
@@ -542,6 +553,21 @@ describe("prompt integrity", () => {
     [LIVE_PROMPT_VERSION, LIVE_SYSTEM_PROMPT],
     [REPORT_PROMPT_VERSION, REPORT_SYSTEM_PROMPT],
     [PERSONAL_COACH_PROMPT_VERSION, PERSONAL_COACH_SYSTEM_PROMPT],
+    [TEAM_PROMPT_VERSION, TEAM_SYSTEM_PROMPT],
+    [VERIFY_PROMPT_VERSION, VERIFY_SYSTEM_PROMPT],
+    ...(
+      [
+        [POST_MATCH_PROMPT_VERSION, POST_MATCH_SYSTEM_PROMPT],
+        [DEEP_PROMPT_VERSION, DEEP_SYSTEM_PROMPT],
+        [TEAM_PROMPT_VERSION, TEAM_SYSTEM_PROMPT],
+      ] as const
+    ).map(
+      ([v, text]) =>
+        [variantVersion(v, "b"), variantPrompt(text, v, "b")] as [
+          string,
+          string,
+        ],
+    ),
   ];
   it.each(prompts)("%s is pinned to its hash", (version, text) => {
     const hash = createHash("sha256").update(text).digest("hex").slice(0, 16);

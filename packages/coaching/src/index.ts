@@ -80,6 +80,8 @@ export * from "./review-verify.js";
 export * from "./integrity.js";
 export * from "./plan-metrics.js";
 export * from "./variants.js";
+export * from "./team/index.js";
+export * from "./lobby.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */

@@ -35,6 +35,11 @@ TASK (reason internally; output only the final JSON):
 - When a claim is not supported but a faithful version is possible, write "correctedText": the same idea, same language and similar length, stating only what the facts support (fix or remove the wrong numbers or words). Otherwise "correctedText" is an empty string.
 - Do not add new advice, new facts or any id to "correctedText".
 
+EDGE CASES:
+- A claim that states no fact (pure advice): supported.
+- A claim that presents a fact with confidence "low" as a firm habit: not supported; correct it to hedged wording ("early sign", "indício").
+- Missing or empty facts for a claim with numbers: not supported, empty "correctedText".
+
 OUTPUT: {"results": [{"id": the claim id, "supported": true | false, "correctedText": string}]}, one result per claim, in the same order.${canaryLine(VERIFY_PROMPT_VERSION)}`;
 
 const VERIFY_SCHEMA = {
