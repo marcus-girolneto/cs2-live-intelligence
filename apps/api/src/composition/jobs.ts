@@ -3,6 +3,10 @@ import type { RuntimeEnv } from "../config/env.js";
 import { AnalysesController } from "../modules/analyses/analyses.controller.js";
 import { AnalysesService } from "../modules/analyses/analyses.service.js";
 import { HydratingMatchesRepository } from "../modules/analyses/analysis-reader.js";
+import { SteamPlayerBans } from "../infrastructure/steam/player-bans.js";
+import { BanCheckJob } from "../modules/integrity/ban-check.job.js";
+import { PgIntegrityRepository } from "../modules/integrity/integrity.repository.js";
+import { IntegrityService } from "../modules/integrity/integrity.service.js";
 import { AiStatusController } from "../modules/ai-config/ai-status.controller.js";
 import { PgCoachPlansRepository } from "../modules/coaching/coach-plans.repository.js";
 import { CoachPlansService } from "../modules/coaching/coach-plans.service.js";
@@ -92,10 +96,13 @@ export function createJobsContext(
     config.overrides,
     logger,
   );
-  // Every reader gets the full analysis (events re-attached from object storage).
+  // Every reader gets the full analysis (events re-attached from object storage, Steam bans
+  // merged into integrity).
+  const integrityRepository = new PgIntegrityRepository(db);
   const matches = new HydratingMatchesRepository(
     new PgMatchesRepository(db),
     workers.events,
+    integrityRepository,
   );
   const uploads = new UploadService(
     matches,
@@ -223,13 +230,30 @@ export function createJobsContext(
     clock,
     logger,
   );
-  const daily = new DailyJobsWorker(
+  const accountJobs = new DailyJobsWorker(
     plans,
     credits.credits,
     reports,
     logger,
     personalCoach,
   );
+  // Steam ban checks of match participants need the internet: API process, hourly.
+  const banChecks = new BanCheckJob(
+    integrityRepository,
+    new SteamPlayerBans(
+      () => platform.integrationConfig.steamWebApiKey(),
+      () => config.steamFetch ?? fetch,
+    ),
+    logger,
+  );
+  const daily = {
+    async run(): Promise<void> {
+      await accountJobs.run();
+      await banChecks.run().catch((error: unknown) => {
+        logger.info({ err: String(error) }, "steam ban checks failed");
+      });
+    },
+  };
   return {
     maxBytes,
     workers,
@@ -248,6 +272,7 @@ export function createJobsContext(
     analysesController: new AnalysesController(
       new AnalysesService(matches),
       guards,
+      new IntegrityService(matches, integrityRepository),
     ),
     aiStatusController: new AiStatusController(aiAccess, guards),
     coachingController: new CoachingController(

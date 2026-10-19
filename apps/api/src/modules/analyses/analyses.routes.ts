@@ -12,4 +12,9 @@ export function registerAnalysesRoutes(
     { preHandler: guards.requireUser },
     controller.get,
   );
+  app.get<{ Params: { id: string } }>(
+    "/v1/analyses/:id/integrity",
+    { preHandler: guards.requireUser },
+    controller.integrity,
+  );
 }

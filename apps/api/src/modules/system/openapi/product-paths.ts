@@ -54,6 +54,12 @@ export const productPaths = {
       { parameters: id },
     ),
   },
+  "/v1/analyses/{id}/integrity": {
+    get: operation(
+      "Uploader only (404 otherwise): statistically unusual play in this match, never an accusation {players:[{steamId,level:none|low|elevated|high,reasons:[{code,value,threshold,n}]}], bannedAfterMatch:[{steamId,vacBans,gameBans,daysSinceLastBan,bannedAfterMatch}], checkedAt} (docs/INTEGRITY.md)",
+      { parameters: id },
+    ),
+  },
   "/v1/analyses/{id}/replay/meta": {
     get: operation(
       "Owner replay metadata: map, tickRate, sampleHz, rounds {number,duration,winner,ct,t}, players {steamId,name,team}, bounds, cell and outline [[x,y]] (occupancy cell centers); 404 when no replay is stored",
