@@ -325,53 +325,6 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
-.line-chart svg {
-  width: 100%;
-  height: auto;
-}
-.lc-grid {
-  stroke: rgba(160, 180, 205, 0.1);
-}
-.lc-tick {
-  fill: var(--text-3);
-  font-size: 11px;
-}
-.lc-line {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-  stroke-dasharray: 2000;
-  animation: draw 1.2s var(--ease) both;
-}
-@keyframes draw {
-  from {
-    stroke-dashoffset: 2000;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-.lc-area {
-  animation: fade 1s var(--ease) both;
-}
-.lc-dot {
-  fill: var(--bg);
-  stroke: var(--accent);
-  stroke-width: 2.5;
-  transition: r 0.15s;
-}
-.line-chart a:hover .lc-dot,
-.line-chart a:focus .lc-dot {
-  r: 7;
-  fill: var(--accent);
-}
-.lc-val {
-  fill: var(--text);
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 13px;
-}
 .review-list {
   list-style: none;
   margin: 0;

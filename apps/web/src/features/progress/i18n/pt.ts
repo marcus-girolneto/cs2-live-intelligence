@@ -23,4 +23,53 @@ export const pt: Record<string, string> = {
   "Tell the coach which player you are": "Diga ao coach qual jogador é você",
   "What the coach learned about you": "O que o coach aprendeu sobre você",
   "Your progress": "Seu progresso",
+  "Did you apply it?": "Você aplicou?",
+  "Which player are you in these demos?": "Qual jogador é você nessas demos?",
+  "Progress follows one player across your matches. Pick yourself once — you can change it later in Settings.":
+    "A evolução acompanha um jogador em todas as suas partidas. Escolha você uma vez — dá para mudar depois nas Configurações.",
+  "{n} reviews": "{n} reviews",
+  Summary: "Resumo",
+  "One match so far": "Só uma partida até agora",
+  "No change": "Sem mudança",
+  "from {from}": "antes {from}",
+  "Plan adherence": "Plano aplicado",
+  "{applied} of {checked} tips applied":
+    "{applied} de {checked} dicas aplicadas",
+  "Checked on your next match": "Verificado na sua próxima partida",
+  Order: "Ordem",
+  "Oldest first": "Mais antigas primeiro",
+  "Newest first": "Mais recentes primeiro",
+  History: "Histórico",
+  "Reviews, ratings, live calls and what the coach learned":
+    "Reviews, notas, calls ao vivo e o que o coach aprendeu",
+  "Your matches in order, what the coach asked you to fix, and whether you did it.":
+    "Suas partidas em ordem, o que o coach pediu para corrigir e se você corrigiu.",
+  "No matches on {map} yet": "Ainda sem partidas em {map}",
+  "No matches yet": "Ainda sem partidas",
+  "Upload a demo you played in. After your second match you'll see whether you applied the coach's plan.":
+    "Envie uma demo em que você jogou. A partir da segunda partida você vê se aplicou o plano do coach.",
+  "Upload your next match to see if you applied the plan.":
+    "Envie sua próxima partida para ver se você aplicou o plano.",
+  "Unknown date": "Data desconhecida",
+  Draw: "Empate",
+  Win: "Vitória",
+  Loss: "Derrota",
+  "The coach reviewed this match.": "O coach analisou esta partida.",
+  "Plan for the next match": "Plano para a próxima partida",
+  Applied: "Aplicou",
+  Partly: "Em parte",
+  "Not applied": "Não aplicou",
+  "Not enough data": "Dados insuficientes",
+  "Over your last {n} matches your ADR went from {from} to {to}.":
+    "Nas suas últimas {n} partidas seu ADR foi de {from} para {to}.",
+  "Over your last {n} matches your K/D went from {from} to {to}.":
+    "Nas suas últimas {n} partidas seu K/D foi de {from} para {to}.",
+  "You applied {applied} of {checked} coach tips.":
+    "Você aplicou {applied} de {checked} dicas do coach.",
+  "better than the previous match": "melhor que a partida anterior",
+  "worse than the previous match": "pior que a partida anterior",
+  "Crosshair offset": "Desvio da mira",
+  "Isolated deaths": "Mortes isoladas",
+  "{n} match": "{n} partida",
+  "{n} review": "{n} review",
 };

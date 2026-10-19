@@ -47,6 +47,8 @@ export const Close = icon(<path d="M6 6l12 12M18 6 6 18" />);
 export const ChevronRight = icon(<path d="m9 5 7 7-7 7" />);
 export const ChevronDown = icon(<path d="m5 9 7 7 7-7" />);
 export const ArrowRight = icon(<path d="M4 12h15M13 6l6 6-6 6" />);
+export const ArrowUp = icon(<path d="M12 20V5M6 11l6-6 6 6" />);
+export const ArrowDown = icon(<path d="M12 4v15M6 13l6 6 6-6" />);
 export const Check = icon(<path d="m4.5 12.5 5 5 10-11" />);
 export const Alert = icon(
   <>

@@ -2,7 +2,9 @@
 import { useI18n } from "@/shared/i18n";
 import { Brain } from "@/shared/icons";
 import { Panel } from "@/shared/ui";
-import type { Profile } from "../model/chart";
+import type { Progress } from "@/features/maps";
+
+type Profile = NonNullable<Progress["profile"]>;
 /** Tendencies and recurring patterns the coach learned. */
 export function LearnedPanel({ profile }: { profile: Profile }) {
   const { t } = useI18n();

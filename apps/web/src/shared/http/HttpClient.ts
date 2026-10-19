@@ -1,7 +1,7 @@
 import { ApiError } from "./ApiError";
 import { ensureLocalSession } from "./localSession";
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type Query = Record<string, string | number | undefined>;
 
 export type RequestOptions = {
@@ -28,6 +28,11 @@ export interface HttpClient {
     options?: Omit<RequestOptions, "method" | "json">,
   ): Promise<T>;
   put<T>(
+    path: string,
+    json?: unknown,
+    options?: Omit<RequestOptions, "method" | "json">,
+  ): Promise<T>;
+  patch<T>(
     path: string,
     json?: unknown,
     options?: Omit<RequestOptions, "method" | "json">,
@@ -124,6 +129,13 @@ export class FetchHttpClient implements HttpClient {
     options?: Omit<RequestOptions, "method" | "json">,
   ) {
     return this.request<T>(path, { ...options, method: "PUT", json });
+  }
+  patch<T>(
+    path: string,
+    json?: unknown,
+    options?: Omit<RequestOptions, "method" | "json">,
+  ) {
+    return this.request<T>(path, { ...options, method: "PATCH", json });
   }
   delete<T>(path: string, options?: Omit<RequestOptions, "method">) {
     return this.request<T>(path, { ...options, method: "DELETE" });

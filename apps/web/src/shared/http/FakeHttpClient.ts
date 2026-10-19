@@ -44,6 +44,13 @@ export class FakeHttpClient implements HttpClient {
   ) {
     return this.request<T>(path, { ...options, method: "PUT", json });
   }
+  patch<T>(
+    path: string,
+    json?: unknown,
+    options?: Omit<RequestOptions, "method" | "json">,
+  ) {
+    return this.request<T>(path, { ...options, method: "PATCH", json });
+  }
   delete<T>(path: string, options?: Omit<RequestOptions, "method">) {
     return this.request<T>(path, { ...options, method: "DELETE" });
   }

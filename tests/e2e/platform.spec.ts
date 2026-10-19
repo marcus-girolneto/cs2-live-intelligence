@@ -188,6 +188,8 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   });
   // Progress: the review, its plan, the rating and the learned profile are persisted.
   await page.goto("/progress");
+  // The archive (learned profile, reviews with ratings) sits in the collapsed History.
+  await page.locator(".progress-history > summary").click();
   await expect(
     page.getByRole("heading", { name: "What the coach learned about you" }),
   ).toBeVisible();
