@@ -47,6 +47,18 @@ flowchart LR
   coaching -- CoachingQuota --> usage
   coaching -- CoachingFeatures --> plans
   coaching -- AiAccess --> aiconfig[ai-config]
+  coaching -- CoachingCredits --> credits
+  coaching -- DeepReplaySource --> replay
+  credits -- CreditPlans --> plans
+  credits -- ProfileSource --> users
+  auth -- SignInListener --> credits
+  users -- ProfileListener --> credits
+  billing -- BillingCredits --> credits
+  plans -- PlanGrantListener --> credits
+  usage -- SafetyCap --> credits
+  reports -- ReportSources --> coaching
+  personalcoach[personal-coach] -- PersonalCoachInputs --> coaching
+  personalcoach -- AiAccess --> aiconfig
   analyses -- AnalysisReader --> matches
   replay -- ReplayRepository --> matches
   matches -- UploadQuota --> usage
@@ -75,36 +87,61 @@ Guards: **user** = `AuthGuards.requireUser` (Bearer session token), **admin** =
 `requireAdmin`, **device** = `requireDevice` (collector token), **public** = none. "coded"
 marks routes whose errors always include `code` (see ADR-004, preserved quirks).
 
-| Module    | Method & path                                                                                                                                                                                                                 | Guard                             |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| system    | GET `/health`, `/ready`, `/metrics`, `/openapi.json`                                                                                                                                                                          | public                            |
-| auth      | POST `/v1/auth/logout`                                                                                                                                                                                                        | user                              |
-| auth      | GET `/v1/auth/steam/start`, GET `/v1/auth/steam/callback`, POST `/v1/auth/exchange`                                                                                                                                           | public (per-IP rate limit 30/min) |
-| users     | GET `/v1/me`, POST `/v1/me/refresh-profile`                                                                                                                                                                                   | user                              |
-| privacy   | GET `/v1/settings`, PUT `/v1/settings`, DELETE `/v1/account`                                                                                                                                                                  | user                              |
-| devices   | GET `/v1/devices`, POST `/v1/devices/pair`, POST `/v1/devices/:id/rotate`, DELETE `/v1/devices/:id`                                                                                                                           | user                              |
-| devices   | POST `/v1/devices/claim`                                                                                                                                                                                                      | public (per-IP rate limit)        |
-| telemetry | POST `/v1/telemetry/gsi`                                                                                                                                                                                                      | device                            |
-| live      | GET `/v1/live/sessions`, GET `/v1/live/sessions/:id`, POST `/v1/live/tickets`                                                                                                                                                 | user                              |
-| live      | GET `/v1/live` (WebSocket)                                                                                                                                                                                                    | Origin + single-use ticket        |
-| matches   | POST `/v1/demos/uploads` (streaming, `onRequest` admission)                                                                                                                                                                   | user                              |
-| matches   | GET `/v1/demos/sample`, POST `/v1/demos/sample`, GET `/v1/matches`, GET `/v1/matches/:id`                                                                                                                                     | user                              |
-| matches   | POST `/v1/admin/analyses/reprocess`                                                                                                                                                                                           | admin                             |
-| analyses  | GET `/v1/analyses/:id`                                                                                                                                                                                                        | user                              |
-| replay    | GET `/v1/analyses/:id/replay/meta`, GET `/v1/analyses/:id/replay`                                                                                                                                                             | user (coded)                      |
-| coaching  | GET/PUT `/v1/coach/profile`, GET `/v1/coach/progress`, POST `/v1/coach/reviews/:id/rating`                                                                                                                                    | user                              |
-| coaching  | POST `/v1/analyses/:id/coaching`, POST `/v1/ai/live-call`                                                                                                                                                                     | user (AI errors coded)            |
-| ai-config | GET `/v1/ai/status`                                                                                                                                                                                                           | user                              |
-| ai-config | POST `/v1/ai/test`                                                                                                                                                                                                            | admin                             |
-| ai-config | GET/POST `/v1/admin/ai/providers`, PUT/DELETE `/v1/admin/ai/providers/:id`, POST `/v1/admin/ai/providers/:id/test`, GET `/v1/admin/ai/providers/:id/models`, GET/PUT `/v1/admin/ai/assignments`, GET/PUT `/v1/admin/settings` | admin                             |
-| admin     | GET `/v1/admin/users`, PUT `/v1/admin/users/:id/role`, GET `/v1/admin/audit`                                                                                                                                                  | admin                             |
-| plans     | GET `/v1/plans`                                                                                                                                                                                                               | user (coded)                      |
-| plans     | GET `/v1/admin/plans`, PUT `/v1/admin/plans`, PUT `/v1/admin/plans/:id`, PUT `/v1/admin/users/:id/plan`                                                                                                                       | admin (coded)                     |
-| billing   | GET `/v1/billing/status`, POST `/v1/billing/checkout`, POST `/v1/billing/portal`                                                                                                                                              | user (coded)                      |
-| billing   | POST `/v1/billing/webhook` (raw body, Stripe signature)                                                                                                                                                                       | public                            |
-| feedback  | POST `/v1/feedback`, POST `/v1/events`                                                                                                                                                                                        | user                              |
+| Module         | Method & path                                                                                                                                                                                                                 | Guard                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| system         | GET `/health`, `/ready`, `/metrics`, `/openapi.json`                                                                                                                                                                          | public                            |
+| auth           | POST `/v1/auth/logout`                                                                                                                                                                                                        | user                              |
+| auth           | GET `/v1/auth/steam/start`, GET `/v1/auth/steam/callback`, POST `/v1/auth/exchange`                                                                                                                                           | public (per-IP rate limit 30/min) |
+| users          | GET `/v1/me`, POST `/v1/me/refresh-profile`                                                                                                                                                                                   | user                              |
+| privacy        | GET `/v1/settings`, PUT `/v1/settings`, DELETE `/v1/account`                                                                                                                                                                  | user                              |
+| devices        | GET `/v1/devices`, POST `/v1/devices/pair`, POST `/v1/devices/:id/rotate`, DELETE `/v1/devices/:id`                                                                                                                           | user                              |
+| devices        | POST `/v1/devices/claim`                                                                                                                                                                                                      | public (per-IP rate limit)        |
+| telemetry      | POST `/v1/telemetry/gsi`                                                                                                                                                                                                      | device                            |
+| live           | GET `/v1/live/sessions`, GET `/v1/live/sessions/:id`, POST `/v1/live/tickets`                                                                                                                                                 | user                              |
+| live           | GET `/v1/live` (WebSocket)                                                                                                                                                                                                    | Origin + single-use ticket        |
+| matches        | POST `/v1/demos/uploads` (streaming, `onRequest` admission)                                                                                                                                                                   | user                              |
+| matches        | GET `/v1/demos/sample`, POST `/v1/demos/sample`, GET `/v1/matches`, GET `/v1/matches/:id`                                                                                                                                     | user                              |
+| matches        | POST `/v1/admin/analyses/reprocess`                                                                                                                                                                                           | admin                             |
+| analyses       | GET `/v1/analyses/:id`                                                                                                                                                                                                        | user                              |
+| replay         | GET `/v1/analyses/:id/replay/meta`, GET `/v1/analyses/:id/replay`                                                                                                                                                             | user (coded)                      |
+| coaching       | GET/PUT `/v1/coach/profile`, GET `/v1/coach/progress`, POST `/v1/coach/reviews/:id/rating`                                                                                                                                    | user                              |
+| coaching       | POST `/v1/analyses/:id/coaching`, POST `/v1/ai/live-call`                                                                                                                                                                     | user (AI errors coded)            |
+| ai-config      | GET `/v1/ai/status`                                                                                                                                                                                                           | user                              |
+| ai-config      | POST `/v1/ai/test`                                                                                                                                                                                                            | admin                             |
+| ai-config      | GET/POST `/v1/admin/ai/providers`, PUT/DELETE `/v1/admin/ai/providers/:id`, POST `/v1/admin/ai/providers/:id/test`, GET `/v1/admin/ai/providers/:id/models`, GET/PUT `/v1/admin/ai/assignments`, GET/PUT `/v1/admin/settings` | admin                             |
+| admin          | GET `/v1/admin/users`, PUT `/v1/admin/users/:id/role`, GET `/v1/admin/audit`                                                                                                                                                  | admin                             |
+| plans          | GET `/v1/plans`                                                                                                                                                                                                               | user (coded)                      |
+| plans          | GET `/v1/admin/plans`, PUT `/v1/admin/plans`, PUT `/v1/admin/plans/:id`, PUT `/v1/admin/users/:id/plan`                                                                                                                       | admin (coded)                     |
+| billing        | GET `/v1/billing/status`, POST `/v1/billing/checkout`, POST `/v1/billing/portal`                                                                                                                                              | user (coded)                      |
+| billing        | POST `/v1/billing/credits/checkout` (one-time credit packs)                                                                                                                                                                   | user (coded)                      |
+| credits        | GET `/v1/credits/ledger`                                                                                                                                                                                                      | user (coded)                      |
+| credits        | GET `/v1/credits/packs`                                                                                                                                                                                                       | public                            |
+| credits        | GET/PUT `/v1/admin/credits/settings`, GET/PUT `/v1/admin/credits/packs`, GET `/v1/admin/users/:id/ledger`, POST `/v1/admin/users/:id/credits`                                                                                 | admin (coded)                     |
+| coaching       | GET `/v1/analyses/:id/reviews`, GET `/v1/analyses/:id/reel` (Pro)                                                                                                                                                             | user                              |
+| reports        | GET `/v1/reports`, GET `/v1/reports/:id`, POST `/v1/reports/generate` (Pro)                                                                                                                                                   | user (coded)                      |
+| personal-coach | GET `/v1/coach/personal`, POST `/v1/coach/personal/generate` (Pro)                                                                                                                                                            | user (coded)                      |
+| ai-config      | POST `/v1/admin/ai/test` (per-purpose connectivity check)                                                                                                                                                                     | admin                             |
+| billing        | POST `/v1/billing/webhook` (raw body, Stripe signature)                                                                                                                                                                       | public                            |
+| feedback       | POST `/v1/feedback`, POST `/v1/events`                                                                                                                                                                                        | user                              |
 
-`usage` has no routes: it provides daily plan quotas (`QuotaService`) to matches and coaching.
+`usage` has no routes: it provides daily plan quotas (`QuotaService`) to matches and coaching
+(AI reviews: the per-account daily safety cap from the credit settings).
+
+### Credits
+
+`credit_ledger` is append-only and the source of truth; `credit_wallets` holds the per-bucket
+balances, updated in the same transaction as each ledger row under `SELECT … FOR UPDATE`.
+AI reviews reserve their cost as a `credit_holds` row before the model call, commit it as
+`review_quick`/`review_deep` ledger spends (`ref = <reviewId>:<bucket>`) after the review is
+saved, or release it on failure; holds expire after 10 minutes. Spend order: plan (expires at
+the period end, no rollover) → bonus → purchased. Ledger idempotency: unique
+`(owner_id, reason, ref)`. Plan credits are granted per subscription period (`ref =
+period:<plan>:<start>`; Stripe periods anchored on `current_period_end`, admin grants on
+calendar months in the app time zone) by webhooks, admin grants and the hourly job.
+Welcome credits are granted once per Steam id ever: `welcome_grants` stores only
+HMAC-SHA256(steamid) and HMAC(/24 IPv4 or /48 IPv6 prefix) with a key derived from
+`APP_ENCRYPTION_KEY`, is not linked to the account and survives account deletion (privacy:
+the HMAC cannot be reversed without the server key and identifies no account).
 
 ## Request lifecycle: `POST /v1/analyses/:id/coaching`
 
@@ -113,11 +150,14 @@ marks routes whose errors always include `code` (see ADR-004, preserved quirks).
 2. **Controller** (`CoachingController.review`) — `parseDto(reviewRequestSchema)` → 400
    `"Invalid player"`; builds a `ViewerPolicy` from the caller's role.
 3. **Service** (`ReviewService.review`) — loads the owner's analysis (`AnalysisHistory`, 404),
-   checks the player exists (404), reserves one plan unit (`CoachingQuota`, 402 `plan_limit`),
-   acquires a configured model within the daily cap (`AiAccess`, 503/429), builds
+   checks the player exists (404), reserves one unit of the daily safety cap (`CoachingQuota`,
+   402 `plan_limit`), reserves the tier's credits (`CoachingCredits`, 402
+   `insufficient_credits`), acquires the purpose's model (`review_quick`/`review_deep`) within
+   the daily cap (`AiAccess`, 503/429), computes the deep modules from the replay for deep
+   reviews, builds
    personalization, calls the model through `AiGateway`, saves the review
-   (`CoachingRepository`), logs, and maps the response through `ViewerPolicy`. Any failure
-   releases the reservation and is mapped by `aiRequestError` (504/409/502, `code: ai_*`).
+   (`CoachingRepository`), commits the credits, logs, and maps the response through
+   `ViewerPolicy`. Any failure releases the credit hold and the reservation and is mapped by `aiRequestError` (504/409/502, `code: ai_*`).
 4. **Error handler** (`shared/errors/error-handler.ts`) — the single place mapping `AppError`
    to status + body (+ headers such as `retry-after`).
 
