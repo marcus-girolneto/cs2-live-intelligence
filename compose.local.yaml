@@ -75,7 +75,7 @@ services:
       APP_ENV: ${APP_ENV:-local}
       # No development identities or tokens in the worker.
       ALLOW_DEV_AUTH: "false"
-      DATABASE_URL: <DB_CONNECTION_STRING>/cs2live
+      DATABASE_URL: postgres://cs2:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/cs2live
       OBJECT_STORAGE_DIR: /data/objects
       DEMO_PARSER_BIN: /usr/local/bin/demo-parser-sandbox
     networks: [parser]
