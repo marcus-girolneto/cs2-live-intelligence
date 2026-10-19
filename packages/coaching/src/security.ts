@@ -419,6 +419,12 @@ const MODEL_NAMES =
 /** Cheats, exploits and hidden-information tricks (EN/PT). */
 const CHEATS =
   /\b(?:wall\s?hacks?|aim\s?bots?|trigger\s?bots?|spin\s?bots?|esp hacks?|radar\s?hacks?|cheat(?:s|ing)? (?:software|client|config|menu)|hack(?:s|ing)? (?:client|tool)|ghosting|ghostar|stream\s?snip\w*|(?:bug|glitch|game|map)\s?exploits?|exploit(?:ing|ar)? (?:a |the |um |o )?(?:bug|glitch)|use (?:an |um )?exploits?|(?:spray|recoil|no[-\s]?recoil|bhop|bunny\s?hop|jump)\s?(?:scripts?|macros?)|(?:scripts?|macros?) (?:for|to|de|para) (?:spray|recoil|bhop|jump)|smurf(?:ing|ar)?|account sharing|compartilh\w* (?:de )?conta|vac bypass|injector|dll inject\w*)\b/i;
+/**
+ * Accusations against players (EN/PT): the coach never calls anyone a cheater. The app's own
+ * fixed neutral caveat about unusual opponents is added after this check.
+ */
+const ACCUSATION =
+  /\b(?:cheaters?|cheating|cheatando|cheats?|hackers?|hacking|hackeando|hackead[oa]|hacks|wall\s?hacks?|aim\s?bots?|trapac\w*|trapaceir[oa]s?|xiter\w*|xitad[oa]s?|(?:de|com|usando|tava de|t[aá] de|estava de|ligou o|ligou a) wall|wall ligad[oa])\b/i;
 /** The model describing itself or its instructions. */
 const SELF_DISCLOSURE =
   /\b(?:my|these|the above|minhas|essas|as minhas)\s+(?:system\s+)?(?:instructions|prompt|rules|guidelines|instrucoes|regras|diretrizes)\b|\bas an ai\b|\bcomo (?:uma |um )?(?:ia|inteligencia artificial)\b|\bi(?:'m| am) (?:an? )?(?:ai|language model|assistant)\b/;
@@ -480,6 +486,8 @@ export function inspectOutputText(
     return { text: "", drop: "model_name" };
   if (CHEATS.test(norm) || CHEATS.test(skel))
     return { text: "", drop: "cheat" };
+  if (ACCUSATION.test(norm) || ACCUSATION.test(skel))
+    return { text: "", drop: "accusation" };
   if (SELF_DISCLOSURE.test(skel)) return { text: "", drop: "self_disclosure" };
   let text = norm
     .replace(CODE_FENCE, " ")

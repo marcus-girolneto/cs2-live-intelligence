@@ -284,8 +284,19 @@ describe("v5 review building", () => {
       "Avoid dry peeks at TopofMid",
     ]);
     expect(parsed.planItems).toEqual([
-      { text: "Trade your entry", scope: "general" },
-      { text: "Avoid dry peeks at TopofMid", scope: "map", map: "de_mirage" },
+      {
+        text: "Trade your entry",
+        scope: "general",
+        targetMetric: "tradedDeathsPct",
+        direction: "up",
+      },
+      {
+        text: "Avoid dry peeks at TopofMid",
+        scope: "map",
+        map: "de_mirage",
+        targetMetric: "none",
+        direction: "up",
+      },
     ]);
     expect(parsed.scores).toEqual(playerScores(a, "a"));
     expect(parsed.caveats.join(" ")).toContain("1 AI point");
@@ -316,7 +327,12 @@ describe("v5 review building", () => {
     );
     const parsed = coachingSchema.parse(review);
     expect(parsed.planItems).toEqual([
-      { text: "Legacy item", scope: "general" },
+      {
+        text: "Legacy item",
+        scope: "general",
+        targetMetric: "none",
+        direction: "up",
+      },
     ]);
     expect(parsed.keyMoments).toBeUndefined();
     expect(parsed.drills).toBeUndefined();
@@ -407,7 +423,7 @@ describe("v5 review building", () => {
     expect(r.coaching.keyMoments).toHaveLength(1);
     expect(r.coaching.verdict).toBe("Strong openings; trade your deaths.");
     expect(r.coaching.scores).toBeDefined();
-    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v7");
+    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v8");
   });
 });
 

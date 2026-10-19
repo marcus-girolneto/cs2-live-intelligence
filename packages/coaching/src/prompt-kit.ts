@@ -20,7 +20,13 @@ import {
 } from "./security.js";
 
 export type AiPurposeName =
-  "review_quick" | "review_deep" | "live" | "report" | "personal_coach";
+  | "review_quick"
+  | "review_deep"
+  | "review_team"
+  | "verify"
+  | "live"
+  | "report"
+  | "personal_coach";
 
 /**
  * Per-purpose budgets. maxInputBytes caps the sealed DATA block (on top of the configured
@@ -36,6 +42,8 @@ export const PURPOSE_LIMITS: Record<
 > = {
   review_quick: { maxInputBytes: 300_000, maxOutputTokens: 16_000 },
   review_deep: { maxInputBytes: 600_000, maxOutputTokens: 24_000 },
+  review_team: { maxInputBytes: 600_000, maxOutputTokens: 24_000 },
+  verify: { maxInputBytes: 200_000, maxOutputTokens: 8_000 },
   live: { maxInputBytes: 40_000, maxOutputTokens: 8_000 },
   report: { maxInputBytes: 150_000, maxOutputTokens: 12_000 },
   personal_coach: { maxInputBytes: 200_000, maxOutputTokens: 16_000 },

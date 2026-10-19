@@ -1,6 +1,7 @@
 import {
   analysisSchema,
   coachingSchema,
+  TARGET_METRICS,
   type Analysis,
   type Coaching,
 } from "@cs2/contracts";
@@ -30,6 +31,19 @@ import {
 } from "./learn.js";
 import { deepContext, type DeepResult } from "./deep/index.js";
 import { DEEP_PROMPT_VERSION, DEEP_SYSTEM_PROMPT } from "./prompts-deep.js";
+import { enforceConfidence, sampled, type SampledFact } from "./confidence.js";
+import { UNUSUAL_OPPONENT_CAVEAT } from "./integrity.js";
+import { planTarget } from "./plan-metrics.js";
+import {
+  claimContext,
+  verifyCoaching,
+  type VerifyOptions,
+} from "./review-verify.js";
+import {
+  variantPrompt,
+  variantVersion,
+  type PromptVariant,
+} from "./variants.js";
 import {
   insightClips,
   isMapEvidence,
@@ -59,6 +73,13 @@ export * from "./personal-coach.js";
 export * from "./personal-coach-ai.js";
 export * from "./security.js";
 export * from "./prompt-kit.js";
+export * from "./confidence.js";
+export * from "./claims.js";
+export * from "./verify.js";
+export * from "./review-verify.js";
+export * from "./integrity.js";
+export * from "./plan-metrics.js";
+export * from "./variants.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */
@@ -73,6 +94,15 @@ export interface CoachingOptions {
   /** Review tier (default quick). Deep needs `deep` (computeDeep) for the focus player. */
   tier?: "quick" | "deep";
   deep?: DeepResult;
+  /**
+   * Deaths already removed from `input` by fairAnalysis (unusual opponents): their kill event
+   * ids and rounds. The model only gets a count and a per-round boolean.
+   */
+  fair?: { excluded: string[]; rounds: number[] };
+  /** Claim checks (+ verifier model when `config` is set); absent = not verified. */
+  verify?: VerifyOptions;
+  /** Prompt A/B variant (default "a"). */
+  variant?: PromptVariant;
 }
 /** Item caps per tier (the contract allows the deep maxima). */
 export const TIER_LIMITS = {
@@ -199,8 +229,13 @@ const DRILL_AREAS = [
 const planItem = {
   type: "object",
   additionalProperties: false,
-  required: ["text", "scope"],
-  properties: { text: string, scope },
+  required: ["text", "scope", "targetMetric", "direction"],
+  properties: {
+    text: string,
+    scope,
+    targetMetric: { type: "string", enum: [...TARGET_METRICS] },
+    direction: { type: "string", enum: ["up", "down"] },
+  },
 };
 export const coachingOutputSchema = {
   type: "object",
@@ -296,12 +331,7 @@ function factsFor(analysis: Analysis, focus?: Analysis["players"][number]) {
     : undefined;
   return analysis.evidence
     .filter((e) => e.value !== undefined && (!ids || ids.has(e.id)))
-    .map((e) => ({
-      id: e.id,
-      kind: e.kind,
-      value: e.value,
-      description: e.description,
-    }));
+    .map(sampled);
 }
 
 export type AiCoachingResult = {
@@ -332,14 +362,9 @@ export async function aiCoaching(
     ? analysis.players.find((p) => p.steamId === options.focusSteamId)
     : undefined;
   if (options.focusSteamId && !focus) throw new Error("Unknown player");
-  const facts = [
+  const facts: SampledFact[] = [
     ...factsFor(parsed, focus),
-    ...(deep?.evidence ?? []).map((e) => ({
-      id: e.id,
-      kind: e.kind,
-      value: e.value,
-      description: e.description,
-    })),
+    ...(deep?.evidence ?? []).map(sampled),
   ];
   if (!facts.length)
     throw new AiError(
@@ -359,6 +384,11 @@ export async function aiCoaching(
     perMap,
   );
   const candidates = focus ? momentCandidates(analysis, focus.steamId) : [];
+  const fairRounds = new Set(
+    options.fair?.excluded.length ? options.fair.rounds : [],
+  );
+  const variant = options.variant ?? "a";
+  const baseVersion = deep ? DEEP_PROMPT_VERSION : POST_MATCH_PROMPT_VERSION;
   // Player names are deliberately never sent (prompt-injection isolation); every string left
   // is sanitised again by secureModelCall (identifiers allowlisted, free text filtered).
   const payload = {
@@ -374,7 +404,11 @@ export async function aiCoaching(
           perRound: (focus.rounds ?? []).map((r) => ({
             ...r,
             killedBy: undefined,
+            ...(fairRounds.has(r.round) ? { opponentFlagged: true } : {}),
           })),
+          ...(fairRounds.size
+            ? { deathsNotCounted: options.fair!.excluded.length }
+            : {}),
           ...(history ? { playerHistory: history } : {}),
           ...(plans.general.length || plans.thisMap.length
             ? { previousPlans: plans }
@@ -396,7 +430,11 @@ export async function aiCoaching(
     system: (b) =>
       languageReminder(lang) +
       "\n\n" +
-      (deep ? DEEP_SYSTEM_PROMPT : POST_MATCH_SYSTEM_PROMPT) +
+      variantPrompt(
+        deep ? DEEP_SYSTEM_PROMPT : POST_MATCH_SYSTEM_PROMPT,
+        baseVersion,
+        variant,
+      ) +
       (prefs ? personalizationPrompt(prefs, b) : "") +
       languageInstruction(lang),
     ...(prefs ? { customText: customInstructionText(prefs) } : {}),
@@ -409,18 +447,47 @@ export async function aiCoaching(
     knownIds: [...facts.map((f) => f.id), ...candidates.map((c) => c.id)],
     ...(options.fetch ? { fetch: options.fetch } : {}),
   });
-  const coaching = validateCoaching(
-    buildReview(secured.data, analysis, {
-      focusSteamId: focus?.steamId,
-      lang,
-      candidateIds: candidates,
-      allowedFacts: new Set(facts.map((f) => f.id)),
-      model: secured.meta.model,
-      tier,
-      ...(deep ? { deep: deep.deep } : {}),
-    }),
-    analysis,
-  );
+  const built = buildReview(secured.data, analysis, {
+    focusSteamId: focus?.steamId,
+    lang,
+    candidateIds: candidates,
+    allowedFacts: new Set(facts.map((f) => f.id)),
+    factConfidence: new Map(facts.map((f) => [f.id, f])),
+    model: secured.meta.model,
+    tier,
+    ...(deep ? { deep: deep.deep } : {}),
+  });
+  built.provenance = {
+    ...built.provenance,
+    promptVersion: variantVersion(baseVersion, variant),
+    ...(options.variant ? { variant } : {}),
+  };
+  if (options.fair?.excluded.length) {
+    built.excludedDeaths = {
+      reason: "unusual_opponent",
+      count: options.fair.excluded.length,
+      eventIds: options.fair.excluded.slice(0, 60),
+    };
+    built.caveats.push(UNUSUAL_OPPONENT_CAVEAT[lang]);
+  }
+  const verified = options.verify
+    ? (
+        await verifyCoaching(
+          built,
+          claimContext(analysis, facts),
+          facts,
+          candidates,
+          lang,
+          {
+            ...options.verify,
+            ...(options.verify.fetch || options.fetch
+              ? { fetch: options.verify.fetch ?? options.fetch }
+              : {}),
+          },
+        )
+      ).coaching
+    : built;
+  const coaching = validateCoaching(verified, analysis);
   coaching.caveats.push(...secured.caveats);
   const insightsOf = (v: unknown) => {
     const list = (v as { insights?: unknown } | null)?.insights;
@@ -475,6 +542,8 @@ export function buildReview(
     lang: CoachLang;
     candidateIds: ReturnType<typeof momentCandidates>;
     allowedFacts: Set<string>;
+    /** Fact confidence by id: insights are capped at their best cited fact, low ones last. */
+    factConfidence?: Map<string, { confidence: "low" | "medium" | "high" }>;
     model?: string;
     tier?: "quick" | "deep";
     deep?: DeepResult["deep"];
@@ -500,7 +569,7 @@ export function buildReview(
   );
   const dropped = insights.length - valid.length;
   const focus = options.focusSteamId;
-  const outInsights = valid.slice(0, 8).map((i) => {
+  const mapped = valid.slice(0, 8).map((i) => {
     const ids = (i.evidenceIds as string[]).slice(0, 20);
     const kind: "strength" | "improve" | undefined =
       i.kind === "strength" || i.kind === "improve" ? i.kind : undefined;
@@ -524,6 +593,9 @@ export function buildReview(
       ...(clips.length ? { clips } : {}),
     };
   });
+  const outInsights = options.factConfidence
+    ? enforceConfidence(mapped, options.factConfidence)
+    : mapped;
   const byCandidate = new Map(options.candidateIds.map((c) => [c.id, c]));
   const used = new Set<string>();
   const keyMoments = focus
@@ -593,15 +665,28 @@ export function buildReview(
   const planItems = (Array.isArray(raw.plan) ? raw.plan : [])
     .map((p) =>
       typeof p === "string"
-        ? { text: text(p, 300), scope: "general" as const }
+        ? { text: text(p, 300), scope: "general" as const, raw: {} }
         : {
             text: text(obj(p).text, 300),
             scope: normalizeScope(obj(p).scope, "general"),
+            raw: obj(p),
           },
     )
-    .filter((p): p is { text: string; scope: "map" | "general" } => !!p.text)
+    .filter(
+      (
+        p,
+      ): p is {
+        text: string;
+        scope: "map" | "general";
+        raw: Record<string, unknown>;
+      } => !!p.text,
+    )
     .slice(0, 3)
-    .map((p) => ({ text: p.text, ...scoped(p.scope) }));
+    .map((p) => ({
+      text: p.text,
+      ...scoped(p.scope),
+      ...planTarget(p.text, p.raw.targetMetric, p.raw.direction),
+    }));
   const scores = focus ? playerScores(analysis, focus) : undefined;
   const verdict = text(raw.verdict, 90);
   const summary = text(raw.summary, 2000);

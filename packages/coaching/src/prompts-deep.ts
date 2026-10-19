@@ -9,7 +9,7 @@ import {
 } from "./prompts.js";
 import { canaryLine } from "./security.js";
 
-export const DEEP_PROMPT_VERSION = "igl-review-v8-deep";
+export const DEEP_PROMPT_VERSION = "igl-review-v9-deep";
 
 const DEEP_ADDENDUM = `
 

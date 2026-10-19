@@ -529,8 +529,8 @@ describe("red team: model answers are guarded", () => {
  * bumping its version fails here; after bumping, add the new version's hash.
  */
 const PINNED: Record<string, string> = {
-  [POST_MATCH_PROMPT_VERSION]: "5e4f4771ea00fca3",
-  [DEEP_PROMPT_VERSION]: "54ee61f7c7ce2019",
+  [POST_MATCH_PROMPT_VERSION]: "299f73f15b10049e",
+  [DEEP_PROMPT_VERSION]: "8ce7fd9330378681",
   [LIVE_PROMPT_VERSION]: "7e4a37307b04ea71",
   [REPORT_PROMPT_VERSION]: "476c2441476a2001",
   [PERSONAL_COACH_PROMPT_VERSION]: "0c436dd53a1883da",
