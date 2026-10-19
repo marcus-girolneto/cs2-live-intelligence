@@ -78,3 +78,32 @@ describe("live projection", () => {
     expect(retryDelay(1000)).toBe(5000);
   });
 });
+
+describe("pickSession", () => {
+  const at = (iso: string) => Date.parse(iso);
+  const sessions = [
+    { sessionId: "old-dust2", receivedAt: "2026-10-19T12:00:50Z" },
+    { sessionId: "older", receivedAt: "2026-10-19T11:00:00Z" },
+  ] as never[];
+  it("attaches to the newest session with recent data", async () => {
+    const { pickSession } = await import("./connection");
+    expect(pickSession(sessions, at("2026-10-19T12:01:00Z"))?.sessionId).toBe(
+      "old-dust2",
+    );
+    expect(pickSession(sessions, at("2026-10-19T13:00:00Z"))).toBeUndefined();
+  });
+  it("after starting the simulator, waits for a session newer than the click", async () => {
+    const { pickSession } = await import("./connection");
+    const now = at("2026-10-19T12:01:00Z");
+    expect(
+      pickSession(sessions, now, at("2026-10-19T12:00:55Z")),
+    ).toBeUndefined();
+    const withSim = [
+      { sessionId: "sim", receivedAt: "2026-10-19T12:00:58Z" },
+      ...sessions,
+    ] as never[];
+    expect(
+      pickSession(withSim, now, at("2026-10-19T12:00:55Z"))?.sessionId,
+    ).toBe("sim");
+  });
+});

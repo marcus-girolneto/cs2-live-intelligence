@@ -164,3 +164,22 @@ describe("credits", () => {
     expect(body.features).not.toHaveProperty("matchReel");
   });
 });
+
+describe("welcome modal policy", () => {
+  it("interrupts only for good news or something the player can fix", async () => {
+    const { welcomeCopy, welcomeInterrupts } = await import("./welcome");
+    expect(welcomeInterrupts({ status: "granted" })).toBe(true);
+    expect(
+      welcomeInterrupts({ status: "pending", reason: "profile_private" }),
+    ).toBe(true);
+    expect(welcomeInterrupts({ status: "ineligible", reason: "banned" })).toBe(
+      false,
+    );
+    expect(
+      welcomeInterrupts({ status: "ineligible", reason: "already_claimed" }),
+    ).toBe(false);
+    expect(
+      welcomeCopy({ status: "ineligible", reason: "not_steam" }),
+    ).toBeNull();
+  });
+});

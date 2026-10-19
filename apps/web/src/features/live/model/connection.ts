@@ -18,6 +18,21 @@ export function sortSessions(sessions: LiveSessionDto[]): LiveSessionDto[] {
 export function isRecent(session: LiveSessionDto | undefined, now: number) {
   return !!session && now - Date.parse(session.receivedAt) < RECENT_MS;
 }
+/**
+ * Session to auto-attach to: the newest one with recent data. With `since` (the moment the user
+ * started the simulator), only sessions that received data after it count, so the page follows
+ * the new match instead of re-attaching to an older one.
+ */
+export function pickSession(
+  sorted: LiveSessionDto[],
+  now: number,
+  since: number | null = null,
+): LiveSessionDto | undefined {
+  const latest = sorted.find(
+    (s) => since === null || Date.parse(s.receivedAt) >= since,
+  );
+  return isRecent(latest, now) ? latest : undefined;
+}
 /** A ?sessionId= value that may be used (non-empty, at most 128 characters). */
 export function requestedSession(search: string): string | null {
   const requested = new URLSearchParams(search).get("sessionId");

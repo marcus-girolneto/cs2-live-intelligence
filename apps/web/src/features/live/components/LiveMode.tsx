@@ -34,8 +34,18 @@ export function LiveMode({ baseline }: { baseline: Baseline | null }) {
   const [now, setNow] = useState(Date.now());
   const [tracker, setTracker] = useState<RoundTracker>(emptyTracker());
   const { state, connection, error } = useLiveSession(target);
-  const sessions = useLiveSessions(target, setTarget, setSessionId);
-  const { sim, simError, simulate } = useSimulator(() => setTarget(null));
+  // Set when the simulator starts: follow the session that receives data from then on.
+  const [followSince, setFollowSince] = useState<number | null>(null);
+  const sessions = useLiveSessions(
+    target,
+    setTarget,
+    setSessionId,
+    followSince,
+  );
+  const { sim, simError, simulate } = useSimulator(() => {
+    setFollowSince(Date.now() - 1000);
+    setTarget(null);
+  });
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(timer);
@@ -47,7 +57,10 @@ export function LiveMode({ baseline }: { baseline: Baseline | null }) {
   useEffect(() => {
     if (state) setTracker((tr) => trackRound(tr, state));
   }, [state]);
-  useEffect(() => setTracker(emptyTracker()), [target]);
+  useEffect(() => {
+    setTracker(emptyTracker());
+    if (target) setFollowSince(null);
+  }, [target]);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTarget({ id: sessionId.trim(), key: Date.now() });

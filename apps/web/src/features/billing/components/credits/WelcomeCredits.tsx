@@ -7,7 +7,7 @@ import { Gift, Play, Refresh, Upload } from "@/shared/icons";
 import { useAccount } from "@/shared/session";
 import { Callout, CrosshairLoader, Dialog } from "@/shared/ui";
 import { useCredits } from "../../hooks/useCredits";
-import { welcomeCopy } from "../../model/welcome";
+import { welcomeCopy, welcomeInterrupts } from "../../model/welcome";
 
 /**
  * New-player hook: once per account and welcome status, a modal explains the free review
@@ -75,7 +75,7 @@ export function WelcomeCredits({
     );
   }
   // Unknown until storage is read after mount, so the modal never flashes on load.
-  if (seen !== false) return null;
+  if (seen !== false || !welcomeInterrupts(welcome)) return null;
   const close = () => {
     setSeen(true);
     try {

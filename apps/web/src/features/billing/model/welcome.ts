@@ -45,10 +45,8 @@ const INELIGIBLE: Record<WelcomeReason, WelcomeCopy | null> = {
     title: "You already used your free review",
     body: "The welcome credit is one per player. Credit packs and plans give you more reviews.",
   },
-  not_steam: {
-    title: "Sign in with Steam to get your free review",
-    body: "The welcome credit is tied to a Steam account. Local accounts can buy credits or a plan.",
-  },
+  // Local/dev accounts can't receive it and don't need to be told.
+  not_steam: null,
 };
 
 /** null when there is nothing to tell the player (welcome credits switched off). */
@@ -68,4 +66,12 @@ export function welcomeCopy(w: Welcome): WelcomeCopy | null {
         title: "The free review isn't available for this account",
         body: "Credit packs and plans work as usual.",
       };
+}
+
+/**
+ * Whether the welcome message may interrupt with a modal: only good news (granted) or something
+ * the player can fix right now (pending / private profile). Other cases stay in the banner.
+ */
+export function welcomeInterrupts(w: Welcome): boolean {
+  return w.status === "granted" || w.status === "pending";
 }
