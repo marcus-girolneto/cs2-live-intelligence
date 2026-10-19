@@ -24,6 +24,7 @@ export interface ApiConfig {
   steamFetch?: typeof fetch;
   jobs?: JobOptions;
   enableLogs?: boolean;
+  closeRepositoryOnClose?: boolean;
   now?: () => number;
   maxSessions?: number;
   maxEvents?: number;
@@ -83,18 +84,19 @@ export async function buildApp(config: ApiConfig) {
         "Capacity and interval options must be positive integers",
       );
   const app = Fastify({ bodyLimit: 256 * 1024, logger: false });
+  // Fastify closes hooks in reverse order: register repository disposal before worker hooks.
+  if (config.repository && config.closeRepositoryOnClose)
+    app.addHook("onClose", async () => config.repository!.close());
   app.setErrorHandler((error, _request, reply) => {
     const status = (error as { statusCode?: number }).statusCode ?? 500;
-    reply
-      .code(status)
-      .send({
-        error:
-          status >= 500
-            ? "Internal server error"
-            : status === 413
-              ? "Payload exceeds size limit"
-              : "Invalid request",
-      });
+    reply.code(status).send({
+      error:
+        status >= 500
+          ? "Internal server error"
+          : status === 413
+            ? "Payload exceeds size limit"
+            : "Invalid request",
+    });
   });
   await app.register(websocket, { options: { maxPayload: 1024 } });
   const now = config.now ?? Date.now;

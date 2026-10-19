@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, beforeEach, describe, it, expect } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+  expect,
+  vi,
+} from "vitest";
 import { randomUUID, createHash } from "node:crypto";
 import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -16,6 +24,7 @@ describe.skipIf(!databaseUrl)(
     let repo: PgRepository;
     let app: FastifyInstance;
     let directory: string;
+    let testDatabaseUrl: string;
     let worker: Awaited<ReturnType<typeof createWorker>>;
     const schema = "jobs_" + randomUUID().replaceAll("-", "");
     const headers = { authorization: "Bearer owner-token" };
@@ -24,7 +33,8 @@ describe.skipIf(!databaseUrl)(
       await admin.query(`create schema ${schema}`);
       const url = new URL(databaseUrl!);
       url.searchParams.set("options", `-c search_path=${schema}`);
-      repo = new PgRepository(url.toString());
+      testDatabaseUrl = url.toString();
+      repo = new PgRepository(testDatabaseUrl);
       await repo.migrate();
       await repo.seedDev("owner", "owner-token", "device", "device-token");
       await repo.seedDev("other", "other-owner", "other-device", "other-token");
@@ -295,6 +305,38 @@ describe.skipIf(!databaseUrl)(
       },
       30000,
     );
+    it("waits for active worker before closing its PostgreSQL pool", async () => {
+      const isolated = new PgRepository(testDatabaseUrl);
+      let release!: (value: undefined) => void;
+      const pending = new Promise<undefined>((resolvePending) => {
+        release = resolvePending;
+      });
+      vi.spyOn(isolated, "claimJob").mockImplementation(() => pending);
+      const server = await buildApp({
+        repository: isolated,
+        closeRepositoryOnClose: true,
+        devices: [],
+        owners: [],
+        webOrigin: "http://127.0.0.1:3000",
+        jobs: {
+          storageDir: directory,
+          parserBin: process.execPath,
+          workerIntervalMs: 5,
+        },
+      });
+      await server.ready();
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 20));
+      let closed = false;
+      const closing = server.close().then(() => {
+        closed = true;
+      });
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 20));
+      expect(closed).toBe(false);
+      await isolated.ready();
+      release(undefined);
+      await closing;
+      await expect(isolated.ready()).rejects.toThrow();
+    });
     it("account deletion queues file removal and revokes all credentials immediately", async () => {
       const { id } = (await upload(Buffer.from("delete me"))).json();
       expect(

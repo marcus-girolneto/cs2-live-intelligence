@@ -26,6 +26,7 @@ if (repository) {
 }
 const app = await buildApp({
   repository,
+  closeRepositoryOnClose: true,
   enableLogs: true,
   jobs: repository
     ? {
@@ -41,7 +42,6 @@ const app = await buildApp({
   webOrigin: process.env.WEB_ORIGIN ?? "http://127.0.0.1:3000",
   apiPublicUrl: process.env.API_PUBLIC_URL ?? "http://127.0.0.1:4000",
 });
-if (repository) app.addHook("onClose", async () => repository.close());
 await app.listen({
   host: process.env.API_HOST ?? "127.0.0.1",
   port: Number(process.env.API_PORT ?? 4000),
