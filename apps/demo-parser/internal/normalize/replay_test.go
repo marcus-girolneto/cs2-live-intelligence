@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/golang/geo/r3"
@@ -66,6 +67,14 @@ func TestReplayGeometryHelpers(t *testing.T) {
 		if got := normYaw(in); got != want {
 			t.Fatalf("normYaw(%v)=%d want %d", in, got, want)
 		}
+	}
+	for in, want := range map[float64]int{0: 0, 89.4: 89, 350: -10, -45: -45, 270: -90, 100: 90, math.NaN(): 0} {
+		if got := normPitch(in); got != want {
+			t.Fatalf("normPitch(%v)=%d want %d", in, got, want)
+		}
+	}
+	if grenadesHeld(nil) != nil {
+		t.Fatal("unknown inventory must stay unknown")
 	}
 	path := []r3.Vector{}
 	for i := 0; i < 100; i++ {
@@ -175,7 +184,7 @@ func TestRealFixtureReplay(t *testing.T) {
 		for _, tr := range round.Tracks {
 			byP[tr.P] = tr
 			for i := range round.T {
-				if tr.Yaw[i] < 0 || tr.Yaw[i] > 359 || tr.HP[i] < 0 || tr.HP[i] > 100 {
+				if tr.Yaw[i] < 0 || tr.Yaw[i] > 359 || tr.HP[i] < 0 || tr.HP[i] > 100 || tr.Pitch[i] < -90 || tr.Pitch[i] > 90 || len(tr.Z) != len(round.T) || len(tr.Duck) != len(round.T) {
 					t.Fatalf("out of range sample %+v", tr)
 				}
 				if i > 0 && tr.Alive[i] == 1 && tr.Alive[i-1] == 1 && math.Hypot(tr.X[i]-tr.X[i-1], tr.Y[i]-tr.Y[i-1]) > 80 {
@@ -204,6 +213,44 @@ func TestRealFixtureReplay(t *testing.T) {
 				t.Fatalf("round %d kill at %v: alive before=%d after=%d", round.Number, *e.RoundTime, before, after)
 			}
 		}
+	}
+	// View angles follow the world: at a kill the killer's last sample looks roughly at the
+	// victim (median yaw offset), and pitch is near level on a mostly flat map.
+	offsets := []float64{}
+	for _, e := range d.Events {
+		if e.Type != "kill" || e.RoundTime == nil || e.AttackerID == "" || e.AttackerID == e.VictimID {
+			continue
+		}
+		for _, round := range rp.Rounds {
+			if round.Number != e.Round {
+				continue
+			}
+			var killer, victim *ReplayTrack
+			for i := range round.Tracks {
+				switch rp.Players[round.Tracks[i].P].SteamID {
+				case e.AttackerID:
+					killer = &round.Tracks[i]
+				case e.VictimID:
+					victim = &round.Tracks[i]
+				}
+			}
+			at := -1
+			for i, ts := range round.T {
+				if ts <= *e.RoundTime {
+					at = i
+				}
+			}
+			if killer == nil || victim == nil || at < 0 || killer.Alive[at] != 1 {
+				continue
+			}
+			want := math.Atan2(victim.Y[at]-killer.Y[at], victim.X[at]-killer.X[at]) * 180 / math.Pi
+			diff := math.Abs(math.Mod(float64(killer.Yaw[at])-want+540, 360) - 180)
+			offsets = append(offsets, diff)
+		}
+	}
+	sort.Float64s(offsets)
+	if len(offsets) < 20 || offsets[len(offsets)/2] > 15 {
+		t.Fatalf("killer view does not face victims: n=%d median=%v", len(offsets), offsets[len(offsets)/2])
 	}
 	if shots == 0 || len(rp.Outline) < 1000 || rp.Bounds == nil {
 		t.Fatalf("shots=%d outline=%d", shots, len(rp.Outline))

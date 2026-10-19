@@ -36,6 +36,8 @@ All enrichment fields are optional and omitted when the dependency cannot provid
 - `bomb`: plant/defuse/explode with player and site.
 - Rounds: `reason` (e.g. `bomb_exploded`, `t_eliminated`) and `economy` sampled at freeze-time end per participant (`equipmentValue`, `money`, `primary`, `armor`, `helmet`). Items bought later in the buy period are not reflected.
 
+- cs2live.3: kills carry `victimGrenades` (sorted grenade types the victim still carried when killed; `[]` = none, absent = inventory unreadable). Smoke/inferno durations are not emitted: the expiry events of the dependency report entity lifetimes (constant ~22 s / ~20 s on the fixture), not the visible effect, so area denial time is not derivable.
+
 The M4A1-S is labelled `M4A1-S` (the dependency names it `M4A1`). Enrichment never changes round assignment, completeness or the core kill/damage semantics; it counts toward the event limit.
 
 ## Replay artifact (replay-1)
@@ -44,9 +46,9 @@ The M4A1-S is labelled `M4A1-S` (the dependency names it `M4A1`). Enrichment nev
 
 - Sampling: from freeze-time end of every committed round, every `round(tickRate/8)` ticks (8 Hz at 64 tick) on `FrameDone`, until 3 s after the round end. Rounds the normalizer discards (warmup, draw/restart, unfinished) and rounds without an observed freeze-time end have no replay.
 - Document: `version`, `map`, `tickRate`, `sampleHz`, `players[{steamId,name}]`, `weapons[]` (dictionary for weapon indexes), `bounds{minX,maxX,minY,maxY}`, `cell` (48) and `outline` (flat `[x0,y0,x1,y1,...]` centers of 48-unit cells visited by living players; draws the map silhouette without radar images).
-- Rounds: `number`, `freezeTick` (event time = (tick − freezeTick)/tickRate), `duration` (freeze end → round end, s), `winner`, `t[]` (seconds since freeze end, 0.01) and columnar `tracks[{p, team, x[], y[] (0.1 units), yaw[] (0..359°), hp[], armor[], w[] (weapon index, −1 none), fl[] (1 while blinded), alive[]}]` for the participants at freeze end (sorted by Steam ID). Dead players keep their last living position with hp 0.
+- Rounds: `number`, `freezeTick` (event time = (tick − freezeTick)/tickRate), `duration` (freeze end → round end, s), `winner`, `t[]` (seconds since freeze end, 0.01) and columnar `tracks[{p, team, x[], y[] (0.1 units), z[] (whole units, cs2live.3), yaw[] (0..359°), pitch[] (−90..90°, positive = looking down, cs2live.3), duck[] (1 while crouched, cs2live.3), hp[], armor[], w[] (weapon index, −1 none), fl[] (1 while blinded), alive[]}]` for the participants at freeze end (sorted by Steam ID). Dead players keep their last living position with hp 0.
 - `shots[[t, playerIndex, x, y, yaw, weaponIndex]]` for gun shots, `grenades[{type, p, t0, from[x,y], t1, to[x,y], path[[x,y]] ≤16}]` (throw → detonation/expiry from projectile entities) and `bomb[{t, action, p, pos, site}]`.
-- Output is deterministic. Public fixture (9 replayable rounds, 631 s of play): 1.71 MB JSON, 251 KB gzipped (~28 KB per round), so a 24-round match is about 0.7–0.9 MB gzipped.
+- Output is deterministic. Public fixture (9 replayable rounds, 631 s of play): 295 KB gzipped with the cs2live.3 columns (251 KB before; ~33 KB per round), so a 24-round match is about 0.8–1.0 MB gzipped. The fixture test checks that the killer's last sample faces the victim (median yaw offset ≤ 15°), which pins the yaw/pitch conventions used by the deep review.
 
 ## Limits and isolation
 

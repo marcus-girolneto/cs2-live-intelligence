@@ -206,7 +206,7 @@ func TestPublicCS2Fixture(t *testing.T) {
 	for _, e := range d.Events {
 		switch e.Type {
 		case "kill":
-			if e.Weapon == "" || e.RoundTime == nil || e.VictimPlace == "" || e.VictimPos == nil || e.Distance == nil {
+			if e.Weapon == "" || e.RoundTime == nil || e.VictimPlace == "" || e.VictimPos == nil || e.Distance == nil || e.VictimGrenades == nil {
 				t.Fatalf("kill not enriched: %+v", e)
 			}
 		case "damage":

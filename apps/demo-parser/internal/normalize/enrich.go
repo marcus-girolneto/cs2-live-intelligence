@@ -2,6 +2,7 @@ package normalize
 
 import (
 	"math"
+	"sort"
 
 	"github.com/golang/geo/r3"
 	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
@@ -184,7 +185,30 @@ func (b *builder) kill(e events.Kill, tick int) Event {
 	}
 	ev.VictimPos = playerPos(e.Victim)
 	ev.VictimPlace = playerPlace(e.Victim)
+	ev.VictimGrenades = grenadesHeld(e.Victim)
 	return ev
+}
+
+// grenadesHeld lists the grenade types in a player's inventory (sorted), nil when unreadable.
+func grenadesHeld(p *common.Player) *[]string {
+	if p == nil {
+		return nil
+	}
+	weapons := safe(nil, p.Weapons)
+	if weapons == nil {
+		return nil
+	}
+	out := []string{}
+	for _, w := range weapons {
+		if w == nil {
+			continue
+		}
+		if name := grenadeName(w.Type); name != "" {
+			out = append(out, name)
+		}
+	}
+	sort.Strings(out)
+	return &out
 }
 
 func (b *builder) shot(e events.WeaponFire, tick int) {

@@ -16,7 +16,8 @@ import (
 )
 
 // Replay artifact (replay-1): compact, columnar per-round player samples for visual clips.
-// It is a separate document from the normalized demo and never affects it.
+// It is a separate document from the normalized demo and never affects it. Parser cs2live.3
+// adds the optional pitch, z and duck columns (still version replay-1: additive only).
 const ReplayVersion = "replay-1"
 const ReplaySampleHz = 8
 const ReplayCell = 48
@@ -36,13 +37,18 @@ type ReplayPlayer struct {
 // ReplayTrack holds one player's columns for a round; every slice has len(Round.T) entries.
 // X/Y are world units with 0.1 precision, Yaw is 0..359 degrees, W indexes Replay.Weapons
 // (-1 = none), Fl is 1 while blinded by a flashbang, Alive is 1 while alive. Dead players keep
-// their last living position with hp 0.
+// their last living position with hp 0. Pitch is the view pitch in whole degrees (-90..90,
+// positive = looking down, the game's convention), Z is the world height (whole units) and
+// Duck is 1 while crouched (cs2live.3+).
 type ReplayTrack struct {
 	P     int       `json:"p"`
 	Team  string    `json:"team,omitempty"`
 	X     []float64 `json:"x"`
 	Y     []float64 `json:"y"`
+	Z     []int     `json:"z"`
 	Yaw   []int     `json:"yaw"`
+	Pitch []int     `json:"pitch"`
+	Duck  []int     `json:"duck"`
 	HP    []int     `json:"hp"`
 	Armor []int     `json:"armor"`
 	W     []int     `json:"w"`
@@ -121,7 +127,7 @@ type recorder struct {
 	step      int
 	next      int
 	endTick   int // -1 while the round is live
-	lastPos   map[string][2]float64
+	lastPos   map[string][3]float64
 	cells     map[[2]int]bool
 	grenades  map[int64]*pendingGrenade
 	bounds    *ReplayBounds
@@ -178,11 +184,11 @@ func (r *recorder) begin(number, tick int, tickRate float64, ids []string, names
 	r.freeze, r.next, r.endTick = tick, tick, -1
 	r.cur = &ReplayRound{Number: number, FreezeTick: tick, T: []float64{}, Tracks: []ReplayTrack{}, Shots: [][6]float64{}, Grenades: []ReplayGrenade{}}
 	r.byID = map[string]int{}
-	r.lastPos = map[string][2]float64{}
+	r.lastPos = map[string][3]float64{}
 	sort.Strings(ids)
 	for _, id := range ids {
 		r.byID[id] = len(r.cur.Tracks)
-		r.cur.Tracks = append(r.cur.Tracks, ReplayTrack{P: r.playerIndex(id, names[id]), Team: teams[id], X: []float64{}, Y: []float64{}, Yaw: []int{}, HP: []int{}, Armor: []int{}, W: []int{}, Fl: []int{}, Alive: []int{}})
+		r.cur.Tracks = append(r.cur.Tracks, ReplayTrack{P: r.playerIndex(id, names[id]), Team: teams[id], X: []float64{}, Y: []float64{}, Z: []int{}, Yaw: []int{}, Pitch: []int{}, Duck: []int{}, HP: []int{}, Armor: []int{}, W: []int{}, Fl: []int{}, Alive: []int{}})
 	}
 }
 
@@ -195,11 +201,12 @@ func (r *recorder) time(tick int) float64 {
 
 // playerSample is the state read from one player entity.
 type playerSample struct {
-	x, y          float64
-	ok            bool
-	yaw, hp, arm  int
-	weapon        string
-	flashed, live bool
+	x, y                float64
+	z, pitch            int
+	ok                  bool
+	yaw, hp, arm        int
+	weapon              string
+	flashed, live, duck bool
 }
 
 func readPlayer(p *common.Player) playerSample {
@@ -207,8 +214,13 @@ func readPlayer(p *common.Player) playerSample {
 	s.live = safe(false, p.IsAlive)
 	if pos := safe(r3.Vector{}, p.Position); finite(pos.X) && finite(pos.Y) && !(pos.X == 0 && pos.Y == 0 && pos.Z == 0) {
 		s.x, s.y, s.ok = round1(pos.X), round1(pos.Y), true
+		if finite(pos.Z) {
+			s.z = int(math.Round(pos.Z))
+		}
 	}
 	s.yaw = normYaw(float64(safe(float32(0), p.ViewDirectionX)))
+	s.pitch = normPitch(float64(safe(float32(0), p.ViewDirectionY)))
+	s.duck = safe(false, p.IsDucking)
 	s.hp = clampInt(safe(0, p.Health), 0, 100)
 	s.arm = clampInt(safe(0, p.Armor), 0, 100)
 	s.weapon = safe("", func() string { return weaponName(p.ActiveWeapon()) })
@@ -217,6 +229,20 @@ func readPlayer(p *common.Player) playerSample {
 }
 
 func finite(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+
+// normPitch maps a pitch to -90..90 whole degrees (positive = down); 270..360 wraps to -90..0.
+func normPitch(v float64) int {
+	if !finite(v) {
+		return 0
+	}
+	v = math.Mod(v, 360)
+	if v > 180 {
+		v -= 360
+	} else if v < -180 {
+		v += 360
+	}
+	return clampInt(int(math.Round(v)), -90, 90)
+}
 
 func normYaw(v float64) int {
 	if !finite(v) {
@@ -259,17 +285,20 @@ func (r *recorder) frame(tick int, players []*common.Player) {
 		}
 		last, had := r.lastPos[id]
 		if s.live && s.ok {
-			r.lastPos[id] = [2]float64{s.x, s.y}
+			r.lastPos[id] = [3]float64{s.x, s.y, float64(s.z)}
 			r.visit(s.x, s.y)
 		} else if had {
-			s.x, s.y = last[0], last[1]
+			s.x, s.y, s.z = last[0], last[1], int(last[2])
 		}
 		if !s.live {
 			s.hp, s.flashed = 0, false
 		}
 		tr.X = append(tr.X, s.x)
 		tr.Y = append(tr.Y, s.y)
+		tr.Z = append(tr.Z, s.z)
 		tr.Yaw = append(tr.Yaw, s.yaw)
+		tr.Pitch = append(tr.Pitch, s.pitch)
+		tr.Duck = append(tr.Duck, b2i(s.duck && s.live))
 		tr.HP = append(tr.HP, s.hp)
 		tr.Armor = append(tr.Armor, s.arm)
 		tr.W = append(tr.W, r.weapon(s.weapon))

@@ -20,7 +20,7 @@ import (
 	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
 )
 
-const Version = "demoinfocs-golang/v4@v4.5.1+cs2live.2"
+const Version = "demoinfocs-golang/v4@v4.5.1+cs2live.3"
 const DefaultMaxBytes int64 = 256 << 20
 const MaxBytes int64 = 512 << 20
 const MaxEvents = 1_000_000
@@ -100,6 +100,9 @@ type Event struct {
 	PlayerID        string   `json:"playerId,omitempty"`
 	Site            string   `json:"site,omitempty"`
 	RoundTime       *float64 `json:"roundTime,omitempty"`
+	// VictimGrenades lists the grenades the victim still carried when killed (cs2live.3+;
+	// absent when the inventory could not be read).
+	VictimGrenades *[]string `json:"victimGrenades,omitempty"`
 }
 type Demo struct {
 	SchemaVersion string       `json:"schemaVersion"`
