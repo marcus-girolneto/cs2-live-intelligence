@@ -513,8 +513,9 @@ export function inspectOutputText(
 
 const EN_WORDS =
   /\b(?:the|you|your|and|with|when|this|that|with|from|have|were|was|died|kills?|deaths?|round|should|before|after|play|instead|more|less|don't|always|never|next)\b/gi;
+// Unicode-aware boundaries: "você"/"não" end in accented letters, where \b does not apply.
 const PT_WORDS =
-  /\b(?:voc[eê]|seu|sua|seus|suas|com|quando|isso|isto|para|n[aã]o|morreu|mortes?|abates?|rodada|antes|depois|jogue|em vez|mais|menos|sempre|nunca|pr[oó]xim[oa]|uma?|dos?|das?|no|na|que)\b/gi;
+  /(?<!\p{L})(?:voc[eê]|seu|sua|seus|suas|com|quando|isso|isto|para|n[aã]o|morreu|mortes?|abates?|rodada|antes|depois|jogue|em vez|mais|menos|sempre|nunca|pr[oó]xim[oa]|uma?|dos?|das?|no|na|que)(?!\p{L})/giu;
 /** Share of English stop-words among EN+PT stop-words (null when too little text). */
 export function englishShare(text: string): number | null {
   const en = text.match(EN_WORDS)?.length ?? 0;

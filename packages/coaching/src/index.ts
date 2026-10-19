@@ -82,6 +82,7 @@ export * from "./plan-metrics.js";
 export * from "./variants.js";
 export * from "./team/index.js";
 export * from "./lobby.js";
+export * from "./eval.js";
 
 export interface CoachingOptions {
   /** Configured language model. Without it, only deterministic offline feedback is produced. */

@@ -24,3 +24,5 @@ artifacts/release/docker-video/
 .next-dev*/
 *.replay.json.gz
 artifacts/release/
+# AI eval reports (pnpm eval:ai)
+artifacts/eval/

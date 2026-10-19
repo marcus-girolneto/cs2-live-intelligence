@@ -16,7 +16,8 @@
     "mock": "cd apps/collector && go run ./cmd/mock",
     "test:integration": "pnpm --filter @cs2/api test",
     "local:up": "docker compose -f compose.yaml -f compose.local.yaml up -d --build",
-    "local:down": "docker compose -f compose.yaml -f compose.local.yaml down"
+    "local:down": "docker compose -f compose.yaml -f compose.local.yaml down",
+    "eval:ai": "tsx packages/coaching/eval/cli.ts"
   },
   "devDependencies": {
     "turbo": "^2.5.0",
