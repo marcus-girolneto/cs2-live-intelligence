@@ -1,5 +1,6 @@
 "use client";
 import { formatNumber } from "@/shared/format";
+import { GlossaryButton, Term } from "@/shared/glossary";
 import { useI18n } from "@/shared/i18n";
 import {
   Brain,
@@ -106,16 +107,19 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
                 <h3>{name}</h3>
               </div>
             </div>
-            {!account?.steamId && (
-              <button
-                type="button"
-                className={`btn btn-sm ${isMe ? "btn-primary" : "btn-ghost"}`}
-                onClick={markMe}
-                aria-pressed={isMe}
-              >
-                {isMe ? t("This is me ✓") : t("This is me")}
-              </button>
-            )}
+            <div className="ph-actions">
+              <GlossaryButton />
+              {!account?.steamId && (
+                <button
+                  type="button"
+                  className={`btn btn-sm ${isMe ? "btn-primary" : "btn-ghost"}`}
+                  onClick={markMe}
+                  aria-pressed={isMe}
+                >
+                  {isMe ? t("This is me ✓") : t("This is me")}
+                </button>
+              )}
+            </div>
           </header>
           <div className="ph-strip">
             <span>
@@ -132,21 +136,29 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
               >
                 {num(kd, 2) ?? "—"}
               </b>
-              <small>K/D</small>
+              <small>
+                <Term id="kd">K/D</Term>
+              </small>
             </span>
             <span>
               <b>{num(adr, 1) ?? "—"}</b>
-              <small>ADR</small>
+              <small>
+                <Term id="adr">ADR</Term>
+              </small>
             </span>
             <span>
               <b>{hs !== null ? `${num(hs)}%` : "—"}</b>
-              <small>HS</small>
+              <small>
+                <Term id="hs">HS%</Term>
+              </small>
             </span>
             <span>
               <b>
                 {insight.accuracy !== null ? `${num(insight.accuracy)}%` : "—"}
               </b>
-              <small>{t("Accuracy")}</small>
+              <small>
+                <Term id="accuracy">{t("Accuracy")}</Term>
+              </small>
             </span>
           </div>
 

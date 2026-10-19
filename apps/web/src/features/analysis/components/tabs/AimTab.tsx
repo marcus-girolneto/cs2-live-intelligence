@@ -3,7 +3,9 @@ import { useI18n } from "@/shared/i18n";
 import { Crosshair, Headshot, Scope } from "@/shared/icons";
 import { Panel, TabPanel } from "@/shared/ui";
 import type { AnalysisVM } from "../../hooks/useAnalysisView";
+import { aimLines } from "../../model/plain";
 import { AimSummary } from "../AimSummary";
+import { PlainSummary } from "../plain/PlainSummary";
 import { BodyDiagram } from "../BodyDiagram";
 import { NoDetail } from "../sections/NoDetail";
 import { WeaponsTable } from "../sections/WeaponsTable";
@@ -15,6 +17,15 @@ export function AimTab({ vm }: { vm: AnalysisVM }) {
     <TabPanel idBase={idBase} id="aim">
       {insight.rich ? (
         <>
+          <PlainSummary
+            lines={aimLines({
+              accuracy: insight.accuracy,
+              accuracyRef: refs.accuracy,
+              headShare,
+              headRef: refs.share.head ?? null,
+              hitgroups: insight.hitgroups,
+            })}
+          />
           <div className="aim-grid">
             <Panel
               icon={<Headshot size={20} />}

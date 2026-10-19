@@ -5,7 +5,6 @@ import { useI18n } from "@/shared/i18n";
 import { Bomb, DefuseKit } from "@/shared/icons";
 import type { KillRow, PlayerRound } from "../../model/types";
 import { KillFeed } from "../KillFeed";
-import { BUY_ICON } from "./EconomyStrip";
 export function RoundCard({
   round,
   winner,
@@ -83,16 +82,22 @@ export function RoundCard({
     >
       <header>
         <strong>{t("Round {n}", { n: round })}</strong>
-        {row?.side && (
-          <span className={`side-tag ${row.side.toLowerCase()}`}>
-            {row.side}
-          </span>
-        )}
-        {row?.buyType && (
-          <span className={`chip buy-chip buy-${row.buyType}`}>
-            {BUY_ICON[row.buyType]} {t(buy[row.buyType]!)}
-            {row.equipmentValue !== undefined &&
-              ` · $${row.equipmentValue.toLocaleString(locale)}`}
+        {(row?.side || row?.buyType) && (
+          <span className="rc-context">
+            (
+            {[
+              row?.side,
+              row?.buyType
+                ? `${t(buy[row.buyType]!)}${
+                    row.equipmentValue !== undefined
+                      ? ` · $${row.equipmentValue.toLocaleString(locale)}`
+                      : ""
+                  }`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            )
           </span>
         )}
         <span className="rc-spacer" />
@@ -101,7 +106,7 @@ export function RoundCard({
             {row.won ? t("Won") : t("Lost")}
           </span>
         )}
-        {winner && (
+        {winner && row?.won === undefined && (
           <span className={`chip ${winner.toLowerCase()}`}>
             {t("{side} won", { side: winner })}
           </span>

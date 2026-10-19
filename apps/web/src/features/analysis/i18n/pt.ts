@@ -184,4 +184,62 @@ export const pt: Record<string, string> = {
   "{d} damage": "{d} de dano",
   "{k} kill(s)": "{k} abate(s)",
   "{side} won": "Vitória {side}",
+  "Headshot kills": "Kills de headshot",
+  "Show all stats": "Mostrar todas as estatísticas",
+  "Want to know what to change? The AI Coach turns these numbers into three fixes and a plan for your next match.":
+    "Quer saber o que mudar? O Coach de IA transforma esses números em três correções e um plano para a próxima partida.",
+  "What this means for you": "O que isso significa para você",
+  "Above average": "Acima da média",
+  "About average": "Na média",
+  "Below average": "Abaixo da média",
+  "How much damage you deal each round. 100 = one kill.":
+    "Quanto dano você causa por round. 100 = uma kill.",
+  "Kills for every death. Above 1.0 is positive.":
+    "Kills para cada morte. Acima de 1,0 é positivo.",
+  "Rounds where you helped: a kill, assist, survival or trade.":
+    "Rounds em que você ajudou: kill, assistência, sobrevivência ou troca.",
+  "Share of your kills that were headshots.":
+    "Parte das suas kills que foram na cabeça.",
+  "You dealt {adr} damage per round, more than the lobby average ({avg}).":
+    "Você causou {adr} de dano por round, mais que a média do lobby ({avg}).",
+  "You dealt {adr} damage per round, less than the lobby average ({avg}).":
+    "Você causou {adr} de dano por round, menos que a média do lobby ({avg}).",
+  "You dealt {adr} damage per round, about the lobby average ({avg}).":
+    "Você causou {adr} de dano por round, perto da média do lobby ({avg}).",
+  "{n} of your {d} deaths weren't traded — you were often fighting alone.":
+    "{n} das suas {d} mortes não foram trocadas — você lutou sozinho muitas vezes.",
+  "Most of your deaths were traded — good spacing with your team.":
+    "A maioria das suas mortes foi trocada — bom espaçamento com o time.",
+  "You won {w} of {n} opening duels (the first fight of a round).":
+    "Você venceu {w} de {n} duelos de abertura (a primeira luta do round).",
+  "You hit {acc}% of your shots — about twice the lobby's rate ({ref}%).":
+    "Você acertou {acc}% dos tiros — cerca do dobro do lobby ({ref}%).",
+  "You hit {acc}% of your shots — about half the lobby's rate ({ref}%).":
+    "Você acertou {acc}% dos tiros — cerca da metade do lobby ({ref}%).",
+  "You hit {acc}% of your shots — better than the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros — melhor que o lobby ({ref}%).",
+  "You hit {acc}% of your shots — worse than the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros — pior que o lobby ({ref}%).",
+  "You hit {acc}% of your shots — about the same as the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros — parecido com o lobby ({ref}%).",
+  "Only {h}% of your hits landed on the head (lobby {r}%). Most landed in the {part}: aim a little higher.":
+    "Só {h}% dos seus acertos foram na cabeça (lobby {r}%). A maioria pegou no {part}: mire um pouco mais alto.",
+  "{h}% of your hits landed on the head (lobby {r}%) — your crosshair height is fine.":
+    "{h}% dos seus acertos foram na cabeça (lobby {r}%) — a altura da sua mira está boa.",
+  head: "cabeça",
+  chest: "peito",
+  stomach: "estômago",
+  arms: "braços",
+  legs: "pernas",
+  "You were strongest at {place} ({k} kills, {d} deaths).":
+    "Você foi mais forte em {place} ({k} kills, {d} mortes).",
+  "You died most at {place} ({d} deaths, {k} kills) — try a different angle or wait for help there.":
+    "Você morreu mais em {place} ({d} mortes, {k} kills) — tente outro ângulo ou espere ajuda ali.",
+  "Your team won {w} of {n} rounds you played.":
+    "Seu time venceu {w} de {n} rounds que você jogou.",
+  "Your best round was round {r}: {dmg} damage and {k} kill(s).":
+    "Seu melhor round foi o {r}: {dmg} de dano e {k} kill(s).",
+  "You died without a trade in rounds {list}. Open them below to see why.":
+    "Você morreu sem troca nos rounds {list}. Abra-os abaixo para ver o porquê.",
+  "Lobby average: {v}": "Média do lobby: {v}",
 };

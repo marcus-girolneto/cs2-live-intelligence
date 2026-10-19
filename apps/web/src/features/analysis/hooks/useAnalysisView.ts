@@ -88,6 +88,13 @@ export function useAnalysisView(result: AnalysisResult) {
       opening: mean(all.map((i) => i.timing?.avgOpeningTime)),
       death: mean(all.map((i) => i.timing?.avgDeathTime)),
       adr: mean(players.map((p) => metricValue(p, "adr"))),
+      kd: mean(
+        players.map((p) => {
+          const k = metricValue(p, "kills");
+          const d = metricValue(p, "deaths");
+          return k !== null && d !== null && d > 0 ? k / d : null;
+        }),
+      ),
       kast: mean(players.map((p) => metricValue(p, "kast"))),
       hs: mean(players.map((p) => metricValue(p, "headshotPercentage"))),
     };

@@ -1,45 +1,91 @@
 "use client";
-import { formatNumber } from "@/shared/format";
 import { useI18n } from "@/shared/i18n";
 import { Brain } from "@/shared/icons";
 import { TabPanel } from "@/shared/ui";
 import type { AnalysisVM } from "../../hooks/useAnalysisView";
+import { metricValue } from "../../model/players";
+import { overviewLines } from "../../model/plain";
+import { KeyStats } from "../plain/KeyStats";
+import { PlainSummary } from "../plain/PlainSummary";
 import { DamageChart } from "../sections/DamageChart";
 import { OverviewInsights } from "./OverviewInsights";
 import { OverviewStats } from "./OverviewStats";
 /** Overview tab: headline stats, insights, damage per round and verdict. */
 export function OverviewTab({ vm }: { vm: AnalysisVM }) {
-  const { t, locale } = useI18n();
-  const num = (v: unknown, d = 0) => formatNumber(v, d, locale);
-  const { setTab, refs, kills, deaths, kd, adr, rows, goRound, idBase } = vm;
+  const { t } = useI18n();
+  const { setTab, refs, deaths, kd, adr, kast, hs, rows, goRound } = vm;
+  const { idBase, player, openingRecord } = vm;
   return (
     <TabPanel idBase={idBase} id="overview">
-      <OverviewStats vm={vm} />
-      <OverviewInsights vm={vm} />
+      <PlainSummary
+        lines={overviewLines({
+          adr,
+          adrRef: refs.adr,
+          deaths,
+          tradedPct: metricValue(player, "traded-deaths"),
+          openingWon: openingRecord?.won ?? null,
+          openingLost: openingRecord?.lost ?? null,
+        })}
+      />
+      <KeyStats
+        stats={[
+          {
+            id: "adr",
+            term: "adr",
+            label: "Damage per round",
+            value: adr,
+            lobby: refs.adr,
+            digits: 0,
+            unit: "",
+            explain: "How much damage you deal each round. 100 = one kill.",
+          },
+          {
+            id: "kd",
+            term: "kd",
+            label: "K/D",
+            value: kd,
+            lobby: refs.kd,
+            digits: 2,
+            unit: "",
+            explain: "Kills for every death. Above 1.0 is positive.",
+          },
+          {
+            id: "kast",
+            term: "kast",
+            label: "KAST",
+            value: kast,
+            lobby: refs.kast,
+            digits: 0,
+            unit: "%",
+            explain:
+              "Rounds where you helped: a kill, assist, survival or trade.",
+          },
+          {
+            id: "hs",
+            term: "hs",
+            label: "Headshot kills",
+            value: hs,
+            lobby: refs.hs,
+            digits: 0,
+            unit: "%",
+            explain: "Share of your kills that were headshots.",
+          },
+        ]}
+      />
 
       <DamageChart rows={rows} onRound={(r) => goRound([r])} />
 
+      <details className="all-stats">
+        <summary>{t("Show all stats")}</summary>
+        <OverviewStats vm={vm} />
+        <OverviewInsights vm={vm} />
+      </details>
+
       <div className="verdict-box">
         <p>
-          {kills !== null && deaths !== null
-            ? kd !== null
-              ? t("{kills} kills for {deaths} deaths — a K/D of {kd}.", {
-                  kills: num(kills)!,
-                  deaths: num(deaths)!,
-                  kd: num(kd, 2)!,
-                })
-              : t("{kills} kills without dying in the analyzed rounds.", {
-                  kills: num(kills)!,
-                })
-            : t("Kills and deaths are incomplete in this demo.")}{" "}
-          {adr !== null && refs.adr !== null
-            ? t(
-                adr >= refs.adr
-                  ? "Dealt {adr} damage per round, above the match average ({avg})."
-                  : "Dealt {adr} damage per round, below the match average ({avg}).",
-                { adr: num(adr, 1)!, avg: num(refs.adr, 1)! },
-              )
-            : ""}
+          {t(
+            "Want to know what to change? The AI Coach turns these numbers into three fixes and a plan for your next match.",
+          )}
         </p>
         <button
           type="button"

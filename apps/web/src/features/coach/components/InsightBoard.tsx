@@ -37,8 +37,10 @@ export function InsightBoard({
             {x.kind === "strength" ? t("Strength") : t("To improve")}
           </span>
           {x.confidence && (
-            <span className={`confidence ${x.confidence}`}>
-              {t("Confidence: {level}", { level: t(x.confidence) })}
+            <span
+              className={`conf-tag ${x.confidence === "high" ? "clear" : "early"}`}
+            >
+              {x.confidence === "high" ? t("Clear pattern") : t("Early sign")}
             </span>
           )}
         </header>

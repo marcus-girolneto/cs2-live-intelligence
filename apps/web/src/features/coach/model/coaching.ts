@@ -39,6 +39,8 @@ export type KeyMoment = {
 export type CoachInsight = {
   observation: string;
   actionablePractice?: string;
+  /** Why this costs rounds (newer reviews). */
+  why?: string;
   evidenceIds: string[];
   confidence?: "low" | "medium" | "high";
   caveats: string[];
@@ -147,6 +149,7 @@ function parseInsight(raw: unknown): CoachInsight | null {
   return {
     observation,
     ...opt("actionablePractice", text(o.actionablePractice)),
+    ...opt("why", text(first(o, ["whyItMatters", "why", "impact"]))),
     evidenceIds: strs(o.evidenceIds),
     ...(confidence === "low" || confidence === "medium" || confidence === "high"
       ? { confidence }

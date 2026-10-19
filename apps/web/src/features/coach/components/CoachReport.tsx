@@ -21,6 +21,7 @@ import { InsightBoard } from "./InsightBoard";
 import { KeyMomentReel } from "./KeyMomentReel";
 import { PlanBoard } from "./PlanBoard";
 import { ScoreRadar } from "./ScoreRadar";
+import { TopFixes } from "./TopFixes";
 
 /** The review report. Every section hides itself when its data is absent (older reviews). */
 export function CoachReport({
@@ -109,6 +110,19 @@ export function CoachReport({
         )}
       </header>
 
+      <TopFixes coaching={c} onPlay={onPlay} />
+
+      {c.plan.length > 0 && (
+        <section className="report-sec game-plan">
+          <h3 className="sec-title">
+            <Target size={20} /> {t("Plan for your next match")}
+          </h3>
+          <PlanBoard plan={c.plan} map={reviewMap} />
+        </section>
+      )}
+
+      <h3 className="details-title">{t("The details")}</h3>
+
       {c.scores.length >= 3 && (
         <section className="report-sec">
           <h3 className="sec-title">
@@ -132,7 +146,7 @@ export function CoachReport({
       {c.insights.length > 0 ? (
         <section className="report-sec">
           <h3 className="sec-title">
-            <Target size={20} /> {t("Priorities")}
+            <Target size={20} /> {t("All findings")}
           </h3>
           <InsightBoard
             insights={c.insights}
@@ -155,15 +169,6 @@ export function CoachReport({
             <Dumbbell size={20} /> {t("Drills")}
           </h3>
           <DrillChecklist drills={c.drills} map={reviewMap} />
-        </section>
-      )}
-
-      {c.plan.length > 0 && (
-        <section className="report-sec game-plan">
-          <h3 className="sec-title">
-            <Target size={20} /> {t("Plan for your next match")}
-          </h3>
-          <PlanBoard plan={c.plan} map={reviewMap} />
         </section>
       )}
 

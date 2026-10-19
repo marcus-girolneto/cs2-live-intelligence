@@ -3,6 +3,8 @@ import { useI18n } from "@/shared/i18n";
 import { Check } from "@/shared/icons";
 import { TabPanel } from "@/shared/ui";
 import type { AnalysisVM } from "../../hooks/useAnalysisView";
+import { roundLines } from "../../model/plain";
+import { PlainSummary } from "../plain/PlainSummary";
 import { EconomyStrip } from "../sections/EconomyStrip";
 import { RoundCard } from "../sections/RoundCard";
 /** Rounds tab: economy strip and per-round kill feeds. */
@@ -21,6 +23,18 @@ export function RoundsTab({ vm }: { vm: AnalysisVM }) {
   } = vm;
   return (
     <TabPanel idBase={idBase} id="rounds">
+      <PlainSummary
+        lines={roundLines(
+          rows.map((r) => ({
+            round: r.round,
+            won: r.won,
+            damage: r.damage,
+            kills: r.kills,
+            died: r.died,
+            traded: r.traded,
+          })),
+        )}
+      />
       <EconomyStrip
         rows={rows}
         selected={focusRounds}
