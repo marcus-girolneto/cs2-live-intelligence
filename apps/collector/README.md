@@ -19,8 +19,8 @@ curl http://127.0.0.1:3002/health
 | GSI_AUTH_TOKEN | -gsi-token     | required                               |
 | SESSION_ID     | -session-id    | fresh random ID per process            |
 | SEQUENCE_FILE  | -sequence-file | required for fixed session ID          |
-| —              | -queue-size    | 256                                    |
-| —              | -max-payload   | 65536 bytes                            |
+| n/a            | -queue-size    | 256                                    |
+| n/a            | -max-payload   | 65536 bytes                            |
 
 Prefer environment variables for tokens to avoid process arguments. Integration can use `-session-id dev-session -sequence-file /tmp/cs2live-sequence.json`. Sequences persist before acceptance, allowing gaps on failure but preventing reuse on restart. Keep the sequence file for the life of a fixed session and run one collector per file; deleting it requires a new session ID. Map changes or decreasing round counts start a random session; the sequence file stores both configured ID and rotated active ID so the same startup flags resume the latest active session. `/health` returns `sessionId`, `sequence` and `queued`.
 

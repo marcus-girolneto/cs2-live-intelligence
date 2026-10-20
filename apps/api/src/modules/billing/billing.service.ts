@@ -212,7 +212,7 @@ export class BillingService {
       priceId,
       currency: request.currency,
       amount: amount ?? 0,
-      productName: `${pack.name} — ${pack.credits} credits`,
+      productName: `${pack.name} (${pack.credits} credits)`,
       metadata: {
         kind: "credits",
         packId: pack.id,

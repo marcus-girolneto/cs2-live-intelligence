@@ -15,7 +15,7 @@ export interface OwnedAnalysis {
 }
 
 /**
- * GET /v1/analyses/:id/integrity — the match's integrity signals and Steam bans, for the
+ * GET /v1/analyses/:id/integrity: the match's integrity signals and Steam bans, for the
  * uploader of that match only (owner-scoped lookup; 404 for anyone else). Statistical
  * observations, never an accusation (docs/INTEGRITY.md).
  */

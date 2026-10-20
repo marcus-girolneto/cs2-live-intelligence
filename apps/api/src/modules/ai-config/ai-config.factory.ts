@@ -27,7 +27,7 @@ export const UNDECRYPTABLE =
   "The stored provider credentials cannot be decrypted (was APP_ENCRYPTION_KEY changed?). Re-enter the API key.";
 
 /**
- * Factory for AiConfig: every config — admin-stored provider or AI_* environment — is built
+ * Factory for AiConfig: every config (admin-stored provider or AI_* environment) is built
  * through @cs2/coaching's loadAiConfig from a synthetic env, so validation lives in one place.
  */
 export class AiConfigFactory {

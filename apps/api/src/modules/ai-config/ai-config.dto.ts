@@ -174,7 +174,7 @@ export const createProviderSchema = options
   .strict();
 export type CreateProviderDto = z.infer<typeof createProviderSchema>;
 
-/** PUT /v1/admin/ai/providers/:id — apiKey undefined keeps the stored key; null removes it. */
+/** PUT /v1/admin/ai/providers/:id: apiKey undefined keeps the stored key; null removes it. */
 export const updateProviderSchema = options
   .extend({
     name: providerName.optional(),
@@ -223,7 +223,7 @@ const assignment = z
     ...(reasoningEffort != null ? { reasoningEffort } : {}),
   }));
 /**
- * PUT /v1/admin/ai/assignments — null unassigns a purpose. The legacy "review" key sets both
+ * PUT /v1/admin/ai/assignments: null unassigns a purpose. The legacy "review" key sets both
  * review_quick and review_deep (explicit keys win).
  */
 export const assignmentsSchema = z

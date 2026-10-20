@@ -52,7 +52,7 @@ export type Prices = z.infer<typeof pricesSchema>;
 export type PlanLimits = z.infer<typeof limitsSchema>;
 export type PlanFeatures = z.infer<typeof featuresSchema>;
 
-/** PUT /v1/admin/plans/:id — every field optional; unspecified fields keep their value. */
+/** PUT /v1/admin/plans/:id: every field optional; unspecified fields keep their value. */
 export const planUpdateSchema = z
   .object({
     name: z.string().trim().min(1).max(64).optional(),
@@ -68,7 +68,7 @@ export type PlanUpdate = z.infer<typeof planUpdateSchema>;
 
 export const planIdSchema = z.string().regex(/^[a-z][a-z0-9_-]{0,31}$/);
 
-/** PUT /v1/admin/users/:id/plan — manual grant; `until` null/absent = no end date. */
+/** PUT /v1/admin/users/:id/plan: manual grant; `until` null/absent = no end date. */
 export const planGrantSchema = z
   .object({
     planId: planIdSchema,

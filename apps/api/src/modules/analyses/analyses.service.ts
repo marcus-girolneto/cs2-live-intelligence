@@ -7,7 +7,7 @@ export interface AnalysisReader {
   analysis(ownerId: string, id: string): Promise<StoredAnalysis | undefined>;
 }
 
-/** GET /v1/analyses/:id — the analysis with its offline coaching, redacted for non-admins. */
+/** GET /v1/analyses/:id: the analysis with its offline coaching, redacted for non-admins. */
 export class AnalysesService {
   constructor(private readonly analyses: AnalysisReader) {}
 

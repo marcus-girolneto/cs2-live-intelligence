@@ -63,7 +63,7 @@ func corrupt(data []byte, stride int, xor byte) []byte {
 }
 
 // FuzzNormalize feeds arbitrary bytes to the full parse path (library + normalization +
-// replay). It must return an error or a document — never panic past ParseFileWithReplay's
+// replay). It must return an error or a document, never panic past ParseFileWithReplay's
 // recover boundary, never exceed the time or heap budget. Bounded run:
 // `pnpm test:fuzz` (go test -run '^$' -fuzz FuzzNormalize -fuzztime 20s). The checked-in
 // regression corpus lives in testdata/fuzz/FuzzNormalize and runs with every `go test`.

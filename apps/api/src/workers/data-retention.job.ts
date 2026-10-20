@@ -22,7 +22,7 @@ export interface RetentionSettings {
  * Global retention of append-only tables, run with the hourly account jobs: creates the next
  * monthly partitions of telemetry_events and product_events, drops partitions entirely past
  * their retention, and deletes remaining old rows in batches (telemetry 30 days, product events
- * 180, admin audit 365, usage counters 90, processed file deletions 7 — admin-editable under
+ * 180, admin audit 365, usage counters 90, processed file deletions 7; admin-editable under
  * app settings `retention`). Account retention (users.retention_days) runs in the demo worker.
  */
 export class DataRetentionJob {

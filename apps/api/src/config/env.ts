@@ -5,7 +5,7 @@ import { z } from "zod";
  *
  * The environment holds bootstrap/infrastructure settings only (see .env.example). Everything
  * an operator tunes lives in Postgres and is edited by admins in the app (AI providers, app
- * settings incl. time zone, Steam/Stripe integrations) — it survives restarts and redeploys.
+ * settings incl. time zone, Steam/Stripe integrations). It survives restarts and redeploys.
  *
  * - `loadConfig()` validates the boot-time settings once (zod) into a typed AppConfig.
  * - `RuntimeEnv` exposes optional bootstrap fallbacks that the database overrides (AI_*,

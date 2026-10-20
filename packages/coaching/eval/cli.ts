@@ -1,5 +1,5 @@
 /**
- * pnpm eval:ai — nightly AI evaluation.
+ * pnpm eval:ai: nightly AI evaluation.
  *
  * API mode (uses the running API's admin-assigned providers; keys never leave the server):
  *   EVAL_API_URL=http://127.0.0.1:4000 EVAL_TOKEN=<admin bearer> pnpm eval:ai [--analysis-id <id> --steam-id <id>]
