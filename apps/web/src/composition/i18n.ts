@@ -17,6 +17,7 @@ import { i18nPt as personal } from "@/features/personal";
 import { i18nPt as reports } from "@/features/reports";
 import { i18nPt as settings } from "@/features/settings";
 import { i18nPt as shell } from "@/features/shell";
+import { i18nPt as training } from "@/features/training";
 import type { Dictionaries } from "@/shared/i18n";
 import { mergeDictionaries } from "@/shared/i18n/core";
 import { pt as shared } from "@/shared/i18n/pt";
@@ -41,6 +42,7 @@ export const ptParts = {
   reports,
   settings,
   shell,
+  training,
 };
 const merged = mergeDictionaries(ptParts);
 /** Keys translated differently by two parts (must stay empty; see i18n.test.ts). */
