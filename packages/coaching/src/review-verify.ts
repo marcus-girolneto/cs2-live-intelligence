@@ -4,6 +4,7 @@
  * observation or key moment removes the item; a dropped verdict/summary/plan item removes that
  * text. Verification statistics are recorded in the review's provenance.
  */
+import { clipText } from "./clip-text.js";
 import type { CoachLang } from "./languages.js";
 import type { Analysis, Coaching } from "@cs2/contracts";
 import type { ClaimContext } from "./claims.js";
@@ -128,24 +129,24 @@ export async function verifyCoaching(
   const insights = coaching.insights.flatMap((i, n) => {
     const observation = textOf(`insight:${n}`, i.observation);
     return observation
-      ? [{ ...i, observation: observation.slice(0, 2000) }]
+      ? [{ ...i, observation: clipText(observation, 2000) }]
       : [];
   });
   const keyMoments = (coaching.keyMoments ?? []).flatMap((m, n) => {
     const whatHappened = textOf(`moment:${n}`, m.whatHappened);
     return whatHappened
-      ? [{ ...m, whatHappened: whatHappened.slice(0, 600) }]
+      ? [{ ...m, whatHappened: clipText(whatHappened, 600) }]
       : [];
   });
   const planItems = (coaching.planItems ?? []).flatMap((p, n) => {
     const text = textOf(`plan:${n}`, p.text);
-    return text ? [{ ...p, text: text.slice(0, 300) }] : [];
+    return text ? [{ ...p, text: clipText(text, 300) }] : [];
   });
   const verdict = coaching.verdict
-    ? textOf("verdict", coaching.verdict)?.slice(0, 90)
+    ? clipOpt(textOf("verdict", coaching.verdict), 90)
     : undefined;
   const summary = coaching.summary
-    ? textOf("summary", coaching.summary)?.slice(0, 2000)
+    ? clipOpt(textOf("summary", coaching.summary), 2000)
     : undefined;
   const next: Coaching = {
     ...coaching,
@@ -171,3 +172,6 @@ export async function verifyCoaching(
   }
   return { coaching: next, result };
 }
+
+const clipOpt = (t: string | undefined, max: number) =>
+  t === undefined ? undefined : clipText(t, max);

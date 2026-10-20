@@ -4,6 +4,7 @@
  * mapped back to Steam ids server-side, confidence capped by the cited facts) → claim checks
  * and the optional verifier.
  */
+import { clipText } from "../clip-text.js";
 import type { CoachLang } from "../languages.js";
 import {
   analysisSchema,
@@ -421,7 +422,7 @@ async function verifyTeam(
   }));
   return {
     ...review,
-    verdict: (pick("verdict", review.verdict) ?? "").slice(0, 120),
+    verdict: clipText(pick("verdict", review.verdict) ?? "", 120),
     roles,
     patterns: review.patterns.flatMap((p, i) => {
       const tx = pick(`pattern:${i}`, p.text);
