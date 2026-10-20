@@ -78,6 +78,7 @@ export * from "./confidence.js";
 export * from "./claims.js";
 export * from "./verify.js";
 export * from "./review-verify.js";
+export * from "./training/index.js";
 export * from "./integrity.js";
 export * from "./plan-metrics.js";
 export * from "./variants.js";

@@ -94,6 +94,7 @@ export * from "./deep.js";
 export * from "./report.js";
 export * from "./personal-coach.js";
 export * from "./team.js";
+export * from "./training.js";
 export * from "./languages.js";
 export * from "./callouts.js";
 export * as api from "./api/index.js";

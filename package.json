@@ -18,7 +18,8 @@
     "test:integration": "pnpm --filter @cs2/api test",
     "local:up": "docker compose -f compose.yaml -f compose.local.yaml up -d --build",
     "local:down": "docker compose -f compose.yaml -f compose.local.yaml down",
-    "eval:ai": "tsx packages/coaching/eval/cli.ts"
+    "eval:ai": "tsx packages/coaching/eval/cli.ts",
+    "training:verify": "tsx packages/coaching/src/training/verify-cli.ts"
   },
   "devDependencies": {
     "turbo": "^2.5.0",
