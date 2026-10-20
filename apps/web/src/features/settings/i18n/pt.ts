@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the settings feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the settings feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Collector devices": "Dispositivos coletores",
   "Account & data": "Conta e dados",
@@ -31,8 +31,6 @@ export const pt: Record<string, string> = {
   "Your devices": "Seus dispositivos",
   "Refresh devices": "Atualizar lista",
   "No paired devices.": "Nenhum dispositivo pareado.",
-  Active: "Ativo",
-  Revoked: "Revogado",
   "Rotate credential": "Trocar credencial",
   "Revoke device": "Revogar",
   "Rotate this device credential? Its current credential will stop working. Claim the replacement code from your collector.":
@@ -87,10 +85,6 @@ export const pt: Record<string, string> = {
   Deep: "Aprofundado",
   "Detect from my matches": "Detectar pelas minhas partidas",
   "Entry fragger": "Entry fragger",
-  Support: "Suporte",
-  AWPer: "AWPer",
-  Lurker: "Lurker",
-  Anchor: "Âncora",
   IGL: "IGL",
   "Teamplay & trades": "Jogo em equipe e trocas",
   Mindset: "Mentalidade",

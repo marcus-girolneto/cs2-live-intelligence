@@ -1,16 +1,13 @@
-// Portuguese (Brazil) translations of the developers feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the developers feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   Developers: "Desenvolvedores",
   "Use the FragMind API to upload demos, read analyses and request AI reviews from your own tools.":
     "Use a API do FragMind para enviar demos, ler análises e pedir análises de IA a partir das suas próprias ferramentas.",
   "API docs": "Documentação da API",
-  "Base URL": "URL base",
   "API keys": "Chaves de API",
   "Your new API key": "Sua nova chave de API",
   "Copy it now and store it somewhere safe. It will not be shown again.":
     "Copie agora e guarde em um lugar seguro. Ela não será mostrada de novo.",
-  Copy: "Copiar",
-  Copied: "Copiado",
   "I saved it": "Já guardei",
   "Key name": "Nome da chave",
   "e.g. Stats bot": "ex.: Bot de estatísticas",
@@ -26,7 +23,6 @@ export const pt: Record<string, string> = {
   "Manage webhooks": "Gerenciar webhooks",
   Expires: "Expira",
   "In {n} days": "Em {n} dias",
-  Never: "Nunca",
   "Create API key": "Criar chave de API",
   "You reached the limit of active keys. Revoke one to create another.":
     "Você atingiu o limite de chaves ativas. Revogue uma para criar outra.",
@@ -41,7 +37,6 @@ export const pt: Record<string, string> = {
     "Revogar esta chave de API? Os apps que a usam param de funcionar na hora.",
   "Could not load your API keys.":
     "Não foi possível carregar suas chaves de API.",
-  "Request failed.": "A operação falhou.",
   Webhooks: "Webhooks",
   "We POST a signed JSON event to your HTTPS endpoint when a demo is analysed, fails, or an AI review is ready. Verify the FragMind-Signature header with your signing secret.":
     "Enviamos um evento JSON assinado (POST) para o seu endpoint HTTPS quando uma demo é analisada, falha ou quando uma análise de IA fica pronta. Confira o cabeçalho FragMind-Signature com o seu segredo de assinatura.",
@@ -64,10 +59,8 @@ export const pt: Record<string, string> = {
     "Apagar este webhook? As entregas pendentes são descartadas.",
   "Could not load your webhooks.": "Não foi possível carregar seus webhooks.",
   "Recent deliveries": "Entregas recentes",
-  Refresh: "Atualizar",
   "No deliveries yet.": "Nenhuma entrega ainda.",
   Delivered: "Entregue",
   Failed: "Falhou",
   Retrying: "Tentando de novo",
-  "{n} attempts": "{n} tentativas",
 };

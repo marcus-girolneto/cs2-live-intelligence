@@ -8,7 +8,7 @@ import { IGL_CALL, LIVE_ROUND } from "../model/showcase";
 
 /** Mocked second-screen HUD: a round ends, the score ticks, then the IGL call types out. */
 export function LivePreview() {
-  const { t } = useI18n();
+  const { t, fmt } = useI18n();
   const box = useRef<HTMLDivElement>(null);
   const visible = useInView(box);
   const reduced = useMediaQuery(REDUCED_MOTION);
@@ -80,7 +80,7 @@ export function LivePreview() {
             <dt>
               <Money size={12} /> {t("Money")}
             </dt>
-            <dd>${LIVE_ROUND.money.toLocaleString("en-US")}</dd>
+            <dd>${fmt.number(LIVE_ROUND.money)}</dd>
           </div>
           <div>
             <dt>

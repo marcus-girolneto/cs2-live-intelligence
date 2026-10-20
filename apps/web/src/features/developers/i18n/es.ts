@@ -1,0 +1,65 @@
+// Español (es) strings of the developers feature. Keys are the English source texts.
+export const es: Record<string, string> = {
+  Developers: "Desarrolladores",
+  "Use the FragMind API to upload demos, read analyses and request AI reviews from your own tools.":
+    "Usa la API de FragMind para subir demos, leer análisis y pedir análisis de IA desde tus propias herramientas.",
+  "API docs": "Documentación de la API",
+  "API keys": "Claves de API",
+  "Your new API key": "Tu nueva clave de API",
+  "Copy it now and store it somewhere safe. It will not be shown again.":
+    "Cópiala ahora y guárdala en un lugar seguro. No se volverá a mostrar.",
+  "I saved it": "Ya la guardé",
+  "Key name": "Nombre de la clave",
+  "e.g. Stats bot": "p. ej. Bot de estadísticas",
+  Permissions: "Permisos",
+  "Read demos and their status": "Leer demos y su estado",
+  "Upload and delete demos": "Subir y eliminar demos",
+  "Read analyses, player metrics and saved reviews":
+    "Leer análisis, métricas de jugadores y análisis guardados",
+  "Request AI reviews (spends credits)":
+    "Pedir análisis de IA (gasta créditos)",
+  "Read your progress": "Leer tu progreso",
+  "Read account, plan and credits": "Leer cuenta, plan y créditos",
+  "Manage webhooks": "Gestionar webhooks",
+  Expires: "Caduca",
+  "In {n} days": "En {n} días",
+  "Create API key": "Crear clave de API",
+  "You reached the limit of active keys. Revoke one to create another.":
+    "Llegaste al límite de claves activas. Revoca una para crear otra.",
+  "No API keys yet.": "Aún no hay claves de API.",
+  Active: "Activa",
+  Expired: "Caducada",
+  Revoked: "Revocada",
+  Created: "Creada",
+  "Last used": "Último uso",
+  "Revoke key": "Revocar clave",
+  "Revoke this API key? Apps using it stop working right away.":
+    "¿Revocar esta clave de API? Las apps que la usan dejarán de funcionar al instante.",
+  "Could not load your API keys.": "No se pudieron cargar tus claves de API.",
+  Webhooks: "Webhooks",
+  "We POST a signed JSON event to your HTTPS endpoint when a demo is analysed, fails, or an AI review is ready. Verify the FragMind-Signature header with your signing secret.":
+    "Enviamos un evento JSON firmado a tu endpoint HTTPS cuando una demo se analiza, falla o un análisis de IA está listo. Verifica la cabecera FragMind-Signature con tu secreto de firma.",
+  "Signing secret": "Secreto de firma",
+  "Endpoint URL": "URL del endpoint",
+  Events: "Eventos",
+  "Demo analysed": "Demo analizada",
+  "Demo failed": "Demo fallida",
+  "AI review ready": "Análisis de IA listo",
+  "Add webhook": "Añadir webhook",
+  "No webhooks yet.": "Aún no hay webhooks.",
+  Disabled: "Desactivado",
+  "Disabled after repeated failed deliveries.":
+    "Desactivado tras varios envíos fallidos.",
+  "Test delivered (HTTP {status}).": "Prueba entregada (HTTP {status}).",
+  "Test failed: {error}": "La prueba falló: {error}",
+  "Send test event": "Enviar evento de prueba",
+  "Delete webhook": "Eliminar webhook",
+  "Delete this webhook? Pending deliveries are dropped.":
+    "¿Eliminar este webhook? Los envíos pendientes se descartan.",
+  "Could not load your webhooks.": "No se pudieron cargar tus webhooks.",
+  "Recent deliveries": "Envíos recientes",
+  "No deliveries yet.": "Aún no hay envíos.",
+  Delivered: "Entregado",
+  Failed: "Fallido",
+  Retrying: "Reintentando",
+};

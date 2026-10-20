@@ -1,50 +1,29 @@
-import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
+import type { Viewport } from "next";
 import "./globals.css";
 import { AppProviders } from "@/composition/AppProviders";
+import { requestLanguage, rootMetadata } from "@/composition/rootLayout";
 import { BRAND } from "@/shared/brand";
-import { LANG_COOKIE, parseLang } from "@/shared/i18n/core";
-function siteUrl() {
-  try {
-    return new URL(process.env.WEB_ORIGIN ?? "http://localhost:3000");
-  } catch {
-    return new URL("http://localhost:3000");
-  }
-}
-export const metadata: Metadata = {
-  metadataBase: siteUrl(),
-  title: {
-    default: `${BRAND.name} · ${BRAND.tagline.en}`,
-    template: `%s · ${BRAND.name}`,
-  },
-  description: BRAND.description.en,
-  applicationName: BRAND.name,
-  appleWebApp: { title: BRAND.name },
-  openGraph: {
-    type: "website",
-    siteName: BRAND.name,
-    title: `${BRAND.name} · ${BRAND.tagline.en}`,
-    description: BRAND.description.en,
-    locale: "en_US",
-    alternateLocale: ["pt_BR"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${BRAND.name} · ${BRAND.tagline.en}`,
-    description: BRAND.description.en,
-  },
-};
+import { htmlLang } from "@/shared/i18n/core";
+
+export const metadata = rootMetadata;
 export const viewport: Viewport = { themeColor: BRAND.themeColor };
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const lang = parseLang((await cookies()).get(LANG_COOKIE)?.value);
+  const { lang, dictionary, font, detect } = await requestLanguage();
   return (
-    <html lang={lang === "pt" ? "pt-BR" : "en"}>
+    <html lang={htmlLang(lang)}>
+      {font && (
+        <head>
+          <link rel="stylesheet" href={font} data-lang-font={lang} />
+        </head>
+      )}
       <body>
-        <AppProviders lang={lang}>{children}</AppProviders>
+        <AppProviders lang={lang} dictionary={dictionary} detect={detect}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

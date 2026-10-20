@@ -1,0 +1,46 @@
+// Türkçe (tr) strings of the auth feature. Keys are the English source texts.
+export const tr: Record<string, string> = {
+  Online: "Çevrimiçi",
+  "In game": "Oyunda",
+  Away: "Uzakta",
+  Offline: "Çevrimdışı",
+  "Profile updated from Steam.": "Profil Steam'den güncellendi.",
+  "Refreshed recently. Try again in a minute.":
+    "Az önce yenilendi. Bir dakika sonra tekrar dene.",
+  "Could not refresh the profile right now.": "Profil şu anda yenilenemedi.",
+  "CS2 hours": "CS2 saati",
+  "{h} h last 2 weeks": "Son 2 haftada {h} sa",
+  "On Steam": "Steam'de",
+  "< 1 year": "< 1 yıl",
+  "{n} years": "{n} yıl",
+  Friends: "Arkadaşlar",
+  Badges: "Rozetler",
+  Groups: "Gruplar",
+  "Steam level": "Steam seviyesi",
+  "Playing {game}": "{game} oynuyor",
+  "last seen {date}": "son görülme {date}",
+  "Private profile": "Gizli profil",
+  "Show less": "Daha az göster",
+  "Read more": "Devamını oku",
+  "{n} VAC ban(s)": "{n} VAC banı",
+  "{n} game ban(s)": "{n} oyun banı",
+  "Community ban": "Topluluk banı",
+  "{n} days ago": "{n} gün önce",
+  "No VAC or game bans": "VAC ya da oyun banı yok",
+  "Refresh profile": "Profili yenile",
+  "Your Steam profile details are not available yet.":
+    "Steam profil bilgilerin henüz hazır değil.",
+  "Recently played": "Son oynananlar",
+  "{h} h": "{h} sa",
+  "Sign-out failed.": "Çıkış yapılamadı.",
+  "Invalid sign-in destination.": "Geçersiz giriş hedefi.",
+  "Opening Steam…": "Steam açılıyor…",
+  "Steam sign-in is unavailable.": "Steam ile giriş kullanılamıyor.",
+  "Steam profile": "Steam profili",
+  "You are using the local demo account. Sign in with Steam to use your own identity; your demos will then highlight you automatically.":
+    "Yerel demo hesabını kullanıyorsun. Kendi kimliğini kullanmak için Steam ile giriş yap; demoların seni otomatik olarak öne çıkarır.",
+  "Steam sign-in didn't complete. Try again in a single tab and click Sign in once.":
+    "Steam girişi tamamlanmadı. Tek bir sekmede tekrar dene ve Giriş yap'a bir kez tıkla.",
+  "Steam is not responding right now. Try again in a minute.":
+    "Steam şu anda yanıt vermiyor. Bir dakika sonra tekrar dene.",
+};

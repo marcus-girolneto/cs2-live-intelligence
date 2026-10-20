@@ -4,7 +4,7 @@ import { ChevronDown } from "@/shared/icons";
 import type { Account } from "@/shared/session";
 import { ADMIN, NAV_GROUPS, SETTINGS } from "../model/links";
 import { Brand } from "./Brand";
-import { LangToggle } from "./LangToggle";
+import { LanguageSelect } from "./LanguageSelect";
 import { NavList } from "./NavList";
 import { UserMenu } from "./UserMenu";
 
@@ -54,7 +54,7 @@ export function Sidebar({
         <NavList links={bottom} path={path} collapsed={collapsed} />
       </nav>
       <div className="side-foot">
-        <LangToggle />
+        <LanguageSelect compact={collapsed} up />
         <UserMenu account={account} collapsed={collapsed} />
       </div>
     </aside>

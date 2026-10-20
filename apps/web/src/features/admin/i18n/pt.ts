@@ -1,6 +1,6 @@
-// Portuguese (Brazil) translations of the admin feature, keyed by the English source string.
-import { ptCredits } from "./pt-credits";
-import { ptIntegrations } from "./pt-integrations";
+// Português (Brasil) (pt) strings of the admin feature. Keys are the English source texts.
+import { pt2 } from "./pt-2";
+
 export const pt: Record<string, string> = {
   Administration: "Administração",
   "Control room": "Sala de controle",
@@ -114,20 +114,12 @@ export const pt: Record<string, string> = {
   "Header values must be strings.": "Valores de cabeçalho precisam ser texto.",
   "At most 20 headers.": "No máximo 20 cabeçalhos.",
   "Invalid JSON.": "JSON inválido.",
-  "Assignments saved. New requests use them immediately.":
-    "Atribuições salvas. Novas requisições já as usam.",
   "Add a provider first": "Adicione um provedor primeiro",
   "Model assignment picks a saved provider profile for each purpose. Without assignments the .env configuration is used.":
     "A atribuição escolhe um perfil de provedor salvo para cada finalidade. Sem atribuições, a configuração do .env é usada.",
-  "Full AI Coach review after each demo. Prefer a strong model.":
-    "Análise completa do Coach IA após cada demo. Prefira um modelo forte.",
   "Short IGL calls between rounds. Prefer a fast model.":
     "Calls curtas de IGL entre rounds. Prefira um modelo rápido.",
   "Use .env default": "Usar padrão do .env",
-  "Current: {model} · since {date}": "Atual: {model} · desde {date}",
-  "Current: .env default": "Atual: padrão do .env",
-  "Save assignments": "Salvar atribuições",
-  "provider profile(s) available": "perfil(is) de provedor disponível(is)",
   "App settings saved.": "Configurações do app salvas.",
   "AI usage": "Uso de IA",
   "Limits applied to every account. Empty fields use the .env defaults.":
@@ -223,8 +215,6 @@ export const pt: Record<string, string> = {
   Unlimited: "Ilimitado",
   keep: "manter",
   "Packs saved.": "Pacotes salvos.",
-  "One-off purchases. Purchased credits never expire.":
-    "Compras avulsas. Créditos comprados nunca expiram.",
   "Add pack": "Adicionar pacote",
   "No packs on sale.": "Nenhum pacote à venda.",
   "New pack": "Novo pacote",
@@ -233,6 +223,48 @@ export const pt: Record<string, string> = {
   Remove: "Remover",
   "Save packs": "Salvar pacotes",
   "Credit settings saved.": "Configurações de créditos salvas.",
-  ...ptCredits,
-  ...ptIntegrations,
+  "Credit economy": "Economia de créditos",
+  "Welcome grant, review costs and limits that keep free credits fair.":
+    "Crédito de boas-vindas, custos das reviews e limites que mantêm os créditos grátis justos.",
+  "Save credit settings": "Salvar configurações de créditos",
+  "Credits adjusted.": "Créditos ajustados.",
+  "Credits of {name}": "Créditos de {name}",
+  "Add or remove credits": "Adicionar ou remover créditos",
+  "Note (shown in the player's history)":
+    "Nota (aparece no histórico do jogador)",
+  Apply: "Aplicar",
+  Manage: "Gerenciar",
+  "Welcome credits": "Créditos de boas-vindas",
+  "Granted once to each eligible new Steam account.":
+    "Concedidos uma vez a cada nova conta Steam elegível.",
+  "Quick review cost": "Custo da review Quick",
+  "Credits per Quick review.": "Créditos por review Quick.",
+  "Credits per Deep review (Free and Basic).":
+    "Créditos por review Deep (Free e Basic).",
+  "Deep review cost on Pro": "Custo da review Deep no Pro",
+  "Discounted Deep review for Pro.": "Review Deep com desconto para o Pro.",
+  "Daily safety cap": "Limite diário de segurança",
+  "Minimum Steam account age (days)": "Idade mínima da conta Steam (dias)",
+  "Younger accounts don't get the welcome credit.":
+    "Contas mais novas não recebem o crédito de boas-vindas.",
+  "Welcome grants per network": "Créditos de boas-vindas por rede",
+  "Limits farming of welcome credits from one network.":
+    "Limita o abuso de créditos de boas-vindas a partir de uma rede.",
+  "Monthly report": "Relatório mensal",
+  "Quick review after each demo. A fast, reliable model.":
+    "Review Quick após cada demo. Um modelo rápido e confiável.",
+  "Deep review (utility, crosshair, positioning, rounds). Prefer your strongest model.":
+    "Review Deep (utilitárias, mira, posicionamento, rounds). Prefira seu modelo mais forte.",
+  "Monthly performance report for Pro players. A strong model with a large context.":
+    "Relatório mensal de desempenho para jogadores Pro. Um modelo forte com contexto grande.",
+  "Credits / month": "Créditos / mês",
+  "One-off purchases. Purchased credits never expire. Take a pack off sale instead of deleting it.":
+    "Compras avulsas. Créditos comprados nunca expiram. Tire um pacote de venda em vez de apagá-lo.",
+  "Network window (days)": "Janela por rede (dias)",
+  "Period in which the per-network limit applies.":
+    "Período em que o limite por rede vale.",
+  "Most AI reviews one account can run per day, whatever its balance.":
+    "Máximo de reviews de IA que uma conta pode rodar por dia, independentemente do saldo.",
+  "Discounted Deep review": "Review Deep com desconto",
+  ...pt2,
 };

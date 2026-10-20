@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the replay feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the replay feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Round {n} · 2D replay": "Round {n} · replay 2D",
   "Loading the replay…": "Carregando o replay…",

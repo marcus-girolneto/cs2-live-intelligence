@@ -1,31 +1,60 @@
 // Framework-free i18n core: English source strings are the keys; missing
-// translations fall back to English. Dictionaries are registered per feature
-// (src/features/<f>/i18n/pt.ts) and merged by the composition root.
-export type Lang = "en" | "pt";
+// translations fall back to English. Each feature keeps one dictionary per
+// language (src/features/<f>/i18n/<lang>.ts); the composition root bundles them
+// per language (src/composition/locales/<lang>.ts) and loads only the active one.
+import {
+  LANGUAGES,
+  detectLanguage,
+  isLanguageCode,
+  parseLanguage,
+  type LanguageCode,
+} from "@cs2/contracts/languages";
+
+export type Lang = LanguageCode;
 export type Dictionary = Readonly<Record<string, string>>;
-export type Dictionaries = Readonly<Record<Lang, Dictionary>>;
+/** Loaded dictionaries by language (English needs none: keys are the English text). */
+export type Dictionaries = Readonly<Partial<Record<Lang, Dictionary>>>;
 export type Vars = Record<string, string | number>;
 
 export const LANG_COOKIE = "lang";
-export const LANGS: { code: Lang; label: string }[] = [
-  { code: "en", label: "EN" },
-  { code: "pt", label: "PT" },
-];
-export function parseLang(value: unknown): Lang {
-  return value === "pt" ? "pt" : "en";
-}
-export const localeOf = (lang: Lang) => (lang === "pt" ? "pt-BR" : "en-US");
+/** localStorage key of an explicit choice made in the language selector. */
+export const LANG_STORAGE = "fragmind.lang";
+export const LANGS: { code: Lang; label: string; tag: string }[] =
+  LANGUAGES.map((l) => ({ code: l.code, label: l.native, tag: l.tag }));
+export const parseLang = (value: unknown): Lang => parseLanguage(value);
+export const isLang = (value: unknown): value is Lang => isLanguageCode(value);
+/** First supported language of a browser preference list, English otherwise. */
+export const detectLang = (tags: readonly unknown[]): Lang =>
+  detectLanguage(tags);
+/** BCP 47 tag for <html lang> ("pt-BR", "zh-CN"). */
+export const htmlLang = (lang: Lang): string =>
+  LANGUAGES.find((l) => l.code === lang)?.tag ?? "en";
+/** Locale for Intl formatting (English formats as en-US). */
+export const localeOf = (lang: Lang): string =>
+  lang === "en" ? "en-US" : htmlLang(lang);
 
 /**
  * Replaces {name} placeholders and ICU-style plurals:
  * "{n, plural, one {# enemy} other {# enemies}}" picks the form with Intl.PluralRules for the
  * locale (zero/one/two/few/many/other, "=0" exact matches) and writes the number for "#".
  */
+/**
+ * Numbers are written in the locale's style (decimal comma, grouping from 5 digits so years
+ * and round numbers stay plain); strings are inserted as they are.
+ */
+export function formatVar(value: string | number, locale: string): string {
+  if (typeof value !== "number" || !Number.isFinite(value))
+    return String(value);
+  return value.toLocaleString(locale, {
+    maximumFractionDigits: 2,
+    useGrouping: "min2",
+  } as Intl.NumberFormatOptions);
+}
 export function interpolate(template: string, vars?: Vars, locale = "en-US") {
   if (!vars) return template;
   return expandPlurals(template, vars, locale).replace(
     /\{(\w+)\}/g,
-    (m, k: string) => (k in vars ? String(vars[k]) : m),
+    (m, k: string) => (k in vars ? formatVar(vars[k]!, locale) : m),
   );
 }
 function expandPlurals(template: string, vars: Vars, locale: string): string {
@@ -59,8 +88,7 @@ function expandPlurals(template: string, vars: Vars, locale: string): string {
       forms[new Intl.PluralRules(locale).select(n)] ??
       forms.other ??
       "";
-    const shown =
-      typeof raw === "number" ? raw.toLocaleString(locale) : String(raw);
+    const shown = formatVar(raw!, locale);
     out += template.slice(at, m.index) + form.replace(/#/g, shown);
     at = i + 1;
     head.lastIndex = at;
@@ -73,7 +101,7 @@ export function translate(
   text: string,
   vars?: Vars,
 ) {
-  return interpolate(dictionaries[lang][text] ?? text, vars, localeOf(lang));
+  return interpolate(dictionaries[lang]?.[text] ?? text, vars, localeOf(lang));
 }
 
 /** Merges feature dictionaries; a key defined twice must carry the same text. */

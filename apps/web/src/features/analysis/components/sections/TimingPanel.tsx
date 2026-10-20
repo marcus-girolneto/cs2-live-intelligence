@@ -37,7 +37,7 @@ export function TimingPanel({
             text: t(
               "You take your opening duels early: {s}s before the match average.",
               {
-                s: Math.abs(diff).toFixed(1),
+                s: Math.round(Math.abs(diff) * 10) / 10,
               },
             ),
           }
@@ -47,7 +47,7 @@ export function TimingPanel({
               text: t(
                 "You open late: {s}s after the match average. You tend to wait for info.",
                 {
-                  s: diff.toFixed(1),
+                  s: Math.round(diff * 10) / 10,
                 },
               ),
             }

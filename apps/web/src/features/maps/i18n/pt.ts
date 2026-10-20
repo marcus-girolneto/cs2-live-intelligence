@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the maps feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the maps feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Your plan for this match": "Seu plano para esta partida",
   "{coach} plan": "Plano do {coach}",
@@ -13,5 +13,4 @@ export const pt: Record<string, string> = {
     "O aprendizado por mapa é do Pro. Veja o que o coach aprende sobre você em cada mapa.",
   "No open items for this map yet. Review a match on it.":
     "Nenhum item em aberto neste mapa. Revise uma partida nele.",
-  "K/D": "K/D",
 };

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SteamSignIn } from "@/features/auth";
 import { PricingSection } from "@/features/billing";
-import { Brand, LangToggle } from "@/features/shell";
+import { Brand, LanguageSelect } from "@/features/shell";
 import { BRAND, LogoMark, Wordmark } from "@/shared/brand";
 import { useI18n } from "@/shared/i18n";
 import { Crosshair, Lock, ShieldCheck, Check, Eye } from "@/shared/icons";
@@ -14,7 +14,7 @@ import { ScreenshotStrip } from "./ScreenshotStrip";
 import { TryIt } from "./TryIt";
 import { TwoModes } from "./TwoModes";
 export function Landing() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     setFailed(
@@ -26,7 +26,7 @@ export function Landing() {
       <div className="landing-bg" aria-hidden />
       <header className="landing-top">
         <Brand />
-        <LangToggle />
+        <LanguageSelect />
       </header>
 
       <main>
@@ -36,7 +36,7 @@ export function Landing() {
               <LogoMark size={112} animated title={BRAND.name} />
               <div>
                 <Wordmark className="hero-wordmark" />
-                <span className="hero-tagline">{BRAND.tagline[lang]}</span>
+                <span className="hero-tagline">{t(BRAND.tagline)}</span>
               </div>
             </div>
             <span className="eyebrow">

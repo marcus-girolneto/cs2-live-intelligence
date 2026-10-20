@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the privacy feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the privacy feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   Back: "Voltar",
   "Local installation": "Instalação local",

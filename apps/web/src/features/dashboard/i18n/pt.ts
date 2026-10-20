@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the dashboard feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the dashboard feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Welcome back, {name}": "Bem-vindo de volta, {name}",
   "Your matches, your form and what the coach wants you to work on.":

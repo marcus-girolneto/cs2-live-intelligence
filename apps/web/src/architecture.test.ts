@@ -60,6 +60,14 @@ describe("web architecture", () => {
     const bad = sources.flatMap((f) =>
       importsOf(f)
         .filter((i) => /^@\/features\/[^/]+\/.+/.test(i))
+        // Per-language bundles import each feature's dictionary directly.
+        .filter(
+          (i) =>
+            !(
+              rel(f).startsWith("src/composition/locales/") &&
+              /^@\/features\/[^/]+\/i18n\/[a-z]{2}$/.test(i)
+            ),
+        )
         .map((i) => `${rel(f)} → ${i}`),
     );
     expect(bad).toEqual([]);

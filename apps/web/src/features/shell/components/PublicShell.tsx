@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Brand } from "./Brand";
-import { LangToggle } from "./LangToggle";
+import { LanguageSelect } from "./LanguageSelect";
 import { SiteFooter } from "./SiteFooter";
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
@@ -9,7 +9,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
         <div className="topbar-inner">
           <Brand />
           <div className="topbar-right">
-            <LangToggle />
+            <LanguageSelect />
           </div>
         </div>
       </header>

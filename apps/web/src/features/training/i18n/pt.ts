@@ -1,10 +1,5 @@
-/**
- * Portuguese strings of the training feature ("Train this", /training, Pro-team week).
- * Keys already translated by another feature (Copy, Copied, Map, Aim, Utility, Review,
- * Warmup, Round {n}, roles, All maps, {n} min, Crosshair placement) are not repeated here.
- */
+// Português (Brasil) (pt) strings of the training feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
-  // Section and page
   "Train this": "Treine isso",
   "Concrete practice from your own demo: maps, spots and commands. No theory.":
     "Treino concreto da sua própria demo: mapas, posições e comandos. Sem teoria.",
@@ -31,7 +26,6 @@ export const pt: Record<string, string> = {
   "Every Workshop map is checked on Steam (title, CS2, not removed). Subscribe, then Play, Workshop Maps, or paste the copied command in the console.":
     "Cada mapa da Oficina é verificado na Steam (título, CS2, não removido). Inscreva-se e vá em Jogar, Mapas da Oficina, ou cole o comando copiado no console.",
   "Open training": "Abrir treino",
-  // Resources
   "Deathmatch (official mode)": "Deathmatch (modo oficial)",
   "Private practice server (official map + config)":
     "Servidor de treino privado (mapa oficial + config)",
@@ -40,7 +34,6 @@ export const pt: Record<string, string> = {
   "Workshop page": "Página da Oficina",
   "Copy command": "Copiar comando",
   "Launch CS2": "Abrir o CS2",
-  // Sessions
   "Done when:": "Pronto quando:",
   "{n, plural, one {# spot} other {# spots}} in the practice server box below":
     "{n, plural, one {# posição} other {# posições}} no quadro do servidor de treino abaixo",
@@ -49,7 +42,6 @@ export const pt: Record<string, string> = {
   Debrief: "Debrief",
   "Spray control": "Controle de spray",
   Movement: "Movimentação",
-  Positioning: "Posicionamento",
   Rifler: "Rifler",
   "Day {n}": "Dia {n}",
   "Rest day: no practice, sleep well.":
@@ -57,7 +49,6 @@ export const pt: Record<string, string> = {
   "Pro-team week": "Semana de time pro",
   "Every practice day: review, warmup, area habit, focused block, debrief. Take a short break every hour, drink water, sleep.":
     "Todo dia de treino: review, aquecimento, hábito da área, bloco focado, debrief. Faça uma pausa curta a cada hora, beba água, durma bem.",
-  // Session templates (same English source as packages/coaching/src/training/texts.ts)
   "Review: why did you die at {area}?":
     "Review: por que você morreu no {area}?",
   "You died {n} times at {area} on {side}. Watch only those deaths in lost rounds, 30 to 60 minutes after the match.":
@@ -155,7 +146,6 @@ export const pt: Record<string, string> = {
     "O que melhorou, o que manter, a pergunta para a próxima review.",
   "Three lines written before you close the game.":
     "Três linhas escritas antes de fechar o jogo.",
-  // Mindset
   "Trust the spots you prepared: look there first, then shoot.":
     "Confie nas posições que você preparou: olhe lá primeiro, depois atire.",
   "Play your angle with confidence: you have seen it from both sides.":
@@ -168,7 +158,6 @@ export const pt: Record<string, string> = {
     "Calma no spray: você treinou esse padrão.",
   "Stop, shoot, move: clean and confident.":
     "Pare, atire, mova: limpo e confiante.",
-  // Practice server
   "Practice server": "Servidor de treino",
   "Start CS2, open Play, Practice, pick the map with bots off.":
     "Abra o CS2, vá em Jogar, Treino, escolha o mapa sem bots.",
@@ -201,8 +190,6 @@ export const pt: Record<string, string> = {
     "Round {round}: a flash no {where} que cegou o time",
   "Round {round}: {where}, this is where your crosshair should have been":
     "Round {round}: {where}, é aqui que sua mira deveria estar",
-  // Plan caveats are translated in src/shared/i18n/pt/caveats.ts.
-  // Catalog how-to steps (English source in packages/coaching/src/training/catalog.ts)
   "Stand still, AK-47 or M4: 100 kills aiming at head height only.":
     "Parado, AK-47 ou M4: 100 kills mirando só na altura da cabeça.",
   "Then 100 kills with counter-strafes: stop before every shot.":

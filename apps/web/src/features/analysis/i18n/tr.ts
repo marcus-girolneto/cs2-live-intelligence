@@ -1,0 +1,228 @@
+// Türkçe (tr) strings of the analysis feature. Keys are the English source texts.
+export const tr: Record<string, string> = {
+  "Where your hits landed": "Mermilerin nereye isabet etti",
+  "{part}: {n} hits ({pct}%)": "{part}: {n} isabet (%{pct})",
+  "Match average {pct}%": "Maç ortalaması %{pct}",
+  "{n} hits": "{n} isabet",
+  Show: "Göster",
+  "All ({n})": "Tümü ({n})",
+  "Kills ({n})": "Kill ({n})",
+  "Deaths ({n})": "Ölüm ({n})",
+  Side: "Taraf",
+  "Both sides": "İki taraf",
+  "Map of your kills and deaths": "Kill ve ölümlerinin haritası",
+  Death: "Ölüm",
+  Radar: "Radar",
+  Headshot: "Headshot",
+  "{m} m away": "{m} m uzakta",
+  "Your kill (where you stood)": "Kill'in (durduğun yer)",
+  "Your death": "Ölümün",
+  "Other fights in this match": "Bu maçtaki diğer çatışmalar",
+  Head: "Kafa",
+  Chest: "Göğüs",
+  Stomach: "Karın",
+  Arms: "Kollar",
+  Legs: "Bacaklar",
+  "No weapon data in this demo.": "Bu demoda silah verisi yok.",
+  Weapon: "Silah",
+  Damage: "Hasar",
+  Shots: "Atış",
+  "{n} dmg": "{n} hasar",
+  Timing: "Zamanlama",
+  "Round timing needs an enriched demo analysis.":
+    "Raunt zamanlaması için zenginleştirilmiş demo analizi gerekir.",
+  "You take your opening duels early: {s}s before the match average.":
+    "Açılış düellolarına erken giriyorsun: maç ortalamasından {s} sn önce.",
+  "You open late: {s}s after the match average. You tend to wait for info.":
+    "Geç açıyorsun: maç ortalamasından {s} sn sonra. Genelde bilgi bekliyorsun.",
+  "Your opening timing is in line with the match average.":
+    "Açılış zamanlaman maç ortalamasıyla aynı.",
+  "First kill": "İlk kill",
+  "Average seconds after freeze time ends":
+    "Freeze time bittikten sonraki ortalama saniye",
+  "match avg {v}": "maç ort. {v}",
+  "Early deaths": "Erken ölümler",
+  "in the first 20 s": "ilk 20 sn içinde",
+  "Opening record: {w} won, {l} lost.":
+    "Açılış karnesi: {w} kazanılan, {l} kaybedilen.",
+  "Utility usage needs an enriched demo analysis.":
+    "Utility kullanımı için zenginleştirilmiş demo analizi gerekir.",
+  Flashes: "Flash'lar",
+  Smokes: "Smoke'lar",
+  HE: "HE",
+  Molotovs: "Molotoflar",
+  "Enemies flashed": "Kör edilen rakipler",
+  "{s}s blind": "{s} sn kör",
+  "Teammates flashed": "Kör edilen takım arkadaşları",
+  "Flash assists": "Flash asistleri",
+  "Economy data needs an enriched demo analysis.":
+    "Ekonomi verisi için zenginleştirilmiş demo analizi gerekir.",
+  "Avg. equipment": "Ort. ekipman",
+  "Anti-eco kills": "Anti-eco kill'leri",
+  "Round by round": "Raunt raunt",
+  "{h}/{s} shots hit": "{s} atıştan {h} isabet",
+  "Bomb planted{site}": "Bomba kuruldu{site}",
+  "Bomb defused": "Bomba imha edildi",
+  "Bomb exploded": "Bomba patladı",
+  "Detailed data not available": "Ayrıntılı veri yok",
+  "This demo was analyzed before shots, hit groups and positions were extracted. Upload it again to get the full breakdown.":
+    "Bu demo; atışlar, isabet bölgeleri ve pozisyonlar çıkarılmadan önce analiz edildi. Tam dökümü görmek için yeniden yükle.",
+  Pistol: "Tabanca",
+  Eco: "Eco",
+  Force: "Force",
+  "Full buy": "Full buy",
+  "Started {side}": "{side} olarak başladı",
+  "Analysis sections": "Analiz bölümleri",
+  "Aim snapshot": "Aim özeti",
+  "Full aim breakdown": "Tam aim dökümü",
+  "Where you win and lose": "Nerede kazanıp nerede kaybediyorsun",
+  "Open map": "Haritayı aç",
+  "Best weapon: {w} ({k} kills)": "En iyi silah: {w} ({k} kill)",
+  "{a}% accuracy": "%{a} isabet",
+  "Strongest spot: {p} ({k} kills, {d} deaths)":
+    "En güçlü nokta: {p} ({k} kill, {d} ölüm)",
+  "Weakest spot: {p} ({k} kills, {d} deaths)":
+    "En zayıf nokta: {p} ({k} kill, {d} ölüm)",
+  "Hit groups": "İsabet bölgeleri",
+  "Where your bullets landed (all guns)":
+    "Mermilerin nereye isabet etti (tüm silahlar)",
+  "No hit-group data in this demo.": "Bu demoda isabet bölgesi verisi yok.",
+  "The marker on each bar is the match average.":
+    "Her çubuktaki işaret maç ortalamasıdır.",
+  Weapons: "Silahlar",
+  "Kill & death positions": "Kill ve ölüm pozisyonları",
+  Callouts: "Callout'lar",
+  "Kills made from and deaths suffered at each place":
+    "Her yerden alınan kill'ler ve her yerde yaşanan ölümler",
+  "Shots hit": "İsabetli atış",
+  "Match avg. accuracy": "Maç ort. isabet",
+  "Avg. kill distance": "Ort. kill mesafesi",
+  "{m} m": "{m} m",
+  "You hit {a}% of your shots, better than the match average of {b}%.":
+    "Atışlarının %{a} kadarı isabet etti, maç ortalamasından (%{b}) iyi.",
+  "You hit {a}% of your shots, below the match average of {b}%. Spray less and make the first bullet count.":
+    "Atışlarının %{a} kadarı isabet etti, maç ortalamasının (%{b}) altında. Daha az spray yap, ilk mermiyi değerlendir.",
+  "Utility damage per round": "Raunt başına utility hasarı",
+  "Enemies flashed per round": "Raunt başına kör edilen rakip",
+  "Avg. opening duel time": "Ort. açılış düellosu zamanı",
+  "Avg. death time": "Ort. ölüm zamanı",
+  "Anti-eco win rate": "Anti-eco kazanma oranı",
+  "Demo analysis": "Demo analizi",
+  "Unknown map": "Bilinmeyen harita",
+  "{n} rounds analyzed": "{n} raunt analiz edildi",
+  "{n} players": "{n} oyuncu",
+  "No complete rounds in this demo": "Bu demoda tam raunt yok",
+  "Rounds won by side": "Tarafa göre kazanılan rauntlar",
+  "Pick a player": "Bir oyuncu seç",
+  "Most damage in the match": "Maçta en çok hasar",
+  "This analysis has no players with valid data.":
+    "Bu analizde geçerli veriye sahip oyuncu yok.",
+  "Damage per round (ADR)": "Raunt başına hasar (ADR)",
+  "{delta} vs match average": "Maç ortalamasına göre {delta}",
+  Headshots: "Headshot'lar",
+  Incomplete: "Eksik",
+  Metrics: "Metrikler",
+  "ADR as CT": "CT olarak ADR",
+  "ADR as T": "T olarak ADR",
+  "ADR in lost rounds": "Kaybedilen rauntlarda ADR",
+  "ADR in won rounds": "Kazanılan rauntlarda ADR",
+  Calculation: "Hesaplama",
+  "Clutch 1v{n}": "Clutch 1v{n}",
+  "Clutches won": "Kazanılan clutch'lar",
+  "Damage per round": "Raunt başına hasar",
+  "Data & sources": "Veri ve kaynaklar",
+  Died: "Öldü",
+  "Died first": "İlk öldü",
+  "Died, not traded": "Trade edilmeden öldü",
+  "Died, traded": "Öldü, trade edildi",
+  "Every number on this page comes from these formulas. Incomplete metrics are not shown as numbers anywhere.":
+    "Bu sayfadaki her sayı bu formüllerden gelir. Eksik metrikler hiçbir yerde sayı olarak gösterilmez.",
+  "How it is calculated": "Nasıl hesaplanır",
+  "K/D {kd}": "K/D {kd}",
+  "Killed by {name}": "{name} öldürdü",
+  "Match average {avg}%": "Maç ortalaması %{avg}",
+  "Multi-kill rounds": "Multi-kill'li rauntlar",
+  "Never last alive": "Hiç son hayatta kalan olmadı",
+  "No damage": "Hasar yok",
+  "No deaths": "Ölüm yok",
+  "No opening duels": "Açılış düellosu yok",
+  "Open the AI Coach review": "AI Koç analizini aç",
+  "Opening deaths": "Açılış ölümleri",
+  "Opening duels": "Açılış düelloları",
+  "Opening kill": "Açılış kill'i",
+  "Opening kills": "Açılış kill'leri",
+  Overview: "Genel bakış",
+  "Round lost": "Raunt kaybedildi",
+  "Round won": "Raunt kazanıldı",
+  "Round {n}: {dmg} damage, {k} kills": "Raunt {n}: {dmg} hasar, {k} kill",
+  "Rounds without damage": "Hasarsız rauntlar",
+  "Show all rounds": "Tüm rauntları göster",
+  "Showing rounds {rounds}.": "Gösterilen rauntlar: {rounds}.",
+  "Source events": "Kaynak olaylar",
+  Survival: "Hayatta kalma",
+  Survived: "Hayatta kaldı",
+  "This is me ✓": "Bu benim ✓",
+  "Trade kills": "Trade kill'leri",
+  Value: "Değer",
+  "{d} damage": "{d} hasar",
+  "{k} kill(s)": "{k} kill",
+  "{side} won": "{side} kazandı",
+  "Headshot kills": "Headshot kill'leri",
+  "Show all stats": "Tüm istatistikleri göster",
+  "Want to know what to change? The AI Coach turns these numbers into three fixes and a plan for your next match.":
+    "Neyi değiştirmen gerektiğini mi merak ediyorsun? AI Koç bu sayıları üç düzeltmeye ve bir sonraki maçın için bir plana çevirir.",
+  "What this means for you": "Bu senin için ne demek",
+  "Above average": "Ortalamanın üstünde",
+  "About average": "Ortalama civarında",
+  "Below average": "Ortalamanın altında",
+  "How much damage you deal each round. 100 = one kill.":
+    "Raunt başına ne kadar hasar verdiğin. 100 = bir kill.",
+  "Kills for every death. Above 1.0 is positive.":
+    "Her ölüm başına kill. 1,0'ın üstü olumlu.",
+  "Rounds where you helped: a kill, assist, survival or trade.":
+    "Katkı verdiğin rauntlar: kill, asist, hayatta kalma ya da trade.",
+  "Share of your kills that were headshots.":
+    "Kill'lerinin headshot olan kısmı.",
+  "You dealt {adr} damage per round, more than the lobby average ({avg}).":
+    "Raunt başına {adr} hasar verdin, lobi ortalamasından ({avg}) fazla.",
+  "You dealt {adr} damage per round, less than the lobby average ({avg}).":
+    "Raunt başına {adr} hasar verdin, lobi ortalamasından ({avg}) az.",
+  "You dealt {adr} damage per round, about the lobby average ({avg}).":
+    "Raunt başına {adr} hasar verdin, lobi ortalaması ({avg}) civarında.",
+  "{n} of your {d} deaths weren't traded. You were often fighting alone.":
+    "{d} ölümünün {n} tanesi trade edilmedi. Sık sık tek başına savaştın.",
+  "Most of your deaths were traded. Good spacing with your team.":
+    "Ölümlerinin çoğu trade edildi. Takımınla aran iyi.",
+  "You won {w} of {n} opening duels (the first fight of a round).":
+    "{n} açılış düellosunun {w} tanesini kazandın (rauntun ilk çatışması).",
+  "You hit {acc}% of your shots, about twice the lobby's rate ({ref}%).":
+    "Atışlarının %{acc} kadarı isabet etti, lobinin (%{ref}) yaklaşık iki katı.",
+  "You hit {acc}% of your shots, about half the lobby's rate ({ref}%).":
+    "Atışlarının %{acc} kadarı isabet etti, lobinin (%{ref}) yaklaşık yarısı.",
+  "You hit {acc}% of your shots, better than the lobby ({ref}%).":
+    "Atışlarının %{acc} kadarı isabet etti, lobiden (%{ref}) iyi.",
+  "You hit {acc}% of your shots, worse than the lobby ({ref}%).":
+    "Atışlarının %{acc} kadarı isabet etti, lobiden (%{ref}) kötü.",
+  "You hit {acc}% of your shots, about the same as the lobby ({ref}%).":
+    "Atışlarının %{acc} kadarı isabet etti, lobiyle (%{ref}) hemen hemen aynı.",
+  "Only {h}% of your hits landed on the head (lobby {r}%). Most landed in the {part}: aim a little higher.":
+    "İsabetlerinin yalnızca %{h} kadarı kafaya geldi (lobi %{r}). Çoğu buraya geldi: {part}. Biraz daha yukarı nişan al.",
+  "{h}% of your hits landed on the head (lobby {r}%). Your crosshair height is fine.":
+    "İsabetlerinin %{h} kadarı kafaya geldi (lobi %{r}). Crosshair yüksekliğin iyi.",
+  head: "kafa",
+  chest: "göğüs",
+  stomach: "karın",
+  arms: "kollar",
+  legs: "bacaklar",
+  "You were strongest at {place} ({k} kills, {d} deaths).":
+    "En güçlü olduğun yer {place} ({k} kill, {d} ölüm).",
+  "You died most at {place} ({d} deaths, {k} kills). Try a different angle or wait for help there.":
+    "En çok öldüğün yer {place} ({d} ölüm, {k} kill). Orada farklı bir açı dene ya da yardım bekle.",
+  "Your team won {w} of {n} rounds you played.":
+    "Takımın oynadığın {n} rauntun {w} tanesini kazandı.",
+  "Your best round was round {r}: {dmg} damage and {k} kill(s).":
+    "En iyi rauntun {r}. rauntun: {dmg} hasar ve {k} kill.",
+  "You died without a trade in rounds {list}. Open them below to see why.":
+    "{list} rauntlarında trade edilmeden öldün. Nedenini görmek için aşağıdan aç.",
+  "Lobby average: {v}": "Lobi ortalaması: {v}",
+};

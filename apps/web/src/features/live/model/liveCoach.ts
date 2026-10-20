@@ -2,6 +2,8 @@ import type { LiveState } from "@cs2/contracts";
 import { finite } from "@/shared/format";
 
 /** One completed round as seen from the player's own GSI snapshots. */
+/** Two decimals; t() writes the number in the reader's locale. */
+const round2 = (v: number) => Math.round(v * 100) / 100;
 export type RoundRecord = {
   round: number;
   kills: number;
@@ -179,8 +181,8 @@ export function liveTips(
         tone: "good",
         text: "K/D {kd}, above your baseline of {base} ({label}).",
         vars: {
-          kd: kd.toFixed(2),
-          base: baseline.kd.toFixed(2),
+          kd: round2(kd),
+          base: round2(baseline.kd),
           label: baseline.label,
         },
       });
@@ -190,8 +192,8 @@ export function liveTips(
         tone: "warn",
         text: "K/D {kd}, below your baseline of {base} ({label}). Keep it simple: play a position you know and trade with your team.",
         vars: {
-          kd: kd.toFixed(2),
-          base: baseline.kd.toFixed(2),
+          kd: round2(kd),
+          base: round2(baseline.kd),
           label: baseline.label,
         },
       });

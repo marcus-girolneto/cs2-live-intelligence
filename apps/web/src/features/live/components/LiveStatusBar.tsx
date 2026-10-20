@@ -37,7 +37,7 @@ export function LiveStatusBar({
         {t("Updated:")}{" "}
         {ageSeconds === null
           ? "–"
-          : t("{s}s ago", { s: (ageSeconds / 1000).toFixed(1) })}
+          : t("{s}s ago", { s: Math.round(ageSeconds / 100) / 10 })}
       </span>
       <span>
         {t("Source:")}{" "}

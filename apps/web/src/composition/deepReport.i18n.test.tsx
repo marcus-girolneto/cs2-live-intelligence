@@ -2,11 +2,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { isRawCallout } from "@cs2/contracts/callouts";
 import { DeepSections, normalizeDeep } from "@/features/coach";
 import { LanguageProvider } from "@/shared/i18n";
-import { dictionaries } from "./i18n";
+import { loadDictionary } from "./locales";
 
 /** A real deep review (deterministic modules, raw demo callouts, machine tags). */
 const deep = normalizeDeep(
@@ -22,11 +22,15 @@ const ENGLISH =
   /(?<![\p{L}])(?:the|you|your|and|with|of|away|units|average|traded|deaths|enemies|blinded|damage|thrown|from|into|times|won|lost)(?![\p{L}])/giu;
 
 afterEach(cleanup);
+let pt: Record<string, string> = {};
+beforeAll(async () => {
+  pt = await loadDictionary("pt");
+});
 
 describe("deep report in Portuguese", () => {
   it("has no English sentence, snake_case tag or raw callout", () => {
     const { container } = render(
-      <LanguageProvider initial="pt" dictionaries={dictionaries}>
+      <LanguageProvider initial="pt" initialDictionary={pt}>
         <DeepSections deep={deep} onPlay={() => {}} />
       </LanguageProvider>,
     );

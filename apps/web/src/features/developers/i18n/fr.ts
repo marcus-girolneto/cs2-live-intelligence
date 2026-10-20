@@ -1,0 +1,65 @@
+// Français (fr) strings of the developers feature. Keys are the English source texts.
+export const fr: Record<string, string> = {
+  Developers: "Développeurs",
+  "Use the FragMind API to upload demos, read analyses and request AI reviews from your own tools.":
+    "Utilise l'API FragMind pour importer des démos, lire des analyses et demander des analyses IA depuis tes propres outils.",
+  "API docs": "Documentation de l'API",
+  "API keys": "Clés API",
+  "Your new API key": "Ta nouvelle clé API",
+  "Copy it now and store it somewhere safe. It will not be shown again.":
+    "Copie-la maintenant et range-la en lieu sûr. Elle ne sera plus affichée.",
+  "I saved it": "Je l'ai enregistrée",
+  "Key name": "Nom de la clé",
+  "e.g. Stats bot": "ex. Bot de stats",
+  Permissions: "Permissions",
+  "Read demos and their status": "Lire les démos et leur statut",
+  "Upload and delete demos": "Importer et supprimer des démos",
+  "Read analyses, player metrics and saved reviews":
+    "Lire les analyses, les indicateurs des joueurs et les analyses enregistrées",
+  "Request AI reviews (spends credits)":
+    "Demander des analyses IA (dépense des crédits)",
+  "Read your progress": "Lire ta progression",
+  "Read account, plan and credits": "Lire le compte, l'offre et les crédits",
+  "Manage webhooks": "Gérer les webhooks",
+  Expires: "Expiration",
+  "In {n} days": "Dans {n} jours",
+  "Create API key": "Créer une clé API",
+  "You reached the limit of active keys. Revoke one to create another.":
+    "Tu as atteint la limite de clés actives. Révoques-en une pour en créer une autre.",
+  "No API keys yet.": "Aucune clé API pour l'instant.",
+  Active: "Active",
+  Expired: "Expirée",
+  Revoked: "Révoquée",
+  Created: "Créée",
+  "Last used": "Dernière utilisation",
+  "Revoke key": "Révoquer la clé",
+  "Revoke this API key? Apps using it stop working right away.":
+    "Révoquer cette clé API ? Les apps qui l'utilisent cessent de fonctionner immédiatement.",
+  "Could not load your API keys.": "Impossible de charger tes clés API.",
+  Webhooks: "Webhooks",
+  "We POST a signed JSON event to your HTTPS endpoint when a demo is analysed, fails, or an AI review is ready. Verify the FragMind-Signature header with your signing secret.":
+    "Nous envoyons en POST un événement JSON signé à ton endpoint HTTPS quand une démo est analysée, échoue ou qu'une analyse IA est prête. Vérifie l'en-tête FragMind-Signature avec ton secret de signature.",
+  "Signing secret": "Secret de signature",
+  "Endpoint URL": "URL de l'endpoint",
+  Events: "Événements",
+  "Demo analysed": "Démo analysée",
+  "Demo failed": "Démo en échec",
+  "AI review ready": "Analyse IA prête",
+  "Add webhook": "Ajouter un webhook",
+  "No webhooks yet.": "Aucun webhook pour l'instant.",
+  Disabled: "Désactivé",
+  "Disabled after repeated failed deliveries.":
+    "Désactivé après plusieurs échecs de livraison.",
+  "Test delivered (HTTP {status}).": "Test livré (HTTP {status}).",
+  "Test failed: {error}": "Échec du test : {error}",
+  "Send test event": "Envoyer un événement de test",
+  "Delete webhook": "Supprimer le webhook",
+  "Delete this webhook? Pending deliveries are dropped.":
+    "Supprimer ce webhook ? Les livraisons en attente sont abandonnées.",
+  "Could not load your webhooks.": "Impossible de charger tes webhooks.",
+  "Recent deliveries": "Livraisons récentes",
+  "No deliveries yet.": "Aucune livraison pour l'instant.",
+  Delivered: "Livré",
+  Failed: "Échec",
+  Retrying: "Nouvelle tentative",
+};

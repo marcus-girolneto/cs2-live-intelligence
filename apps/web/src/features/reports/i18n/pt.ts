@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the reports feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the reports feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Best match": "Melhor partida",
   "Toughest match": "Partida mais difícil",
@@ -36,11 +36,9 @@ export const pt: Record<string, string> = {
   "this month": "neste mês",
   "Enemies flashed / match": "Inimigos cegados / partida",
   "Utility damage / match": "Dano de utilitárias / partida",
-  "Pre-aim offset": "Desvio de pré-mira",
   "Duels well pre-aimed": "Duelos bem pré-mirados",
   "Monthly reports are a Pro feature": "Relatórios mensais são um recurso Pro",
   Strengths: "Pontos fortes",
-  Focus: "Foco",
   "This month's report is already ready.":
     "O relatório deste mês já está pronto.",
 };

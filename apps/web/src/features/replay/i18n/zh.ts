@@ -1,0 +1,25 @@
+// 简体中文 (zh) strings of the replay feature. Keys are the English source texts.
+export const zh: Record<string, string> = {
+  "Round {n} · 2D replay": "第 {n} 回合 · 2D 回放",
+  "Loading the replay…": "正在加载回放…",
+  "This clip could not be loaded.": "无法加载这个片段。",
+  "This match has no replay data.": "这场比赛没有回放数据。",
+  "This clip has no positions to replay.": "这个片段没有可回放的位置。",
+  "Key moment": "关键时刻",
+  "2D replay of round {n}. Space plays or pauses, arrows move 2 seconds.":
+    "第 {n} 回合的 2D 回放。空格键播放或暂停，方向键前后移动 2 秒。",
+  "Recording…": "录制中…",
+  Legend: "图例",
+  "Focus player": "重点玩家",
+  Fire: "开火",
+  "Clip position": "片段位置",
+  "Jump to moment": "跳到这一刻",
+  "Slow-mo": "慢动作",
+  Loop: "循环",
+  "Export video": "导出视频",
+  "Download .webm": "下载 .webm",
+  "Clip {i} of {n} · round {r}": "片段 {i}/{n} · 第 {r} 回合",
+  "{n} clips": "{n} 个片段",
+  "Loading the reel… {i}/{n}": "正在加载集锦… {i}/{n}",
+  "Reel clips": "集锦片段",
+};

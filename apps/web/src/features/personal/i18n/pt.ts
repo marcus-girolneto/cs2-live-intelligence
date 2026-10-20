@@ -1,4 +1,4 @@
-/** Portuguese strings of the personal feature (Personal Coach). */
+// Português (Brasil) (pt) strings of the personal feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Personal Coach": "Coach Pessoal",
   "Your Personal Coach": "Seu Coach Pessoal",

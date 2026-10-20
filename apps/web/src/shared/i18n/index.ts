@@ -1,7 +1,11 @@
 export {
   LANGS,
   LANG_COOKIE,
+  LANG_STORAGE,
+  detectLang,
+  htmlLang,
   interpolate,
+  isLang,
   localeOf,
   mergeDictionaries,
   parseLang,
@@ -11,4 +15,15 @@ export {
   type Lang,
   type Vars,
 } from "./core";
-export { LanguageProvider, useI18n, type Translate } from "./I18nProvider";
+export { createFormatters, type Formatters } from "./format";
+export { LANG_FONTS, loadLangFont } from "./fonts";
+export {
+  LanguageProvider,
+  languageUnsynced,
+  markLanguageSynced,
+  useI18n,
+  useLanguageChoice,
+  type LangSource,
+  type LoadDictionary,
+  type Translate,
+} from "./I18nProvider";

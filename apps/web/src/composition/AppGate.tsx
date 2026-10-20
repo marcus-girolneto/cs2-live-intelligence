@@ -1,7 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useAuthSession } from "@/features/auth";
+import { LanguageSync, useAuthSession } from "@/features/auth";
 import { UpgradeProvider } from "@/features/billing";
 import { Landing } from "@/features/landing";
 import { AppShell, PublicShell } from "@/features/shell";
@@ -24,6 +24,7 @@ export function AppGate({ children }: { children: ReactNode }) {
   if (status === "signed-in" && account)
     return (
       <AccountProvider value={ctx}>
+        <LanguageSync account={account} />
         <UpgradeProvider>
           <AppShell account={account}>{children}</AppShell>
         </UpgradeProvider>

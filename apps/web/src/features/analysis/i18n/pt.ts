@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the analysis feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the analysis feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Where your hits landed": "Onde seus tiros acertaram",
   "{part}: {n} hits ({pct}%)": "{part}: {n} acertos ({pct}%)",
@@ -25,7 +25,6 @@ export const pt: Record<string, string> = {
   Legs: "Pernas",
   "No weapon data in this demo.": "Sem dados de armas nesta demo.",
   Weapon: "Arma",
-  "HS%": "HS%",
   Damage: "Dano",
   Shots: "Tiros",
   "{n} dmg": "{n} dano",
@@ -38,7 +37,6 @@ export const pt: Record<string, string> = {
     "Você abre tarde: {s}s depois da média da partida. Você costuma esperar informação.",
   "Your opening timing is in line with the match average.":
     "Seu tempo de abertura está na média da partida.",
-  "Opening duel": "Duelo de abertura",
   "First kill": "Primeiro abate",
   "Average seconds after freeze time ends":
     "Média de segundos após o fim do freeze time",
@@ -57,7 +55,6 @@ export const pt: Record<string, string> = {
   "{s}s blind": "{s}s cegos",
   "Teammates flashed": "Aliados cegados",
   "Flash assists": "Assistências de flash",
-  "Utility damage": "Dano de utilitários",
   "Economy data needs an enriched demo analysis.":
     "Os dados de economia exigem uma análise de demo enriquecida.",
   "Avg. equipment": "Equipamento médio",
@@ -100,7 +97,6 @@ export const pt: Record<string, string> = {
     "Abates feitos e mortes sofridas em cada local",
   "Shots hit": "Tiros acertados",
   "Match avg. accuracy": "Precisão média da partida",
-  "Hits to the head": "Acertos na cabeça",
   "Avg. kill distance": "Distância média dos abates",
   "{m} m": "{m} m",
   "You hit {a}% of your shots, better than the match average of {b}%.":
@@ -125,14 +121,6 @@ export const pt: Record<string, string> = {
   "Damage per round (ADR)": "Dano por round (ADR)",
   "{delta} vs match average": "{delta} vs média da partida",
   Headshots: "Headshots",
-  "{kills} kills without dying in the analyzed rounds.":
-    "{kills} abates sem morrer nos rounds analisados.",
-  "Kills and deaths are incomplete in this demo.":
-    "Abates e mortes estão incompletos nesta demo.",
-  "Dealt {adr} damage per round, above the match average ({avg}).":
-    "Causou {adr} de dano por round, acima da média da partida ({avg}).",
-  "Dealt {adr} damage per round, below the match average ({avg}).":
-    "Causou {adr} de dano por round, abaixo da média da partida ({avg}).",
   Incomplete: "Incompleto",
   Metrics: "Métricas",
   "ADR as CT": "ADR de CT",

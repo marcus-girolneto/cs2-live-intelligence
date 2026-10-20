@@ -1,101 +1,138 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { parseLang, translate } from "@/shared/i18n/core";
-import { dictionaries, ptConflicts } from "./i18n";
+import { LANGUAGE_CODES } from "@cs2/contracts/languages";
+import { beforeAll, describe, expect, it } from "vitest";
+import {
+  formatVar,
+  parseLang,
+  translate,
+  type Dictionaries,
+  type Dictionary,
+  type Lang,
+} from "@/shared/i18n/core";
+import { createFormatters } from "@/shared/i18n/format";
+import { BRAND } from "@/shared/brand";
+import { loadDictionary } from "./locales";
+import {
+  ROOT,
+  literalChecker,
+  placeholders,
+  requiredKeys,
+  sources,
+} from "./i18nKeys.testkit";
 
-const pt = dictionaries.pt;
-const ROOT = join(__dirname, "../..");
-const walk = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-    e.isDirectory()
-      ? walk(join(dir, e.name))
-      : /\.tsx?$/.test(e.name) && !/\.test\./.test(e.name)
-        ? [join(dir, e.name)]
-        : [],
-  );
-/** Every UI source file (routes and src/), dictionaries excluded. */
-const sources = [...walk(join(ROOT, "app")), ...walk(join(ROOT, "src"))]
-  .filter((f) => !/\/i18n\/pt/.test(f))
-  .map((f) => [f.slice(ROOT.length + 1), readFileSync(f, "utf8")] as const);
-
-/** Files that keep user-facing labels in arrays/records and translate them via t(label). */
-const DYNAMIC_LABELS = [
-  /^src\/features\/analysis\/(components|model\/metrics)/,
-  /^src\/features\/live\/(components\/Hud|model\/liveCoach)/,
-  /^src\/features\/shell\//,
-  /^src\/features\/landing\//,
-  /^src\/features\/auth\/components\/SteamIdentity/,
-  /^src\/features\/dashboard\//,
-  /^src\/features\/maps\/model\/progress/,
-  /^src\/features\/billing\/components\/PlanComparison/,
-  /^src\/features\/billing\/components\/credits\//,
-  /^src\/features\/billing\/model\/welcome/,
-  /^src\/features\/coach\/components\/deep\//,
-  /^src\/features\/coach\/model\/compare/,
-  /^src\/features\/admin\/model\/credits/,
-];
-/** Files whose LABELS / LIMIT_LABEL records and `return "Text";` values are translated. */
-const LABEL_RECORDS = [
-  "src/features/coach/components/ScoreRadar.tsx",
-  "src/features/admin/components/PlansEditor.tsx",
-  "src/features/billing/model/plans.ts",
-  "src/features/billing/model/catalogue.ts",
-  "src/features/billing/model/normalize.ts",
-  "src/features/billing/model/credits.ts",
-  "src/features/coach/components/deep/nades.tsx",
-];
-/** Files whose Record<…, string> tables of messages are translated (AI error sentences). */
-const MESSAGE_TABLES = [
-  "src/shared/http/aiError.ts",
-  "src/features/coach/model/deepText.ts",
-];
+const LOCALES = LANGUAGE_CODES.filter((l) => l !== "en");
+const dictionaries: Partial<Record<Lang, Dictionary>> = { en: {} };
+const conflicts: Partial<Record<Lang, unknown[]>> = {};
+beforeAll(async () => {
+  for (const lang of LOCALES) {
+    dictionaries[lang] = await loadDictionary(lang);
+    conflicts[lang] = (
+      (await import(`./locales/${lang}.ts`)) as { conflicts: unknown[] }
+    ).conflicts;
+  }
+});
+const all = () => dictionaries as Dictionaries;
 
 describe("i18n", () => {
   it("defaults to English and falls back to the source text", () => {
     expect(parseLang(undefined)).toBe("en");
-    expect(parseLang("fr")).toBe("en");
-    expect(translate(dictionaries, "en", "Upload demo")).toBe("Upload demo");
-    expect(translate(dictionaries, "pt", "Untranslated sentence")).toBe(
+    expect(parseLang("xx")).toBe("en");
+    expect(parseLang("fr")).toBe("fr");
+    expect(translate(all(), "en", "Upload demo")).toBe("Upload demo");
+    expect(translate(all(), "pt", "Untranslated sentence")).toBe(
       "Untranslated sentence",
     );
   });
-  it("translates to Portuguese and keeps placeholders", () => {
-    expect(translate(dictionaries, "pt", "Upload demo")).toBe(
-      pt["Upload demo"],
+  it("translates every language and writes numbers in its style", () => {
+    for (const lang of LOCALES)
+      expect(translate(all(), lang, "Upload demo"), lang).not.toBe(
+        "Upload demo",
+      );
+    expect(translate(all(), "en", "{n} rounds analyzed", { n: 10 })).toBe(
+      "10 rounds analyzed",
     );
-    expect(
-      translate(dictionaries, "en", "{n} rounds analyzed", { n: 10 }),
-    ).toBe("10 rounds analyzed");
-    expect(
-      translate(dictionaries, "pt", "{n} rounds analyzed", { n: 10 }),
-    ).toContain("10");
+    expect(formatVar(1.25, "pt-BR")).toBe("1,25");
+    expect(formatVar(2026, "de")).toBe("2026");
+    expect(formatVar(12345, "en-US")).toBe("12,345");
+    const de = createFormatters("de");
+    expect(de.number(1234.5, 1)).toBe("1.234,5");
+    expect(de.percent(42)).toMatch(/^42\s?%$/);
+    expect(createFormatters("en-US").currency(999, "USD")).toBe("$9.99");
+    expect(createFormatters("zh-CN").date("2026-10-19T12:00:00Z")).toMatch(
+      /2026/,
+    );
   });
-  it("keeps every placeholder in translations", () => {
-    for (const [en, ptText] of Object.entries(pt)) {
-      // {name} and plural heads {name, plural, …}; plural option bodies are not variables.
-      const vars = (s: unknown) =>
-        [
-          ...new Set(
-            [
-              ...String(s).matchAll(
-                /(?<!(?:zero|one|two|few|many|other|=\d+)\s*)\{(\w+)(?=\}|,)/g,
-              ),
-            ].map((m) => m[1]),
-          ),
-        ]
-          .sort()
-          .join();
-      expect(vars(ptText), en).toBe(vars(en));
+  it("chooses plural forms per language", () => {
+    const d: Dictionaries = {
+      ru: {
+        "{n, plural, one {# death} other {# deaths}}":
+          "{n, plural, one {# смерть} few {# смерти} many {# смертей} other {# смерти}}",
+      },
+    };
+    const key = "{n, plural, one {# death} other {# deaths}}";
+    expect(translate(d, "ru", key, { n: 1 })).toBe("1 смерть");
+    expect(translate(d, "ru", key, { n: 3 })).toBe("3 смерти");
+    expect(translate(d, "ru", key, { n: 5 })).toBe("5 смертей");
+    expect(translate(d, "en", key, { n: 1 })).toBe("1 death");
+  });
+});
+
+describe("translation coverage (every key in every language)", () => {
+  const required = requiredKeys();
+  it("has an entry for every key the UI uses", () => {
+    for (const lang of LOCALES) {
+      const dict = dictionaries[lang]!;
+      const missing = [...required]
+        .filter(([key]) => !(key in dict))
+        .map(([key, from]) => `${from}: ${key}`);
+      expect(missing, `${lang}: ${missing.length} missing`).toEqual([]);
     }
   });
-  it("merges feature dictionaries without conflicting translations", () => {
-    expect(ptConflicts).toEqual([]);
+  it("has no stale keys and the same keys in every language", () => {
+    const known = literalChecker();
+    const pt = Object.keys(dictionaries.pt!).sort();
+    const stale = pt.filter((k) => !required.has(k) && !known(k));
+    expect(stale).toEqual([]);
+    for (const lang of LOCALES)
+      expect(Object.keys(dictionaries[lang]!).sort(), lang).toEqual(pt);
+  });
+  it("keeps every placeholder and merges parts without conflicts", () => {
+    for (const lang of LOCALES) {
+      expect(conflicts[lang], lang).toEqual([]);
+      for (const [en, text] of Object.entries(dictionaries[lang]!))
+        expect(placeholders(text), `${lang}: ${en}`).toBe(placeholders(en));
+    }
+  });
+  it("translates most keys (identical values are CS terms, numbers or names)", () => {
+    for (const lang of LOCALES) {
+      const entries = Object.entries(dictionaries[lang]!);
+      const same = entries.filter(([en, v]) => en === v).length;
+      expect(same / entries.length, lang).toBeLessThan(0.12);
+    }
+  });
+  it("translates the brand tagline", () => {
+    for (const lang of LOCALES)
+      expect(dictionaries[lang]![BRAND.tagline], lang).toBeTruthy();
+  });
+  it("registers every feature dictionary in every language bundle", () => {
+    const features = readdirSync(join(ROOT, "src/features"));
+    for (const lang of LOCALES) {
+      const bundle = readFileSync(
+        join(ROOT, `src/composition/locales/${lang}.ts`),
+        "utf8",
+      );
+      for (const f of features)
+        expect(
+          bundle,
+          `${lang}: ${f} (run scripts/i18n-registry.mjs)`,
+        ).toContain(`@/features/${f}/i18n/${lang}"`);
+    }
   });
 });
 
 describe("copy style", () => {
-  const EM_DASH = "\u2014";
+  const EM_DASH = "—";
   it("has no em dash in English source strings", () => {
     const found = sources.flatMap(([file, text]) =>
       text
@@ -106,122 +143,12 @@ describe("copy style", () => {
     );
     expect(found).toEqual([]);
   });
-  it("has no em dash in Portuguese keys or translations", () => {
-    const found = Object.entries(pt)
-      .filter(([en, ptText]) => `${en}${ptText}`.includes(EM_DASH))
-      .map(([en]) => en);
-    expect(found).toEqual([]);
-  });
-});
-
-describe("translation coverage", () => {
-  it("has a Portuguese entry for every literal t() key", () => {
-    const missing = sources.flatMap(([file, text]) =>
-      [...text.matchAll(/\bt\(\s*"((?:[^"\\]|\\.)*)"/g)]
-        .map((m) => m[1]!)
-        .filter((key) => !(key in pt))
-        .map((key) => `${file}: ${key}`),
-    );
-    expect(missing).toEqual([]);
-  });
-  it("translates labels kept in arrays and records (translated via t(label))", () => {
-    const missing: string[] = [];
-    for (const [file, text] of sources) {
-      if (!DYNAMIC_LABELS.some((re) => re.test(file))) continue;
-      for (const m of text.matchAll(
-        /(?:label|text|title|cta|quote|fix|q|a):\s*"((?:[^"\\]|\\.)+)"/g,
-      ))
-        if (!(m[1]! in pt)) missing.push(`${file}: ${m[1]}`);
-      for (const m of text.matchAll(/\[\s*"\/[a-z]*",\s*"([^"]+)"\s*\]/g))
-        if (!(m[1]! in pt)) missing.push(`${file}: ${m[1]}`);
+  it("has no em dash in any translation", () => {
+    for (const lang of LOCALES) {
+      const found = Object.entries(dictionaries[lang]!)
+        .filter(([en, text]) => `${en}${text}`.includes(EM_DASH))
+        .map(([en]) => en);
+      expect(found, lang).toEqual([]);
     }
-    expect(missing).toEqual([]);
-  });
-  it("translates score, limit and plan labels kept in records", () => {
-    const missing: string[] = [];
-    for (const file of LABEL_RECORDS) {
-      const text = readFileSync(join(ROOT, file), "utf8");
-      const block =
-        text.match(/(?:LABELS|LIMIT_LABEL)[^=]*=\s*\{([\s\S]*?)\};/)?.[1] ?? "";
-      for (const m of block.matchAll(/:\s*"([^"]+)"/g))
-        if (!(m[1]! in pt)) missing.push(`${file}: ${m[1]}`);
-      for (const m of text.matchAll(/return "([A-Z][^"]+)";/g))
-        if (!(m[1]! in pt)) missing.push(`${file}: ${m[1]}`);
-    }
-    for (const literal of ["Plans saved.", "Checkout is unavailable."])
-      if (!(literal in pt)) missing.push(literal);
-    expect(missing).toEqual([]);
-  });
-});
-
-describe("message tables", () => {
-  it("translates every sentence of the AI error tables", () => {
-    const missing = MESSAGE_TABLES.flatMap((file) =>
-      [
-        ...readFileSync(join(ROOT, file), "utf8").matchAll(
-          /^\s+(?:\w+|"[^"]+"):\s*"([^"]+)",?$/gm,
-        ),
-      ]
-        .map((m) => m[1]!)
-        .filter((key) => !(key in pt))
-        .map((key) => `${file}: ${key}`),
-    );
-    expect(missing).toEqual([]);
-  });
-});
-
-describe("fixed caveats of the analytics and coaching packages", () => {
-  it("are all translated (reports render them with t())", () => {
-    const pkgs = join(ROOT, "../../packages");
-    const files = ["analytics/src", "coaching/src"].flatMap((d) =>
-      walk(join(pkgs, d)),
-    );
-    const missing = files.flatMap((file) =>
-      [
-        ...readFileSync(file, "utf8").matchAll(
-          /caveats\.push\(\s*"((?:[^"\\]|\\.)+)"/g,
-        ),
-      ]
-        .map((m) => m[1]!)
-        .filter((c) => !(c in pt)),
-    );
-    expect(missing).toEqual([]);
-  });
-});
-
-describe("coach labels and learned patterns", () => {
-  it("are all translated", () => {
-    const missing: string[] = [];
-    const options = readFileSync(
-      join(ROOT, "src/features/settings/model/coachOptions.ts"),
-      "utf8",
-    );
-    for (const m of options.matchAll(
-      /\[\s*"[a-z]+",\s*"([^"]+)"(?:,\s*"([^"]+)")?\s*,?\s*\]/g,
-    ))
-      for (const label of [m[1], m[2]])
-        if (label && !(label in pt)) missing.push(label);
-    const learn = readFileSync(
-      join(ROOT, "../../packages/coaching/src/learn.ts"),
-      "utf8",
-    );
-    for (const m of learn.matchAll(
-      /(?:pattern:|tendencies\.push\()\s*"([^"]+)"/g,
-    ))
-      if (!(m[1]! in pt)) missing.push(m[1]!);
-    for (const side of ["CT", "T"])
-      if (!(`clearly stronger on ${side} side` in pt)) missing.push(side);
-    for (const focus of [
-      "trade",
-      "info",
-      "tempo",
-      "aim",
-      "economy",
-      "mindset",
-      "closing",
-      "keep",
-    ])
-      if (!(focus in pt)) missing.push(focus);
-    expect(missing).toEqual([]);
   });
 });

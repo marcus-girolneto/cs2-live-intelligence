@@ -61,6 +61,29 @@
   --shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.7);
   --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 }
+/* Scripts Rajdhani lacks: Cyrillic headings use Exo 2, Chinese uses Noto Sans SC (both
+   loaded only for those languages, see shared/i18n/fonts.ts), with system fallbacks. */
+:root:lang(ru) {
+  --display: "Exo 2", "Rajdhani", "Arial Narrow", system-ui, sans-serif;
+}
+:root:lang(zh-CN) {
+  --display:
+    "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    system-ui, sans-serif;
+  --body:
+    "Inter", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", system-ui, sans-serif;
+}
+/* Chinese reads badly with Latin tracking and synthetic caps. */
+:root:lang(zh-CN) body * {
+  letter-spacing: normal !important;
+}
+:root:lang(zh-CN) body {
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 640px) {
   :root {
     --gutter: 16px;

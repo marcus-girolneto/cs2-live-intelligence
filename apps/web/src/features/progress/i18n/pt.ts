@@ -1,20 +1,12 @@
-// Portuguese (Brazil) translations of the progress feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the progress feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
-  "Analyze a match to start tracking your form.":
-    "Analise uma partida para começar a acompanhar sua fase.",
   "Analyze more matches so the coach can spot patterns.":
     "Analise mais partidas para o coach identificar padrões.",
-  "No progress yet": "Ainda sem evolução",
-  "Tracking player {id}": "Acompanhando o jogador {id}",
-  "Only matches on {map}": "Só partidas em {map}",
   "Coach review history": "Histórico de reviews do coach",
   "No AI reviews yet. Open the AI Coach and pick a match.":
     "Nenhuma review de IA ainda. Abra o Coach de IA e escolha uma partida.",
-  "Your analyzed matches, AI reviews and live calls are saved to your account. The coach uses them to adapt to you.":
-    "Suas partidas analisadas, reviews da IA e calls ao vivo ficam salvas na sua conta. O coach usa isso para se adaptar a você.",
   "From {m} matches and {r} rounds.": "A partir de {m} partidas e {r} rounds.",
   "How you are evolving": "Como você está evoluindo",
-  "Last {n} matches": "Últimas {n} partidas",
   "Live calls": "Calls ao vivo",
   "Match by match": "Partida a partida",
   "No live calls yet. Use the second screen during a match.":
@@ -68,8 +60,5 @@ export const pt: Record<string, string> = {
     "Você aplicou {applied} de {checked} dicas do coach.",
   "better than the previous match": "melhor que a partida anterior",
   "worse than the previous match": "pior que a partida anterior",
-  "Crosshair offset": "Desvio da mira",
   "Isolated deaths": "Mortes isoladas",
-  "{n} match": "{n} partida",
-  "{n} review": "{n} review",
 };

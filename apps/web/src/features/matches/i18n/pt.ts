@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the matches feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the matches feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   "Show fewer": "Mostrar menos",
   "Show all {n} matches": "Mostrar as {n} partidas",
@@ -13,7 +13,6 @@ export const pt: Record<string, string> = {
   "Pick a match to see its analysis.":
     "Escolha uma partida para ver a análise.",
   Ready: "Pronta",
-  Failed: "Falhou",
   Queued: "Na fila",
   Processing: "Processando",
   "Analyzing the demo… this takes a few seconds.":
@@ -88,7 +87,6 @@ export const pt: Record<string, string> = {
   "Any date": "Qualquer data",
   "Last 7 days": "Últimos 7 dias",
   "Last 30 days": "Últimos 30 dias",
-  "AI review ready": "Review de IA pronta",
   "AI review in progress": "Review de IA em andamento",
   "Not enough credits": "Créditos insuficientes",
   "You're not in this demo": "Você não está nesta demo",

@@ -92,6 +92,24 @@ export default tseslint.config(
     },
   },
   {
+    // Per-language bundles are the one place that reaches into features' i18n folders.
+    files: [`${WEB}/src/composition/locales/**/*.ts`],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^@/features/[^/]+/(?!i18n/[a-z]{2}$).+",
+              message: deepFeature.message,
+            },
+            legacy,
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: [`${WEB}/src/server/**/*.{ts,tsx}`],
     rules: {
       "no-restricted-imports": [

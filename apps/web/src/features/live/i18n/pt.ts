@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the live feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the live feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   Mode: "Modo",
   "Basic and Pro": "Basic e Pro",

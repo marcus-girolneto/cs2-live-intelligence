@@ -39,6 +39,8 @@ export type Account = {
   steamId?: string;
   memberSince?: string;
   role?: "user" | "admin";
+  /** Language saved on the account by the selector (absent until chosen). */
+  lang?: string;
   profile?: SteamProfile;
   /** Subscription and daily usage (raw; normalised by the billing feature). */
   plan?: unknown;

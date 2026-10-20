@@ -1,4 +1,4 @@
-// Portuguese (Brazil) translations of the auth feature, keyed by the English source string.
+// Português (Brasil) (pt) strings of the auth feature. Keys are the English source texts.
 export const pt: Record<string, string> = {
   Online: "Online",
   "In game": "Em jogo",

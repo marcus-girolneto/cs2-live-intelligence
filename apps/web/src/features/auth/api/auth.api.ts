@@ -21,6 +21,8 @@ export interface AuthApi {
   /** Revokes the session upstream and clears the cookie. */
   logout(): Promise<void>;
   refreshProfile(): Promise<void>;
+  /** Stores the interface language on the account (AI output and scheduled reports). */
+  saveLanguage(lang: string): Promise<void>;
 }
 
 export function createAuthApi(
@@ -42,6 +44,7 @@ export function createAuthApi(
       http.get<{ url: string }>("auth/steam/start").then((r) => r.url),
     logout: () => web.post<void>("logout", undefined, { timeoutMs: 12000 }),
     refreshProfile: () => http.post<void>("me/refresh-profile"),
+    saveLanguage: (lang) => http.put<void>("me/language", { lang }),
   };
 }
 

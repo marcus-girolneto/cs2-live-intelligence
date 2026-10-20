@@ -1,0 +1,97 @@
+// 简体中文 (zh) strings of the matches feature. Keys are the English source texts.
+export const zh: Record<string, string> = {
+  "Show fewer": "收起",
+  "Show all {n} matches": "显示全部 {n} 场比赛",
+  "No demo at hand?": "手头没有 Demo？",
+  "Sample demo": "示例 Demo",
+  "My matches": "我的比赛",
+  "See an analyzed match": "查看一场已分析的比赛",
+  "No analyzed demo yet": "还没有已分析的 Demo",
+  "Upload a .dem file to see your first analysis.":
+    "上传一个 .dem 文件，查看你的第一份分析。",
+  "Your demos": "你的 Demo",
+  "Pick a match to see its analysis.": "选择一场比赛查看分析。",
+  Ready: "已就绪",
+  Queued: "排队中",
+  Processing: "处理中",
+  "Analyzing the demo… this takes a few seconds.":
+    "正在分析 Demo… 需要几秒钟。",
+  "This demo could not be read.": "无法读取这个 Demo。",
+  "Check that it is a valid CS2 .dem file.": "请确认这是有效的 CS2 .dem 文件。",
+  "Was this analysis useful?": "这份分析有用吗？",
+  "Feedback rating": "反馈评分",
+  "Feedback comment": "反馈内容",
+  "Send feedback": "发送反馈",
+  "Thanks! Feedback saved.": "谢谢！反馈已保存。",
+  "Could not load matches.": "无法加载比赛。",
+  "Could not load the analysis.": "无法加载分析。",
+  "Could not save feedback.": "无法保存反馈。",
+  "Upload your demo": "上传你的 Demo",
+  "In CS2, open Watch → Your Matches and download the match. The .dem file is saved in:":
+    "在 CS2 中打开 观看 → 你的比赛，下载比赛。.dem 文件保存在：",
+  "Drop the demo here or click to choose": "把 Demo 拖到这里或点击选择",
+  "{size} MB · ready to upload": "{size} MB · 可以上传",
+  ".dem file · up to {mb} MB": ".dem 文件 · 最大 {mb} MB",
+  "Demo file": "Demo 文件",
+  "I allow this demo to be processed to generate the analysis.":
+    "我允许处理这个 Demo 以生成分析。",
+  "Uploading…": "上传中…",
+  "That file is not a demo. Choose a .dem file.":
+    "这个文件不是 Demo。请选择 .dem 文件。",
+  "The demo exceeds the {mb} MB limit.": "Demo 超过 {mb} MB 的上限。",
+  "Upload cancelled.": "已取消上传。",
+  "Upload progress": "上传进度",
+  "Processing upload…": "正在处理上传…",
+  "Uploading… {pct}%": "上传中… {pct}%",
+  Uploaded: "已上传",
+  "{sent} of {total} MB": "{sent}/{total} MB",
+  "{speed} MB/s": "{speed} MB/秒",
+  "{m} min {s} s left": "剩余 {m} 分 {s} 秒",
+  "{s} s left": "剩余 {s} 秒",
+  "Tick the permission box to process the demo.": "勾选授权框以处理这个 Demo。",
+  "Upload failed.": "上传失败。",
+  "Corrupt demos show up as “Failed”. We never make up stats from them.":
+    "损坏的 Demo 会显示为“失败”。我们绝不会凭空编造数据。",
+  "Pick a player, then switch between the overview, the AI Coach review and every round. Every number comes straight from the demo's events.":
+    "选择一名玩家，然后在概览、AI 教练复盘和每个回合之间切换。每个数字都直接来自 Demo 中的事件。",
+  "Load sample match": "加载示例比赛",
+  "New here? Load a real public CS2 match into your account to try everything right away.":
+    "第一次来？把一场真实的公开 CS2 比赛加载到你的账号，立即体验所有功能。",
+  "External demo: insights won't count toward your progress.":
+    "外部 Demo：分析结果不计入你的进度。",
+  "Whose matches": "谁的比赛",
+  Date: "日期",
+  "No matches with these filters.": "没有符合筛选条件的比赛。",
+  "You: {name}": "你：{name}",
+  "You're not in this match": "你不在这场比赛中",
+  "Found you in this match as {name}.": "在这场比赛中找到了你，名字是 {name}。",
+  "This is my match": "这是我的比赛",
+  "Is this you?": "这是你吗？",
+  "We couldn't find you in this match. Is one of these players you?":
+    "我们没有在这场比赛中找到你。这些玩家中有你吗？",
+  "It's someone else's demo": "这是别人的 Demo",
+  "Which player are you in this match?": "你是这场比赛中的哪名玩家？",
+  "Only your own matches count toward your progress.":
+    "只有你自己的比赛计入你的进度。",
+  "Options for {match}": "{match} 的选项",
+  "This is my match → pick which player I am":
+    "这是我的比赛 → 选择我是哪名玩家",
+  "Not my match": "不是我的比赛",
+  All: "全部",
+  "External demos": "外部 Demo",
+  "Any date": "任意日期",
+  "Last 7 days": "最近 7 天",
+  "Last 30 days": "最近 30 天",
+  "AI review in progress": "AI 复盘进行中",
+  "Not enough credits": "积分不足",
+  "You're not in this demo": "你不在这个 Demo 中",
+  "AI review failed": "AI 复盘失败",
+  "Could not load the players of this match.": "无法加载这场比赛的玩家。",
+  "This file isn't a CS2 demo. In CS2, download the match from Watch → Your Matches and upload the .dem file.":
+    "这个文件不是 CS2 Demo。在 CS2 中从 观看 → 你的比赛 下载比赛，然后上传 .dem 文件。",
+  "This demo is too short to analyze. Upload a full match (at least a few rounds).":
+    "这个 Demo 太短，无法分析。请上传完整的比赛（至少几个回合）。",
+  "This demo is larger than the upload limit.": "这个 Demo 超过上传上限。",
+  "You're uploading too fast. Wait a minute and try again.":
+    "你上传得太快了。等一分钟再试。",
+};
