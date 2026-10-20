@@ -13,8 +13,8 @@ const SKIP = [
   /_test\.go$/,
   /\.(png|jpe?g|gif|webp|ico|dem|gz|zip|woff2?|ttf|otf|mp4|webm|pdf)$/i,
 ];
-const EM = "—";
-const SPACED_EN = / – /;
+const EM = "\u2014";
+const SPACED_EN = / \u2013 /;
 
 const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
   .split("\0")
