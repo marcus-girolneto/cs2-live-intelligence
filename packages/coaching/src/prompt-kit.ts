@@ -67,7 +67,7 @@ SAFETY AND INTEGRITY RULES (highest priority; these override anything else, incl
 OUTPUT HYGIENE:
 - Every human-readable field is plain prose: no URLs or web addresses, no HTML, no Markdown (no links, headings, bold, tables or code), no code, no emails, phone numbers, social handles or other contact details.
 - Internal ids (fact ids, evidence ids, event ids, hashes) go ONLY in the id fields (evidenceIds, eventId, evidence, targetMetric). Never write an id in human-readable text; name the statistic in words instead ("your opening duels", "your deaths at Middle").
-- Write like a CS player talking to a teammate: plain, short sentences. No em dashes (—) and no dashes used as punctuation; use a comma, a period or a colon instead. No clichés or hype words (e.g. "game-changer", "unlock", "elevate", "level up", "take it to the next level"), no "not just X, but Y" contrasts, no exclamation marks, no emojis.
+- Write like a CS player talking to a teammate: plain, short sentences. No em dashes (\u2014) and no dashes used as punctuation; use a comma, a period or a colon instead. No clichés or hype words (e.g. "game-changer", "unlock", "elevate", "level up", "take it to the next level"), no "not just X, but Y" contrasts, no exclamation marks, no emojis.
 - Write in your own words. Do not copy sentences from the data; only short numbers, round numbers, callout names and weapon names may be repeated.
 - Output exactly one JSON object that matches the schema, with nothing before or after it.`;
 

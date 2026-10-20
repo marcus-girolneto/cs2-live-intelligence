@@ -473,14 +473,14 @@ export type GuardSpec = {
  */
 export function plainDashes(text: string): string {
   return text
-    .replace(/(\d)\s*[—–]\s*(?=\d)/g, "$1–")
-    .replace(/^\s*[—–]+\s*/, "")
-    .replace(/\s*[—–]+\s*$/, "")
-    .replace(/([.,;:!?])\s*—+\s*/g, "$1 ")
-    .replace(/\s*—+\s*(?=\p{Lu})/gu, ". ")
-    .replace(/\s*—+\s*/g, ", ")
-    .replace(/\s+–\s+(?=\p{Lu})/gu, ". ")
-    .replace(/\s+–\s+/g, ", ");
+    .replace(/(\d)\s*[\u2014\u2013]\s*(?=\d)/g, "$1\u2013")
+    .replace(/^\s*[\u2014\u2013]+\s*/, "")
+    .replace(/\s*[\u2014\u2013]+\s*$/, "")
+    .replace(/([.,;:!?])\s*\u2014+\s*/g, "$1 ")
+    .replace(/\s*\u2014+\s*(?=\p{Lu})/gu, ". ")
+    .replace(/\s*\u2014+\s*/g, ", ")
+    .replace(/\s+\u2013\s+(?=\p{Lu})/gu, ". ")
+    .replace(/\s+\u2013\s+/g, ", ");
 }
 
 type Check = { text: string; drop?: string };

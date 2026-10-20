@@ -119,7 +119,7 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
   account sharing); self-disclosure ("my instructions", "as an AI").
 - **Cleaned**: code fences, Markdown links (text kept), HTML tags, URLs, emails, phone numbers,
   backticks/bold markers, every id supplied in this request and the generic patterns `metric-…`,
-  `ev_…`, `deep-…-…`, UUIDs and `FMK-…`. Dashes used as punctuation (`—`, spaced `–`) become a
+  `ev_…`, `deep-…-…`, UUIDs and `FMK-…`. Dashes used as punctuation (U+2014 em dash, spaced U+2013 en dash) become a
   comma, or a period before a capital (`plainDashes`); score and number ranges keep their en dash.
 - Length caps per field; a caveat says how many parts were removed.
 - **Fail closed**: if a critical field is unsafe (live `call`/`why`, report `headline`/`summary`)
