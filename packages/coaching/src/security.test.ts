@@ -9,6 +9,7 @@ import {
   injectionFindings,
   loadAiConfig,
   newBoundary,
+  plainDashes,
   POST_MATCH_PROMPT_VERSION,
   POST_MATCH_SYSTEM_PROMPT,
   requestBody,
@@ -27,6 +28,21 @@ const TAG = (s: string) =>
   Array.from(s)
     .map((c) => String.fromCodePoint(0xe0000 + c.charCodeAt(0)))
     .join("");
+
+describe("plainDashes", () => {
+  it.each([
+    ["Trade first — then swing.", "Trade first, then swing."],
+    ["Bad round — Next one counts.", "Bad round. Next one counts."],
+    ["You died early. — Play slower.", "You died early. Play slower."],
+    ["— Hold B", "Hold B"],
+    ["Hold B —", "Hold B"],
+    ["Wait – then peek", "Wait, then peek"],
+    ["Rounds 3–7, score 13 — 9", "Rounds 3–7, score 13–9"],
+    ["T-side well-timed", "T-side well-timed"],
+  ])("%s", (input, expected) => {
+    expect(plainDashes(input)).toBe(expected);
+  });
+});
 
 describe("input sanitisation", () => {
   it("normalises unicode, strips invisible characters and caps length", () => {
@@ -205,6 +221,27 @@ describe("output guard", () => {
     ],
   });
 
+  it("replaces em dashes in human-readable fields", () => {
+    const d = base();
+    d.verdict = "Great entry — but you die alone at Middle — bring a trade.";
+    d.summary = "You won openings — Middle was the problem.";
+    d.plan = ["Trade your entry — every round", "Score went 11–5, keep it"];
+    d.insights[0]!.observation = "Você venceu 4 de 6 duelos—trocou pouco.";
+    const r = run(d);
+    const out = r.data as ReturnType<typeof base>;
+    expect(out.verdict).toBe(
+      "Great entry, but you die alone at Middle, bring a trade.",
+    );
+    expect(out.summary).toBe("You won openings. Middle was the problem.");
+    expect(out.plan).toEqual([
+      "Trade your entry, every round",
+      "Score went 11–5, keep it",
+    ]);
+    expect(out.insights[0]!.observation).toBe(
+      "Você venceu 4 de 6 duelos, trocou pouco.",
+    );
+    expect(JSON.stringify(out)).not.toContain("—");
+  });
   it("keeps clean answers untouched", () => {
     const r = run(base());
     expect(r.data).toEqual(base());

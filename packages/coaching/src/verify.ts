@@ -1,5 +1,5 @@
 /**
- * Second opinion on a review (purpose "verify", prompt verify-v1): a cheap model receives ONLY
+ * Second opinion on a review (purpose "verify", prompt verify-v2): a cheap model receives ONLY
  * each claim's text and the facts it cites and says per claim whether it is supported, with an
  * optional corrected text. Deterministic number/round/"consecutive" checks (claims.ts) run
  * first and always win: an unsupported or numerically wrong claim is replaced by a corrected
@@ -21,7 +21,7 @@ import type { AiConfig } from "./provider.js";
 import { canaryLine, type GuardSpec } from "./security.js";
 import { languageInstruction, languageReminder } from "./prompts.js";
 
-export const VERIFY_PROMPT_VERSION = "verify-v1";
+export const VERIFY_PROMPT_VERSION = "verify-v2";
 
 export const VERIFY_SYSTEM_PROMPT = `You are the fact checker of this app's Counter-Strike 2 coach. Another coach wrote short claims about one match; you check each claim strictly against the facts supplied with it and nothing else.
 

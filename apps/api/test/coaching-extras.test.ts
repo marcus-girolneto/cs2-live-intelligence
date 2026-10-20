@@ -402,7 +402,7 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
       steamId: "a",
     });
     expect(r.json().teamReview.provenance).toMatchObject({
-      promptVersion: "igl-team-v1-b",
+      promptVersion: "igl-team-v2-b",
       variant: "b",
     });
     expect(calls.find((c) => c.kind === "team")!.body).toContain("VARIANT B");
@@ -414,7 +414,7 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
     expect(ratings).toContainEqual({
       purpose: "review_team",
       variant: "b",
-      promptVersion: "igl-team-v1-b",
+      promptVersion: "igl-team-v2-b",
       reviews: 1,
       rated: 1,
       avgRating: 4,

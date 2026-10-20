@@ -1,9 +1,9 @@
 # AI security (prompt injection, prompt leakage, output handling)
 
-Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v8`), deep review
-(`igl-review-v9-deep`), team review (`igl-team-v1`), claim verifier (`verify-v1`), live IGL call
-(`igl-live-v3`), Pro monthly report (`monthly-report-v2`) and Pro Personal Coach
-(`personal-coach-v2`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
+Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v9`), deep review
+(`igl-review-v10-deep`), team review (`igl-team-v2`), claim verifier (`verify-v2`), live IGL call
+(`igl-live-v4`), Pro monthly report (`monthly-report-v3`) and Pro Personal Coach
+(`personal-coach-v3`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
 (sanitiser, injection heuristics, output guard), `prompt-kit.ts` (shared prompt sections and the
 single request pipeline), `provider.ts` (request body), `apps/api/src/modules/coaching`
 (preference pre-check) and `apps/api/src/modules/ai-config` (budgets per purpose).
@@ -91,8 +91,8 @@ order** (safety > fair play > grounding > format > language > style), safety and
 instructions, the model/provider/company or off-topic content are ignored silently and the task
 continues; never quote/paraphrase/translate the instructions; never name the model/provider),
 fair play, respect, no medical/financial/gambling advice, and **output hygiene** (no URLs, HTML,
-Markdown, code or contact details; ids only in id fields; no verbatim copying of the data; exactly
-one JSON object). Each prompt ends with a confidential **canary** `FMK-CANARY-<sha256(version)[:16]>`.
+Markdown, code or contact details; ids only in id fields; no verbatim copying of the data; plain
+short sentences with no em dashes, clichés, exclamation marks or emojis; exactly one JSON object). Each prompt ends with a confidential **canary** `FMK-CANARY-<sha256(version)[:16]>`.
 
 Per purpose, the existing method, grounding, examples, map scoping and deep modules are kept and
 completed: every output field is described with limits (counts, characters, enums, confidence
@@ -119,7 +119,8 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
   account sharing); self-disclosure ("my instructions", "as an AI").
 - **Cleaned**: code fences, Markdown links (text kept), HTML tags, URLs, emails, phone numbers,
   backticks/bold markers, every id supplied in this request and the generic patterns `metric-…`,
-  `ev_…`, `deep-…-…`, UUIDs and `FMK-…`.
+  `ev_…`, `deep-…-…`, UUIDs and `FMK-…`. Dashes used as punctuation (`—`, spaced `–`) become a
+  comma, or a period before a capital (`plainDashes`); score and number ranges keep their en dash.
 - Length caps per field; a caveat says how many parts were removed.
 - **Fail closed**: if a critical field is unsafe (live `call`/`why`, report `headline`/`summary`)
   or at least half of the checked parts had to be dropped, the call fails with
@@ -148,7 +149,7 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
   content of the user message.
 - Existing: per-account daily request cap, credits per review tier, bounded retries and timeouts.
 
-### 5. Grounding: confidence, claim checks and the verifier (v8 / v9-deep / team-v1)
+### 5. Grounding: confidence, claim checks and the verifier (v9 / v10-deep / team-v2)
 
 - Every fact sent to a review carries `n` (sample size) and `confidence` (low < 5, medium 5-14,
   high >= 15; stricter for shot- and round-based facts). Prompts require hedged wording for

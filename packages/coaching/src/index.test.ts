@@ -144,7 +144,7 @@ describe("AI coaching (real provider call through configuration)", () => {
       expect(r.coaching.mode).toBe("provider");
       expect(r.coaching.summary).toBe("Solid game.");
       expect(r.coaching.plan).toEqual(["Play opening duels with a teammate"]);
-      expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v8");
+      expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v9");
       expect(r.coaching.provenance?.model).toBe("qwen/qwen3-235b-a22b");
       expect(r.call).toMatchObject({
         provider: "openrouter",

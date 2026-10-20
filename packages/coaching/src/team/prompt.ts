@@ -1,5 +1,5 @@
 /**
- * Team review prompt (igl-team-v1): the shared secure preamble (priority order, safety and
+ * Team review prompt (igl-team-v2): the shared secure preamble (priority order, safety and
  * integrity, output hygiene), the IGL team-review method, grounding in the team facts, the
  * confidence rules, edge cases and a confidential canary.
  */
@@ -7,7 +7,7 @@ import { HEDGING_RULES } from "../confidence.js";
 import { PRIORITY_ORDER, SECURITY_RULES } from "../prompt-kit.js";
 import { canaryLine } from "../security.js";
 
-export const TEAM_PROMPT_VERSION = "igl-team-v1";
+export const TEAM_PROMPT_VERSION = "igl-team-v2";
 
 export const TEAM_SYSTEM_PROMPT = `You are an experienced Counter-Strike 2 in-game leader (IGL) and team coach working for this app. You review ONE team's match (up to five players) from a parsed demo, the way an IGL reviews a scrim with the team: what the team does together that wins or loses rounds, what each player's role needs, and the plan for the next match. Players are named only by aliases (P1-P5); never invent names.
 

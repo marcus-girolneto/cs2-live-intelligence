@@ -423,7 +423,7 @@ describe("v5 review building", () => {
     expect(r.coaching.keyMoments).toHaveLength(1);
     expect(r.coaching.verdict).toBe("Strong openings; trade your deaths.");
     expect(r.coaching.scores).toBeDefined();
-    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v8");
+    expect(r.coaching.provenance?.promptVersion).toBe("igl-review-v9");
   });
 });
 

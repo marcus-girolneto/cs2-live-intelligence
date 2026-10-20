@@ -467,6 +467,22 @@ export type GuardSpec = {
   caps?: Record<string, number>;
 };
 
+/**
+ * Dashes used as punctuation in model prose become a comma, or a period before a capital.
+ * Number ranges and scores ("11–5") keep their en dash.
+ */
+export function plainDashes(text: string): string {
+  return text
+    .replace(/(\d)\s*[—–]\s*(?=\d)/g, "$1–")
+    .replace(/^\s*[—–]+\s*/, "")
+    .replace(/\s*[—–]+\s*$/, "")
+    .replace(/([.,;:!?])\s*—+\s*/g, "$1 ")
+    .replace(/\s*—+\s*(?=\p{Lu})/gu, ". ")
+    .replace(/\s*—+\s*/g, ", ")
+    .replace(/\s+–\s+(?=\p{Lu})/gu, ". ")
+    .replace(/\s+–\s+/g, ", ");
+}
+
 type Check = { text: string; drop?: string };
 /** Cleans one human-readable string, or says why it must be dropped. */
 export function inspectOutputText(
@@ -501,7 +517,7 @@ export function inspectOutputText(
   for (const id of ctx.ids)
     if (text.includes(id)) text = text.split(id).join(" ");
   for (const re of INTERNAL_IDS) text = text.replace(re, " ");
-  text = text
+  text = plainDashes(text)
     .replace(/\(\s*[,;]?\s*\)|\[\s*[,;]?\s*\]/g, "")
     .replace(/\s+([,.;:!?])/g, "$1")
     .replace(/([,;:])(?=[,;:.])/g, "")
