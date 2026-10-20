@@ -35,6 +35,11 @@ export interface ReportInputs {
     to: string,
   ): Promise<{ analysisId: string; createdAt: string; deep: DeepReview }[]>;
   monthlyReport(ownerId: string): Promise<boolean>;
+  /** The own matches (ids and upload dates only: an indexed query, no documents). */
+  completedMatches?(
+    ownerId: string,
+    limit: number,
+  ): Promise<{ id: string; createdAt: string }[]>;
 }
 export type ReportSummaryDto = {
   id: string;
@@ -192,9 +197,19 @@ export class ReportsService {
       this.clock,
       null,
     );
+    // Only the documents of matches uploaded in the two compared periods are loaded.
+    const inWindow = this.inputs.completedMatches
+      ? (await this.inputs.completedMatches(ownerId, MAX_ANALYSES))
+          .filter((m) => {
+            const t = Date.parse(m.createdAt);
+            return t >= Date.parse(before.start) && t < Date.parse(period.end);
+          })
+          .map((m) => m.id)
+      : undefined;
     const analyses = await this.history.completedAnalyses(
       ownerId,
       MAX_ANALYSES,
+      ...(inWindow ? [inWindow] : []),
     );
     const within = (from: string, to: string): ReportMatch[] =>
       analyses.flatMap((a) => {

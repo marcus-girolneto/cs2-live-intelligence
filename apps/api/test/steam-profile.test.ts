@@ -11,6 +11,7 @@ import {
 } from "../src/infrastructure/steam/steam-text.js";
 import { parseProfileXml } from "../src/infrastructure/steam/profile-xml.js";
 import { sanitizeStoredProfile } from "../src/infrastructure/steam/sanitize-profile.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
 const STEAM_ID = "76561198000000001";
 const KEY = "ABCDEF0123456789ABCDEF0123456789"; // gitleaks:allow (fake test value)
@@ -152,7 +153,7 @@ describe("Steam profile parsing and sanitization", () => {
   });
 });
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 describe.skipIf(!databaseUrl)("GET /v1/me Steam profile", () => {
   let admin: Pool;
   let repo: TestDatabase;

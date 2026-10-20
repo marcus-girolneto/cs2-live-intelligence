@@ -18,8 +18,11 @@ export class AnalysesService {
   ): Promise<StoredAnalysis> {
     const stored = await this.analyses.analysis(ownerId, id);
     if (!stored) throw new NotFoundError("Analysis not found");
-    return viewer.admin
-      ? stored
-      : { ...stored, coaching: viewer.coaching(stored.coaching) };
+    const { analysis, coaching } = stored;
+    return {
+      id: stored.id,
+      analysis,
+      coaching: viewer.admin ? coaching : viewer.coaching(coaching),
+    };
   }
 }

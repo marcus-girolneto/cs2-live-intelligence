@@ -35,6 +35,10 @@ export class Migrator {
           [filename],
         );
       }
+      // Monthly partitions of the append-only tables: this month and the next two (idempotent).
+      await client.query(
+        "SELECT ensure_month_partitions('telemetry_events', 2), ensure_month_partitions('product_events', 2)",
+      );
       await client.query("COMMIT");
     } catch (error) {
       await client.query("ROLLBACK");

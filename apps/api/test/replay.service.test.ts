@@ -18,6 +18,7 @@ function service(replay: ReplayArtifact | null = syntheticReplay()) {
     pathFor: (id) => `/tmp/${id}`,
     read: async (id) => (id === "job" ? (replay ?? undefined) : undefined),
     remove: async () => undefined,
+    move: async () => false,
   };
   return new ReplayService(repository, storage);
 }

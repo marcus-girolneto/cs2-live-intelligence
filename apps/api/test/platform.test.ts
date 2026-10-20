@@ -5,7 +5,8 @@ import type { FastifyInstance } from "fastify";
 import { TestDatabase } from "./support/test-database.js";
 import { digest } from "../src/shared/crypto/tokens.js";
 import { buildApp } from "../src/app.js";
-const databaseUrl = process.env.DATABASE_URL;
+import { testDatabaseUrl } from "./support/database-url.js";
+const databaseUrl = testDatabaseUrl();
 describe.skipIf(!databaseUrl)(
   "Sprint 1 real Postgres persistence and identity",
   () => {

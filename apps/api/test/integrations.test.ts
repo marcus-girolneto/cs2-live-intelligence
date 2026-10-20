@@ -9,8 +9,9 @@ import { TestDatabase } from "./support/test-database.js";
 import { buildApp } from "../src/app.js";
 import { RuntimeEnv } from "../src/config/env.js";
 import { signStripePayload } from "../src/infrastructure/billing/stripe-payment-gateway.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 const STEAM_ID = "76561197960287930";
 const STEAM_KEY = "0123456789ABCDEF0123456789ABCDEF"; // gitleaks:allow (test fixture)
 const STRIPE_KEY = "sk_test_integrationKey4242"; // gitleaks:allow (fake test value)
@@ -93,6 +94,7 @@ describe.skipIf(!databaseUrl)("admin integrations (Postgres)", () => {
       "76561197960287931",
     ]);
     directory = await mkdtemp(resolve(tmpdir(), "cs2-integrations-"));
+    repo.storageDir = directory;
     app = await buildApp({
       database: repo,
       devices: [],

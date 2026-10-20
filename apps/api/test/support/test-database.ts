@@ -3,10 +3,18 @@ import { DevAccountSeeder } from "../../src/modules/auth/identity.js";
 import { PgAuthRepository } from "../../src/modules/auth/auth.repository.js";
 import { PgDevicesRepository } from "../../src/modules/devices/devices.repository.js";
 import { PgCreditsRepository } from "../../src/modules/credits/credits.repository.js";
+import { randomUUID } from "node:crypto";
 import {
   PgJobQueueRepository,
   type JobOutcome,
 } from "../../src/modules/matches/job-queue.repository.js";
+import { matchRecord } from "../../src/modules/matches/match-record.js";
+import { HydratingMatchesRepository } from "../../src/modules/analyses/analysis-reader.js";
+import {
+  analysisKey,
+  FileAnalysisStore,
+} from "../../src/infrastructure/storage/analysis-storage.js";
+import { FileAnalysisEventsStore } from "../../src/infrastructure/storage/events-storage.js";
 import type { NewDemoJob } from "../../src/modules/matches/matches.dto.js";
 import { PgMatchesRepository } from "../../src/modules/matches/matches.repository.js";
 import { PgRetentionRepository } from "../../src/modules/matches/retention.repository.js";
@@ -32,6 +40,25 @@ export class TestDatabase extends Database {
   private readonly retention = new PgRetentionRepository(this.db);
   private readonly ai = new PgAiConfigRepository(this.db);
   readonly credits = new PgCreditsRepository(this.db);
+  /**
+   * Object storage directory of the app under test: `finishJob` with a raw analysis writes the
+   * match document and events there, and `analysis` reads them back.
+   */
+  storageDir?: string;
+
+  private storage(): {
+    analyses: FileAnalysisStore;
+    events: FileAnalysisEventsStore;
+  } {
+    if (!this.storageDir)
+      throw new Error(
+        "TestDatabase.storageDir is required for match documents",
+      );
+    return {
+      analyses: new FileAnalysisStore(this.storageDir),
+      events: new FileAnalysisEventsStore(this.storageDir),
+    };
+  }
 
   /** Bonus credits for a test account (ledger admin_adjust, like the admin endpoint). */
   async grantCredits(ownerId: string, delta: number) {
@@ -80,7 +107,11 @@ export class TestDatabase extends Database {
     return this.jobs.find(ownerId, id);
   }
   analysis(ownerId: string, id: string) {
-    return this.jobs.analysis(ownerId, id);
+    const { analyses, events } = this.storage();
+    return new HydratingMatchesRepository(this.jobs, analyses, events).analysis(
+      ownerId,
+      id,
+    );
   }
   requeueJobs(ids: string[]) {
     return this.jobs.requeue(ids);
@@ -88,8 +119,51 @@ export class TestDatabase extends Database {
   claimJob() {
     return this.queue.claim();
   }
-  finishJob(id: string, leaseToken: string, outcome: JobOutcome) {
-    return this.queue.finish(id, leaseToken, outcome);
+  /**
+   * Completes a leased job like the worker does: a raw `{analysis, coaching}` becomes the match
+   * of the upload's checksum (overwriting an existing match of the same bytes and parser
+   * version), with its document and events written to `storageDir`.
+   */
+  async finishJob(
+    id: string,
+    leaseToken: string,
+    outcome:
+      | JobOutcome
+      | { analysis: unknown; coaching: unknown; eventsCount?: number },
+  ) {
+    if (!("analysis" in outcome))
+      return this.queue.finish(id, leaseToken, outcome);
+    const { analyses, events } = this.storage();
+    const upload = await this.pool.query(
+      "select checksum from uploads where id=$1",
+      [id],
+    );
+    const checksum = (upload.rows[0]?.checksum as string | undefined) ?? "";
+    const { events: list, ...doc } = outcome.analysis as Record<
+      string,
+      unknown
+    >;
+    const version =
+      (doc.provenance as { parserVersion?: string } | undefined)
+        ?.parserVersion ?? null;
+    const existing = version
+      ? await this.queue.matchFor(checksum, version)
+      : undefined;
+    const matchId = existing ?? randomUUID();
+    const eventsCount = Array.isArray(list)
+      ? await events.write(matchId, list)
+      : null;
+    await analyses.write(matchId, doc);
+    return this.queue.finish(id, leaseToken, {
+      match: matchRecord({
+        id: matchId,
+        checksum,
+        analysis: doc,
+        coaching: outcome.coaching,
+        analysisKey: analysisKey(matchId),
+        eventsCount,
+      }),
+    });
   }
   pendingDeletions() {
     return this.retention.pendingDeletions();

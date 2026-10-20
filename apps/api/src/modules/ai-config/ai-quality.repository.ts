@@ -27,10 +27,7 @@ export class PgAiQualityRepository implements AiQualityRepository {
 
   async ratings(): Promise<RatingRowDto[]> {
     const r = await this.db.execute(
-      sql`select purpose,variant,prompt_version,count(*)::int as reviews,count(rating)::int as rated,avg(rating)::float as avg_rating from (
-        select case when tier='deep' then 'review_deep' else 'review_quick' end as purpose,variant,prompt_version,rating from coach_reviews
-        union all select 'review_team' as purpose,variant,prompt_version,rating from team_reviews
-      ) x group by purpose,variant,prompt_version order by purpose,variant,prompt_version`,
+      sql`select 'review_'||kind as purpose,variant,prompt_version,count(*)::int as reviews,count(rating)::int as rated,avg(rating)::float as avg_rating from ai_reviews group by kind,variant,prompt_version order by purpose,variant,prompt_version`,
     );
     return r.rows.map((row) => ({
       purpose: row.purpose as RatingRowDto["purpose"],

@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { PreviousPlan, PlanItem } from "@cs2/coaching";
 import type { Db } from "../../shared/db/database.js";
+import { uuidOrNull } from "../../shared/db/rows.js";
 
 /** A stored review's plan with the map of the analysed match. */
 export type ReviewPlanRecord = {
@@ -63,7 +64,7 @@ export class PgCoachPlansRepository implements CoachPlansRepository {
     limit = 6,
   ): Promise<PreviousPlan[]> {
     const r = await this.db.execute(
-      sql`select r.coaching,r.created_at,j.analysis->>'map' as map from coach_reviews r join demo_jobs j on j.id=r.analysis_id where r.owner_id=${ownerId} and r.steam_id=${steamId} and r.analysis_id<>${excludeAnalysisId} order by r.created_at desc limit ${limit}`,
+      sql`select r.payload,r.created_at,m.map from ai_reviews r join uploads x on x.id=r.upload_id left join matches m on m.id=x.match_id where r.owner_id=${ownerId} and r.steam_id=${steamId} and r.kind in ('quick','deep') and (${uuidOrNull(excludeAnalysisId)}::uuid is null or r.upload_id<>${uuidOrNull(excludeAnalysisId)}) order by r.created_at desc limit ${limit}`,
     );
     return r.rows
       .map((row) => {
@@ -71,7 +72,7 @@ export class PgCoachPlansRepository implements CoachPlansRepository {
         return {
           date: new Date(row.created_at as string).toISOString().slice(0, 10),
           map,
-          items: planItemsOf(row.coaching, map),
+          items: planItemsOf(row.payload, map),
         };
       })
       .filter((p) => p.items.length > 0);
@@ -81,17 +82,17 @@ export class PgCoachPlansRepository implements CoachPlansRepository {
     steamId: string,
   ): Promise<ReviewPlanRecord[]> {
     const r = await this.db.execute(
-      sql`select r.id,r.analysis_id,r.steam_id,r.coaching,r.created_at,j.analysis->>'map' as map from coach_reviews r join demo_jobs j on j.id=r.analysis_id where r.owner_id=${ownerId} and r.steam_id=${steamId} order by r.created_at desc limit 200`,
+      sql`select r.id,r.upload_id,r.steam_id,r.payload,r.created_at,m.map from ai_reviews r join uploads x on x.id=r.upload_id left join matches m on m.id=x.match_id where r.owner_id=${ownerId} and r.steam_id=${steamId} and r.kind in ('quick','deep') order by r.created_at desc limit 200`,
     );
     return r.rows.map((row) => {
       const map = (row.map as string | null) ?? null;
       return {
         reviewId: row.id as string,
-        analysisId: row.analysis_id as string,
+        analysisId: row.upload_id as string,
         steamId: row.steam_id as string,
         map,
         createdAt: new Date(row.created_at as string).toISOString(),
-        items: planItemsOf(row.coaching, map),
+        items: planItemsOf(row.payload, map),
       };
     });
   }

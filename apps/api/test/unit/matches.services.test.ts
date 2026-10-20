@@ -31,11 +31,14 @@ class FakeMatches implements MatchesRepository {
   async find() {
     return undefined;
   }
-  async analysis() {
+  async matchRow() {
     return undefined;
   }
-  async completedAnalyses() {
+  async completedRows() {
     return [];
+  }
+  async matchIdOf() {
+    return undefined;
   }
   async reprocessCandidates() {
     return [

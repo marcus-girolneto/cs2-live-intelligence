@@ -20,8 +20,9 @@ import {
 } from "../src/infrastructure/billing/stripe-payment-gateway.js";
 import { PgUsageRepository } from "../src/modules/usage/usage.repository.js";
 import { effectivePlan } from "./support/test-database.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 const WEBHOOK_SECRET = "whsec_integration";
 
 describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
@@ -61,6 +62,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
     );
     await repo.pool.query("update users set role='admin' where id='boss'");
     directory = await mkdtemp(resolve(tmpdir(), "cs2-plans-"));
+    repo.storageDir = directory;
     // Minimal OpenAI-compatible provider: a valid review for any request.
     server = createServer((req, res) => {
       let raw = "";
@@ -175,7 +177,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
       "usage_counters",
       "usage_live_matches",
       "subscriptions",
-      "demo_jobs",
+      "uploads",
       "provider_usage",
       "billing_events",
     ])
@@ -217,7 +219,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
       size: 1,
     });
     await repo.pool.query(
-      "update demo_jobs set status='processing', lease_token='t' where id=$1",
+      "update demo_jobs set status='processing', lease_token='t' where upload_id=$1",
       [id],
     );
     const analysis = analyzeDemo(
@@ -324,7 +326,8 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
   it("limits uploads and sample imports per local day and resets at São Paulo midnight", async () => {
     now = Date.parse("2026-10-19T02:30:00Z"); // 23:30 on the 18th in São Paulo
     expect((await upload()).statusCode).toBe(202);
-    await repo.pool.query("delete from demo_jobs"); // keep the active-job quota out of the way
+    await repo.pool.query("delete from uploads");
+    await repo.pool.query("select delete_unreferenced_matches()"); // keep the active-job quota out of the way
     const sample = resolve(directory, "..", `sample-${randomUUID()}.dem`);
     await writeFile(sample, "sample");
     process.env.SAMPLE_DEMO_FILE = sample;
@@ -337,7 +340,8 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
         })
       ).statusCode,
     ).toBe(202);
-    await repo.pool.query("delete from demo_jobs");
+    await repo.pool.query("delete from uploads");
+    await repo.pool.query("select delete_unreferenced_matches()");
     const limited = await upload();
     expect(limited.statusCode).toBe(402);
     expect(limited.json()).toEqual({
@@ -358,7 +362,7 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
     expect((await upload()).statusCode).toBe(202);
     // Admins are unlimited.
     for (let i = 0; i < 4; i++) {
-      await repo.pool.query("delete from demo_jobs where owner_id='boss'");
+      await repo.pool.query("delete from uploads where owner_id='boss'");
       expect((await upload(boss)).statusCode).toBe(202);
     }
     delete process.env.SAMPLE_DEMO_FILE;
@@ -571,7 +575,8 @@ describe.skipIf(!databaseUrl)("plans, quotas and billing (Postgres)", () => {
     // Upgrade suggestions skip inactive plans.
     for (let i = 0; i < 3; i++) {
       expect((await upload()).statusCode).toBe(202);
-      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from uploads");
+      await repo.pool.query("select delete_unreferenced_matches()");
     }
     expect((await upload()).json().upgradeTo).toBe("pro");
     await app.inject({

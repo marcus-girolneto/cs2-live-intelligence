@@ -195,26 +195,16 @@ describe("match ownership", () => {
     ).toBe("765");
   });
   it("reports the identity status and candidates", () => {
-    const analyses = [
-      {
-        id: "a",
-        filename: "",
-        createdAt: "",
-        analysis: { players: [{ steamId: "5", name: "Five" }] },
-      },
-      {
-        id: "b",
-        filename: "",
-        createdAt: "",
-        analysis: { players: [{ steamId: "5" }, { steamId: "6" }] },
-      },
-    ] as never;
+    const rosters = [
+      [{ steamId: "5", name: "Five" }],
+      [{ steamId: "5" }, { steamId: "6" }],
+    ];
     const reviews = [
       { steamId: "6" },
       { steamId: "5" },
       { steamId: "5" },
     ] as never;
-    expect(identityOf([], analyses, reviews)).toEqual({
+    expect(identityOf([], rosters, reviews)).toEqual({
       status: "missing",
       candidates: [
         { steamId: "5", name: "Five", matches: 2, reviews: 2 },

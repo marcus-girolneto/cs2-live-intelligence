@@ -15,8 +15,9 @@ import { buildHttpApp } from "../src/app.js";
 import { createContainer, type Container } from "../src/container.js";
 import { RuntimeEnv } from "../src/config/env.js";
 import { TestDatabase } from "./support/test-database.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 
 /**
  * Team reviews, the lobby comparison, match ownership / identity, the progress journey and
@@ -111,7 +112,7 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
       size: 1,
     });
     await repo.pool.query(
-      "update demo_jobs set status='processing', lease_token='t' where id=$1",
+      "update demo_jobs set status='processing', lease_token='t' where upload_id=$1",
       [id],
     );
     const analysis = analyzeDemo(
@@ -164,6 +165,7 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
     );
     await repo.pool.query("update users set role='admin' where id='boss'");
     directory = await mkdtemp(resolve(tmpdir(), "cs2-extras-"));
+    repo.storageDir = directory;
     server = createServer((req, res) => {
       let raw = "";
       req.on("data", (c) => (raw += c));

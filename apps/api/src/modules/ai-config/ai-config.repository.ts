@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
-import { isoDate, stringOrNull } from "../../shared/db/rows.js";
+import { isoDate, stringOrNull, uuidOrNull } from "../../shared/db/rows.js";
 import {
   assignmentOptionsSchema,
   type AiPurpose,
@@ -95,7 +95,8 @@ export class PgAiConfigRepository
     );
   }
 
-  deleteProvider(id: string): Promise<"ok" | "not_found" | "in_use"> {
+  deleteProvider(raw: string): Promise<"ok" | "not_found" | "in_use"> {
+    const id = uuidOrNull(raw);
     return this.db.transaction(async (tx) => {
       const used = await tx.execute(
         sql`select purpose from ai_assignments where provider_id=${id}`,

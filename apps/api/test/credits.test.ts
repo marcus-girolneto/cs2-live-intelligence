@@ -19,8 +19,9 @@ import {
   StripePaymentGateway,
 } from "../src/infrastructure/billing/stripe-payment-gateway.js";
 import { TestDatabase } from "./support/test-database.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 const WEBHOOK = "whsec_credits";
 const DAY = 86_400_000;
 
@@ -145,7 +146,7 @@ describe.skipIf(!databaseUrl)(
         size: 1,
       });
       await repo.pool.query(
-        "update demo_jobs set status='processing', lease_token='t' where id=$1",
+        "update demo_jobs set status='processing', lease_token='t' where upload_id=$1",
         [id],
       );
       const analysis = analyzeDemo(
@@ -222,6 +223,7 @@ describe.skipIf(!databaseUrl)(
       );
       await repo.pool.query("update users set role='admin' where id='boss'");
       directory = await mkdtemp(resolve(tmpdir(), "cs2-credits-"));
+      repo.storageDir = directory;
       server = createServer((req, res) => {
         let raw = "";
         req.on("data", (c) => (raw += c));
@@ -375,7 +377,7 @@ describe.skipIf(!databaseUrl)(
         "subscriptions",
         "reports",
         "personal_coach_plans",
-        "demo_jobs",
+        "uploads",
         "billing_events",
       ])
         await repo.pool.query(`delete from ${t}`);

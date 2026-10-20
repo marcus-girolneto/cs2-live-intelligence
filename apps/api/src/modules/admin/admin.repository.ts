@@ -22,8 +22,8 @@ export class PgAdminRepository implements AdminRepository {
   async users(limit = 500): Promise<AdminUserDto[]> {
     const r = await this.db.execute(
       sql`select u.id,u.steam_id,u.role,u.display_name,u.avatar_url,u.created_at,u.last_login_at,
-        (select count(*) from demo_jobs j where j.owner_id=u.id) as matches,
-        (select count(*) from coach_reviews c where c.owner_id=u.id) as reviews
+        (select count(*) from uploads x where x.owner_id=u.id) as matches,
+        (select count(*) from ai_reviews r where r.owner_id=u.id and r.kind in ('quick','deep')) as reviews
         from users u order by u.created_at desc limit ${limit}`,
     );
     return r.rows.map((row) => ({

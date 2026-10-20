@@ -183,6 +183,9 @@ export class FakeReplayStorage implements ReplayStorage {
   async remove(jobId: string) {
     this.removed.push(jobId);
   }
+  async move() {
+    return false;
+  }
 }
 
 export class FakeBroadcaster implements LiveBroadcaster {

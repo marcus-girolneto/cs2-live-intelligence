@@ -26,6 +26,12 @@ import type {
 /** Everything the Personal Coach reads (ports implemented by matches, coaching, plans, ai-config). */
 export interface PersonalCoachInputs {
   playerSteamId(ownerId: string): Promise<string | null>;
+  /** The own matches (ids and upload dates only: an indexed query, no documents). */
+  completedMatches(
+    ownerId: string,
+    limit: number,
+  ): Promise<{ id: string; createdAt: string }[]>;
+  /** Full analyses (documents from object storage), loaded only to generate a plan. */
   completedAnalyses(
     ownerId: string,
     limit: number,
@@ -97,7 +103,7 @@ export class PersonalCoachService {
   private async requirePro(ownerId: string): Promise<void> {
     if (await this.inputs.enabled(ownerId)) return;
     const [analyses, reviews] = await Promise.all([
-      this.inputs.completedAnalyses(ownerId, MAX_ANALYSES),
+      this.inputs.completedMatches(ownerId, MAX_ANALYSES),
       this.inputs.reviews(ownerId),
     ]);
     throw new AppError(402, "The Personal Coach is included in the Pro plan.", {
@@ -117,7 +123,7 @@ export class PersonalCoachService {
   private async state(ownerId: string) {
     const [history, analyses, settings] = await Promise.all([
       this.plans.history(ownerId, 20),
-      this.inputs.completedAnalyses(ownerId, MAX_ANALYSES),
+      this.inputs.completedMatches(ownerId, MAX_ANALYSES),
       this.inputs.settings(),
     ]);
     const latest = history[0];
@@ -192,7 +198,11 @@ export class PersonalCoachService {
       );
     }
     const steamId = await this.inputs.playerSteamId(ownerId);
-    const analyses = s.analyses.flatMap((a) => {
+    const documents = await this.inputs.completedAnalyses(
+      ownerId,
+      MAX_ANALYSES,
+    );
+    const analyses = documents.flatMap((a) => {
       const parsed = analysisSchema.safeParse(a.analysis);
       return parsed.success
         ? [{ id: a.id, createdAt: a.createdAt, analysis: parsed.data }]

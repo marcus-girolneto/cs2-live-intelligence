@@ -19,8 +19,9 @@ export type ParsedAnalysis = {
 export async function validAnalyses(
   history: AnalysisHistory,
   ownerId: string,
+  ids?: readonly string[],
 ): Promise<ParsedAnalysis[]> {
-  return (await history.completedAnalyses(ownerId))
+  return (await history.completedAnalyses(ownerId, undefined, ids))
     .map((a) => {
       const parsed = analysisSchema.safeParse(a.analysis);
       return parsed.success ? { ...a, analysis: parsed.data } : null;

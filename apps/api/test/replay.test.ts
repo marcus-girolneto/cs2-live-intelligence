@@ -18,8 +18,9 @@ import { TestDatabase } from "./support/test-database.js";
 import { buildApp } from "../src/app.js";
 import { createWorker } from "../src/container.js";
 import { syntheticAnalysis, syntheticReplay } from "./replay-fixtures.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
   let admin: Pool;
   let repo: TestDatabase;
@@ -39,6 +40,7 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     await repo.seedDev("owner", "owner-token", "device", "device-token");
     await repo.seedDev("other", "other-owner", "other-device", "other-token");
     directory = await mkdtemp(resolve(tmpdir(), "cs2-replay-"));
+    repo.storageDir = directory;
     const options = {
       storageDir: directory,
       parserBin: process.env.DEMO_PARSER_BIN ?? process.execPath,
@@ -54,7 +56,8 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     worker = await createWorker(repo, options);
   });
   beforeEach(async () => {
-    await repo.pool.query("delete from demo_jobs");
+    await repo.pool.query("delete from uploads");
+    await repo.pool.query("select delete_unreferenced_matches()");
     await repo.updateSettings("owner", {
       telemetryConsent: true,
       analyticsConsent: false,
@@ -86,9 +89,17 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     });
     return id;
   }
-  /** A completed job with a synthetic analysis and replay artifact on disk. */
+  /** Replay artifact file of an upload (replays are stored once per parsed match). */
+  async function replayFile(uploadId: string): Promise<string> {
+    const r = await repo.pool.query(
+      "select match_id from uploads where id=$1",
+      [uploadId],
+    );
+    return `${r.rows[0]!.match_id as string}.replay.json.gz`;
+  }
+  /** A completed job (own demo bytes) with a synthetic analysis and replay artifact on disk. */
   async function syntheticJob(withReplay = true) {
-    const id = await queue(Buffer.from("synthetic"));
+    const id = await queue(Buffer.from(`synthetic-${randomUUID()}`));
     const job = await repo.claimJob();
     await repo.finishJob(id, job!.leaseToken, {
       analysis: syntheticAnalysis,
@@ -96,7 +107,7 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     });
     if (withReplay)
       await writeFile(
-        resolve(directory, `${id}.replay.json.gz`),
+        resolve(directory, await replayFile(id)),
         gzipSync(JSON.stringify(syntheticReplay())),
       );
     return id as string;
@@ -159,7 +170,7 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     });
     expect(r.statusCode).toBe(404);
     expect(r.json().error).toBe("Replay not available");
-    await writeFile(resolve(directory, `${id}.replay.json.gz`), "not gzip");
+    await writeFile(resolve(directory, await replayFile(id)), "not gzip");
     expect(
       (await app.inject({ url: `/v1/analyses/${id}/replay/meta`, headers }))
         .statusCode,
@@ -169,8 +180,10 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
   it("deletes replays with account deletion, retention and stray cleanup", async () => {
     const kept = await syntheticJob();
     const expired = await syntheticJob();
+    const keptReplay = await replayFile(kept);
+    const expiredReplay = await replayFile(expired);
     await repo.pool.query(
-      "update demo_jobs set created_at=now()-interval '8 days' where id=$1",
+      "update uploads set created_at=now()-interval '8 days' where id=$1",
       [expired],
     );
     const stray = `${randomUUID()}.replay.json.gz`;
@@ -182,8 +195,8 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
     }
     await worker.cleanup();
     const files = await readdir(directory);
-    expect(files).toContain(`${kept}.replay.json.gz`);
-    expect(files).not.toContain(`${expired}.replay.json.gz`);
+    expect(files).toContain(keptReplay);
+    expect(files).not.toContain(expiredReplay);
     expect(files).not.toContain(stray);
     expect(files).not.toContain(strayTmp);
     expect(
@@ -204,8 +217,7 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
       );
       await worker.runOnce();
       expect((await repo.match("owner", id))?.status).toBe("complete");
-      const size = (await stat(resolve(directory, `${id}.replay.json.gz`)))
-        .size;
+      const size = (await stat(resolve(directory, await replayFile(id)))).size;
       expect(size).toBeGreaterThan(50_000);
       expect(size).toBeLessThan(600_000);
       const meta = (
@@ -244,9 +256,9 @@ describe.skipIf(!databaseUrl)("replay artifacts and endpoints", () => {
       await repo.requeueJobs([id]);
       await worker.runOnce();
       expect((await repo.match("owner", id))?.status).toBe("complete");
-      expect(
-        (await stat(resolve(directory, `${id}.replay.json.gz`))).size,
-      ).toBe(size);
+      expect((await stat(resolve(directory, await replayFile(id)))).size).toBe(
+        size,
+      );
       if (process.env.REPLAY_EXAMPLES_DIR) {
         const dir = process.env.REPLAY_EXAMPLES_DIR;
         await writeFile(

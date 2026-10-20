@@ -24,7 +24,8 @@ import { buildApp } from "../src/app.js";
 import { createWorker } from "../src/container.js";
 import { objectPath } from "../src/infrastructure/storage/object-storage.js";
 import { PgJobQueueRepository } from "../src/modules/matches/job-queue.repository.js";
-const databaseUrl = process.env.DATABASE_URL;
+import { testDatabaseUrl } from "./support/database-url.js";
+const databaseUrl = testDatabaseUrl();
 describe.skipIf(!databaseUrl)(
   "durable demo upload, jobs, consent and retention",
   () => {
@@ -47,6 +48,7 @@ describe.skipIf(!databaseUrl)(
       await repo.seedDev("owner", "owner-token", "device", "device-token");
       await repo.seedDev("other", "other-owner", "other-device", "other-token");
       directory = await mkdtemp(resolve(tmpdir(), "cs2-jobs-"));
+      repo.storageDir = directory;
       const options = {
         storageDir: directory,
         parserBin: process.env.DEMO_PARSER_BIN ?? process.execPath,
@@ -63,7 +65,8 @@ describe.skipIf(!databaseUrl)(
       worker = await createWorker(repo, options);
     });
     beforeEach(async () => {
-      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from uploads");
+      await repo.pool.query("select delete_unreferenced_matches()");
       await repo.pool.query("delete from product_events");
       await repo.pool.query("delete from feedback");
       await repo.pool.query("delete from provider_usage");
@@ -118,7 +121,7 @@ describe.skipIf(!databaseUrl)(
       }
       expect(await readdir(directory)).toEqual([]);
       expect(
-        (await repo.pool.query("select count(*)::int as n from demo_jobs"))
+        (await repo.pool.query("select count(*)::int as n from uploads"))
           .rows[0].n,
       ).toBe(0);
       const limited = await buildApp({
@@ -215,7 +218,7 @@ describe.skipIf(!databaseUrl)(
       expect(response.statusCode).toBe(202);
       const { id } = response.json();
       const stored = (
-        await repo.pool.query("select * from demo_jobs where id=$1", [id])
+        await repo.pool.query("select * from uploads where id=$1", [id])
       ).rows[0];
       expect(stored.checksum).toBe(
         createHash("sha256").update(demoBytes("payload")).digest("hex"),
@@ -287,7 +290,7 @@ describe.skipIf(!databaseUrl)(
       expect(claimed?.id).toBe(id);
       expect([first, second].filter(Boolean)).toHaveLength(1);
       await repo.pool.query(
-        "update demo_jobs set lease_until=now()-interval '1 second' where id=$1",
+        "update demo_jobs set lease_until=now()-interval '1 second' where upload_id=$1",
         [id],
       );
       const next = await repo.claimJob();
@@ -295,7 +298,7 @@ describe.skipIf(!databaseUrl)(
       await repo.finishJob(id, claimed!.leaseToken, { error: "old worker" });
       expect((await repo.match("owner", id))?.status).toBe("processing");
       await repo.pool.query(
-        "update demo_jobs set lease_until=now()-interval '1 second' where id=$1",
+        "update demo_jobs set lease_until=now()-interval '1 second' where upload_id=$1",
         [id],
       );
       expect(await repo.claimJob()).toBeUndefined();
@@ -889,7 +892,7 @@ describe.skipIf(!databaseUrl)(
     it("retention durably removes metadata and filesystem objects", async () => {
       const { id } = (await upload(demoBytes("expired"))).json();
       await repo.pool.query(
-        "update demo_jobs set created_at=now()-interval '8 days' where id=$1",
+        "update uploads set created_at=now()-interval '8 days' where id=$1",
         [id],
       );
       await worker.cleanup();

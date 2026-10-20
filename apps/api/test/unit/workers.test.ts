@@ -24,8 +24,8 @@ const HOUR = 3600000;
 class FakeRetention implements RetentionRepository {
   retained = 0;
   deleted: string[] = [];
-  pending = [`${JOB}.dem`];
-  known = new Set<string>();
+  pending = [`${JOB}.dem`, `${JOB}.analysis.json.gz`, "../escape"];
+  known = { demos: new Set<string>(), matches: new Set<string>() };
   async retain() {
     this.retained++;
   }
@@ -44,31 +44,43 @@ describe("RetentionWorker", () => {
   it("applies retention, deletes scheduled files and sweeps only stale orphans", async () => {
     const repo = new FakeRetention();
     const storage = new FakeObjectStorage();
-    const replays = new FakeReplayStorage();
-    const known = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeee1";
-    repo.known.add(`${known}.dem`);
+    const demo = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeee1";
+    const match = "bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeee1";
+    repo.known.demos.add(`${demo}.dem`);
+    repo.known.matches.add(match);
     const entries: Record<string, number> = {
-      [`${known}.dem`]: 2 * HOUR,
-      [`${known}.replay.json.gz`]: 2 * HOUR,
+      [`${demo}.dem`]: 2 * HOUR,
+      [`${match}.replay.json.gz`]: 2 * HOUR,
+      [`${match}.analysis.json.gz`]: 2 * HOUR,
+      [`${match}.events.json.gz`]: 2 * HOUR,
       "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeee2.dem": 2 * HOUR,
       "ffffffff-bbbb-cccc-dddd-eeeeeeeeeee2.dem": 60_000,
       "cccccccc-bbbb-cccc-dddd-eeeeeeeeeee2.replay.json.gz": 2 * HOUR,
+      "cccccccc-bbbb-cccc-dddd-eeeeeeeeeee2.analysis.json.gz": 2 * HOUR,
       ".replay-abc.tmp": 2 * HOUR,
+      ".analysis-abc.tmp": 2 * HOUR,
       ".replay-new.tmp": 1000,
       "notes.txt": 9 * HOUR,
     };
     for (const [name, age] of Object.entries(entries))
       storage.ages.set(name, age);
-    await new RetentionWorker(repo, storage, replays).run();
+    await new RetentionWorker(repo, storage).run();
     expect(repo.retained).toBe(1);
-    expect(repo.deleted).toEqual([`${JOB}.dem`]);
-    expect(replays.removed).toEqual([JOB]);
+    // Every scheduled key is marked processed; unknown names are never touched.
+    expect(repo.deleted).toEqual([
+      `${JOB}.dem`,
+      `${JOB}.analysis.json.gz`,
+      "../escape",
+    ]);
     expect(storage.removed.sort()).toEqual(
       [
         `${JOB}.dem`,
+        `${JOB}.analysis.json.gz`,
         "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeee2.dem",
         "cccccccc-bbbb-cccc-dddd-eeeeeeeeeee2.replay.json.gz",
+        "cccccccc-bbbb-cccc-dddd-eeeeeeeeeee2.analysis.json.gz",
         ".replay-abc.tmp",
+        ".analysis-abc.tmp",
       ].sort(),
     );
   });
@@ -81,6 +93,9 @@ class FakeQueue implements JobQueueRepository {
   ];
   async claim() {
     return this.jobs.shift();
+  }
+  async matchFor() {
+    return undefined;
   }
   async finish(_id: string, _lease: string, outcome: JobOutcome) {
     this.finished.push(outcome);
@@ -122,6 +137,13 @@ function worker(parse: () => Promise<unknown>, consentGiven = true) {
     { path: (k) => `/objects/${k}` },
     replays,
     coach,
+    {
+      analyses: { write: async () => undefined, remove: async () => undefined },
+      events: {
+        write: async (_id, e) => e.length,
+        remove: async () => undefined,
+      },
+    },
   );
   return { queue, replays, w };
 }
@@ -133,8 +155,11 @@ describe("DemoProcessingWorker", () => {
     await w.runOnce();
     expect(queue.finished).toHaveLength(1);
     expect(queue.finished[0]).toMatchObject({
-      analysis: { source: "demo", map: "de_mirage" },
-      coaching: { mode: "offline" },
+      match: {
+        map: "de_mirage",
+        summary: { source: "demo", map: "de_mirage" },
+        coaching: { mode: "offline" },
+      },
     });
     expect(w.counters).toEqual({ complete: 1, failed: 0, errors: 0 });
   });
@@ -146,7 +171,8 @@ describe("DemoProcessingWorker", () => {
     expect(parserFail.queue.finished).toEqual([
       { error: "Demo parser deadline exceeded" },
     ]);
-    expect(parserFail.replays.removed).toEqual([JOB]);
+    // The replay of the new match the parse would have created is dropped.
+    expect(parserFail.replays.removed).toHaveLength(1);
     const withdrawn = worker(async () => DEMO, false);
     await withdrawn.w.runOnce();
     expect(withdrawn.queue.finished).toEqual([

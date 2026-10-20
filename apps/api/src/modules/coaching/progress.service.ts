@@ -5,10 +5,8 @@ import type { ReviewRecord } from "./coaching.dto.js";
 import type { AnalysisHistory } from "./coaching.ports.js";
 import type { CoachingRepository } from "./coaching.repository.js";
 import type { OwnershipRecord } from "./ownership.policy.js";
-import {
-  validAnalyses,
-  type ParsedAnalysis,
-} from "./personalization.service.js";
+import type { RosterPlayer } from "./ownership.repository.js";
+import { validAnalyses } from "./personalization.service.js";
 import { buildJourney, type JourneyMatch } from "./progress.model.js";
 import type { ViewerPolicy } from "./viewer.policy.js";
 
@@ -24,9 +22,13 @@ export function teamScore(rounds: Rounds): {
   return { roundsWon: won, roundsLost: rounds.length - won };
 }
 
-/** Port (ownership): which of the owner's matches are theirs, and as which player. */
+/**
+ * Port (ownership): which of the owner's matches are theirs, as which player, and the players
+ * of every completed match (match_players, indexed: no analysis documents).
+ */
 export interface OwnershipRecords {
   records(ownerId: string): Promise<OwnershipRecord[]>;
+  rosters(ownerId: string): Promise<Map<string, RosterPlayer[]>>;
 }
 export type IdentityDto = {
   status: "steam" | "chosen" | "missing";
@@ -42,7 +44,7 @@ export type IdentityDto = {
 /** Who the tracked player is and which players the UI can offer when it is unknown. */
 export function identityOf(
   mine: OwnershipRecord[],
-  analyses: ParsedAnalysis[],
+  rosters: RosterPlayer[][],
   reviews: ReviewRecord[],
 ): IdentityDto {
   const status = mine.some((r) => r.matchedBy === "steam")
@@ -56,11 +58,11 @@ export function identityOf(
   ]);
   const candidates = [...ids]
     .map((steamId) => {
-      const present = analyses.filter((a) =>
-        a.analysis.players.some((p) => p.steamId === steamId),
+      const present = rosters.filter((players) =>
+        players.some((p) => p.steamId === steamId),
       );
       const name = present
-        .map((a) => a.analysis.players.find((p) => p.steamId === steamId)?.name)
+        .map((players) => players.find((p) => p.steamId === steamId)?.name)
         .find((n): n is string => !!n);
       return {
         steamId,
@@ -94,10 +96,10 @@ export class ProgressService {
     viewer: ViewerPolicy,
     map?: string,
   ): Promise<Record<string, unknown>> {
-    const [profile, analyses, records, reviewRows, calls] = await Promise.all([
+    const [profile, records, rosters, reviewRows, calls] = await Promise.all([
       this.coaching.profile(ownerId),
-      validAnalyses(this.history, ownerId),
       this.ownership.records(ownerId),
+      this.ownership.rosters(ownerId),
       this.coaching.reviews(ownerId, 200),
       this.coaching.liveCalls(ownerId),
     ]);
@@ -105,7 +107,10 @@ export class ProgressService {
       (r) => r.ownership === "mine" && r.playerSteamId,
     );
     const playerOf = new Map(mine.map((r) => [r.jobId, r.playerSteamId!]));
-    const own = analyses.filter((a) => playerOf.has(a.id));
+    // Only the account's own matches are loaded as full documents (timeline, learning).
+    const own = await validAnalyses(this.history, ownerId, [
+      ...playerOf.keys(),
+    ]);
     const counts = new Map<string, number>();
     for (const id of playerOf.values())
       counts.set(id, (counts.get(id) ?? 0) + 1);
@@ -151,7 +156,11 @@ export class ProgressService {
         )
       : null;
     return {
-      identity: identityOf(mine, analyses, reviewRows),
+      identity: identityOf(
+        mine,
+        [...rosters.values()].slice(0, 50),
+        reviewRows,
+      ),
       playerSteamId: primary ?? profile.playerSteamId,
       linkedToSteam: profile.linkedToSteam,
       analyzedMatches: own.length,

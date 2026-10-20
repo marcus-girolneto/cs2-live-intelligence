@@ -63,7 +63,9 @@ export class PgLiveSessionStore implements LiveSessionStore {
       )
         return "forbidden";
       const dedup = await tx.execute(
-        sql`insert into telemetry_events(device_id,event_id,owner_id) values(${device.deviceId},${event.eventId},${device.ownerId}) on conflict do nothing returning event_id`,
+        // telemetry_events is partitioned by month, so (device_id, event_id) cannot be a unique
+        // key; the device row lock taken above serializes this check-then-insert per device.
+        sql`insert into telemetry_events(device_id,event_id,owner_id) select ${device.deviceId},${event.eventId},${device.ownerId} where not exists(select 1 from telemetry_events where device_id=${device.deviceId} and event_id=${event.eventId}) returning event_id`,
       );
       if (!dedup.rows.length) return "duplicate";
       if (p && Number(p.sequence) >= event.sequence) return "ignored";

@@ -39,7 +39,7 @@ const defined = (fields: Record<string, unknown>): Record<string, unknown> =>
 export class ReplayService {
   constructor(
     private readonly repository: ReplayRepository,
-    private readonly storage: ReplayStorage,
+    private readonly storage: Pick<ReplayStorage, "read">,
   ) {}
 
   private async load(

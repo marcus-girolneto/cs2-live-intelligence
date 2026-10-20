@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { MonthlyReport } from "@cs2/contracts";
 import type { Db } from "../../shared/db/database.js";
-import { isoDate } from "../../shared/db/rows.js";
+import { isoDate, uuidOrNull } from "../../shared/db/rows.js";
 
 export type ReportSource = "scheduled" | "on_demand";
 export type NewReport = {
@@ -82,7 +82,7 @@ export class PgReportsRepository implements ReportsRepository {
 
   async get(ownerId: string, id: string): Promise<ReportRecord | undefined> {
     const r = await this.db.execute(
-      sql`select id,period,source,report,provider,model,prompt_version,created_at from reports where owner_id=${ownerId} and id=${id}`,
+      sql`select id,period,source,report,provider,model,prompt_version,created_at from reports where owner_id=${ownerId} and id=${uuidOrNull(id)}`,
     );
     return r.rows[0] ? record(r.rows[0]) : undefined;
   }

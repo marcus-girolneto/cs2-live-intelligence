@@ -10,7 +10,10 @@ export interface ConsentLookup {
 export interface PrivacyRepository extends ConsentLookup {
   /** Saves consent/retention; withdrawing telemetry consent fails queued/processing jobs. */
   update(ownerId: string, settings: SettingsDto): Promise<void>;
-  /** Deletes the account (cascades) after scheduling its demo files for deletion. */
+  /**
+   * Deletes the account (cascades to its uploads) after scheduling its demo files for deletion,
+   * then the matches no other account references (their files go to the outbox too).
+   */
   deleteAccount(ownerId: string): Promise<void>;
 }
 
@@ -37,7 +40,7 @@ export class PgPrivacyRepository implements PrivacyRepository {
       );
       if (!s.telemetryConsent)
         await tx.execute(
-          sql`update demo_jobs set status='failed',error='Telemetry consent withdrawn',lease_token=null,lease_until=null,updated_at=now() where owner_id=${ownerId} and status in('queued','processing')`,
+          sql`update demo_jobs set status='failed',error='Telemetry consent withdrawn',lease_token=null,lease_until=null,updated_at=now() where upload_id in (select id from uploads where owner_id=${ownerId}) and kind<>'reprocess' and status in('queued','processing')`,
         );
     });
   }
@@ -45,9 +48,10 @@ export class PgPrivacyRepository implements PrivacyRepository {
   async deleteAccount(ownerId: string): Promise<void> {
     await this.db.transaction(async (tx) => {
       await tx.execute(
-        sql`insert into file_deletions(object_key) select object_key from demo_jobs where owner_id=${ownerId} on conflict do nothing`,
+        sql`insert into file_deletions(object_key) select object_key from uploads where owner_id=${ownerId} on conflict(object_key) do update set processed_at=null`,
       );
       await tx.execute(sql`delete from users where id=${ownerId}`);
+      await tx.execute(sql`select delete_unreferenced_matches()`);
     });
   }
 }

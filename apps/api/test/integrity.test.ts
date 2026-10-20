@@ -9,8 +9,9 @@ import { buildHttpApp } from "../src/app.js";
 import { RuntimeEnv } from "../src/config/env.js";
 import { createContainer, type Container } from "../src/container.js";
 import { TestDatabase } from "./support/test-database.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 const PLAYERS = Array.from(
   { length: 10 },
   (_, i) => `7656119800000${1000 + i}`,
@@ -39,6 +40,7 @@ describe.skipIf(!databaseUrl)("match integrity (Postgres)", () => {
     await repo.seedDev("owner", "owner-token", "d1", "d1-token");
     await repo.seedDev("other", "other-token", "d2", "d2-token");
     directory = await mkdtemp(resolve(tmpdir(), "cs2-integrity-"));
+    repo.storageDir = directory;
     const steamFetch = (async (input: string | URL | Request) => {
       const url = new URL(String(input));
       steamCalls.push(url.pathname);
@@ -107,9 +109,11 @@ describe.skipIf(!databaseUrl)("match integrity (Postgres)", () => {
       },
     };
     await repo.pool.query(
-      `update demo_jobs set status='complete',analysis=$2::jsonb,coaching='{}'::jsonb,created_at=now()-make_interval(days=>$3) where id=$1`,
-      [id, JSON.stringify(analysis), uploadedDaysAgo],
+      "update uploads set created_at=now()-make_interval(days=>$2) where id=$1",
+      [id, uploadedDaysAgo],
     );
+    const job = await repo.claimJob();
+    await repo.finishJob(id, job!.leaseToken, { analysis, coaching: {} });
     return id;
   }
 
@@ -170,7 +174,7 @@ describe.skipIf(!databaseUrl)("match integrity (Postgres)", () => {
     // Re-check planned 7 days after the upload; nothing else is due now.
     const row = (
       await repo.pool.query(
-        "select checks,next_check_at,extract(epoch from next_check_at-(select created_at from demo_jobs where id=$1))/86400 as delay from match_bans where job_id=$1",
+        "select b.checks,b.next_check_at,extract(epoch from b.next_check_at-x.created_at)/86400 as delay from match_bans b join uploads x on x.match_id=b.match_id where x.id=$1",
         [id],
       )
     ).rows[0];
@@ -180,8 +184,9 @@ describe.skipIf(!databaseUrl)("match integrity (Postgres)", () => {
     expect(steamCalls.filter((p) => p.includes("GetPlayerBans"))).toHaveLength(
       1,
     );
-    // Deleting the match deletes its ban rows.
-    await repo.pool.query("delete from demo_jobs where id=$1", [id]);
+    // Deleting the match (its last upload) deletes its ban rows.
+    await repo.pool.query("delete from uploads where id=$1", [id]);
+    await repo.pool.query("select delete_unreferenced_matches()");
     expect(
       (await repo.pool.query("select count(*)::int n from match_bans")).rows[0]
         .n,

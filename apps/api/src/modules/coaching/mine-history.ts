@@ -22,14 +22,14 @@ export class MineOnlyHistory implements AnalysisHistory {
   analysis(ownerId: string, id: string): Promise<StoredAnalysis | undefined> {
     return this.inner.analysis(ownerId, id);
   }
+  /** Only the own matches are loaded (their ids are filtered in SQL, then `limit` applies). */
   async completedAnalyses(
     ownerId: string,
     limit?: number,
+    ids?: readonly string[],
   ): Promise<CompletedAnalysis[]> {
-    const [mine, all] = await Promise.all([
-      this.ownership.mine(ownerId),
-      this.inner.completedAnalyses(ownerId, limit),
-    ]);
-    return all.filter((a) => mine.has(a.id));
+    const mine = await this.ownership.mine(ownerId);
+    const wanted = ids ? ids.filter((id) => mine.has(id)) : [...mine.keys()];
+    return this.inner.completedAnalyses(ownerId, limit, wanted);
   }
 }

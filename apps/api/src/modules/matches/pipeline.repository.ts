@@ -1,43 +1,34 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
+import { uuidsOnly } from "../../shared/db/rows.js";
 
-/** Storage and bookkeeping of the demo pipeline: parser version, dedupe, reprocess, events. */
+/** Bookkeeping of the demo pipeline: parser version, dedupe and parser-upgrade reprocessing. */
 export interface PipelineRepository {
   /** The parser version the worker runs (undefined before the first worker start). */
   parserVersion(): Promise<string | undefined>;
   setParserVersion(version: string): Promise<void>;
-  /** A complete job with the same checksum analysed by `version` (not `excludeId`). */
-  donor(
-    checksum: string,
-    version: string,
-    excludeId: string,
-  ): Promise<{ id: string; eventsCount: number | null } | undefined>;
   /**
-   * Completes `jobId` with a copy of the donor's analysis and coaching. Only a queued job, or a
-   * processing job still leased with `leaseToken`, of an owner who still consents.
+   * Dedupe: points the upload at the existing match of the same demo bytes parsed by `version`
+   * (no copy). Only a queued job, or a processing job still leased with `leaseToken`, of an
+   * owner who still consents. Returns the match id, or undefined when nothing was linked.
    */
-  completeClone(
-    jobId: string,
-    donorId: string,
+  linkExisting(
+    uploadId: string,
+    version: string,
     leaseToken?: string,
-  ): Promise<boolean>;
-  /** Complete jobs analysed by another parser version, not yet queued, source not deleted. */
+  ): Promise<string | undefined>;
+  /** Complete uploads whose match was parsed by another version (demo not deleted). */
   outdated(
     version: string,
     limit: number,
   ): Promise<{ id: string; objectKey: string }[]>;
-  /** Queues background re-parses (idempotent: only jobs not already queued). */
+  /** Queues background re-parses (idempotent: only finished, not already queued jobs). */
   queueReprocess(ids: string[]): Promise<number>;
   reprocessStatus(version: string): Promise<{
     pending: number;
     done: number;
     failed: number;
   }>;
-  /** Complete jobs whose analysis still holds its `events` inline (oldest first). */
-  inlineEvents(limit: number): Promise<{ id: string; events: unknown[] }[]>;
-  /** Drops the inline events once stored, only if the row still holds `count` of them. */
-  eventsMoved(id: string, count: number): Promise<boolean>;
-  inlineEventsLeft(): Promise<number>;
 }
 
 export class PgPipelineRepository implements PipelineRepository {
@@ -56,32 +47,29 @@ export class PgPipelineRepository implements PipelineRepository {
     );
   }
 
-  async donor(
-    checksum: string,
+  linkExisting(
+    uploadId: string,
     version: string,
-    excludeId: string,
-  ): Promise<{ id: string; eventsCount: number | null } | undefined> {
-    const r = await this.db.execute(
-      sql`select id,events_count from demo_jobs where checksum=${checksum} and status='complete' and parser_version=${version} and id<>${excludeId} and reprocess_state is distinct from 'processing' and analysis is not null order by updated_at desc limit 1`,
-    );
-    const row = r.rows[0];
-    return row
-      ? {
-          id: row.id as string,
-          eventsCount: (row.events_count as number | null) ?? null,
-        }
-      : undefined;
-  }
-
-  async completeClone(
-    jobId: string,
-    donorId: string,
     leaseToken?: string,
-  ): Promise<boolean> {
-    const r = await this.db.execute(
-      sql`update demo_jobs t set status='complete',analysis=d.analysis,coaching=d.coaching,parser_version=d.parser_version,events_count=d.events_count,deduped_from=d.id,error=null,lease_until=null,lease_token=null,updated_at=now() from demo_jobs d where t.id=${jobId} and d.id=${donorId} and d.status='complete' and d.analysis is not null and (t.status='queued' or (t.status='processing' and t.lease_token=${leaseToken ?? null})) and exists(select 1 from users where id=t.owner_id and telemetry_consent)`,
-    );
-    return (r.rowCount ?? 0) > 0;
+  ): Promise<string | undefined> {
+    return this.db.transaction(async (tx) => {
+      const found = await tx.execute(
+        sql`select m.id,m.checksum from uploads u join matches m on m.checksum=u.checksum and m.parser_version=${version} join users o on o.id=u.owner_id where u.id=${uploadId} and o.telemetry_consent and (u.match_id is null or u.match_id<>m.id)`,
+      );
+      const match = found.rows[0];
+      if (!match) return undefined;
+      const job = await tx.execute(
+        sql`update demo_jobs set status='done',error=null,lease_until=null,lease_token=null,updated_at=now() where upload_id=${uploadId} and kind<>'reparse' and (status='queued' or (status='processing' and lease_token=${leaseToken ?? null})) returning kind`,
+      );
+      if (!job.rows.length) return undefined;
+      await tx.execute(
+        sql`update uploads set match_id=${match.id},completed_at=coalesce(case when ${job.rows[0]!.kind}='reprocess' then completed_at end,now()) where id=${uploadId}`,
+      );
+      await tx.execute(
+        sql`select delete_unreferenced_matches(${match.checksum as string})`,
+      );
+      return match.id as string;
+    });
   }
 
   async outdated(
@@ -89,7 +77,7 @@ export class PgPipelineRepository implements PipelineRepository {
     limit: number,
   ): Promise<{ id: string; objectKey: string }[]> {
     const r = await this.db.execute(
-      sql`select j.id,j.object_key from demo_jobs j where j.status='complete' and j.parser_version is distinct from ${version} and j.reprocess_state is null and not exists(select 1 from file_deletions f where f.object_key=j.object_key) order by j.created_at desc limit ${limit}`,
+      sql`select u.id,u.object_key from uploads u join matches m on m.id=u.match_id join demo_jobs j on j.upload_id=u.id where j.status='done' and m.parser_version is distinct from ${version} and not exists(select 1 from file_deletions f where f.object_key=u.object_key) order by u.created_at desc limit ${limit}`,
     );
     return r.rows.map((row) => ({
       id: row.id as string,
@@ -98,9 +86,10 @@ export class PgPipelineRepository implements PipelineRepository {
   }
 
   async queueReprocess(ids: string[]): Promise<number> {
-    if (!ids.length) return 0;
+    const valid = uuidsOnly(ids);
+    if (!valid.length) return 0;
     const r = await this.db.execute(
-      sql`update demo_jobs set reprocess_state='queued',reprocess_attempts=0,reprocess_error=null where id in (select jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb)) and status='complete' and reprocess_state is null returning id`,
+      sql`update demo_jobs j set kind='reprocess',status='queued',attempts=0,error=null,updated_at=now() from uploads u where u.id=j.upload_id and u.match_id is not null and j.upload_id in (select jsonb_array_elements_text(${JSON.stringify(valid)}::jsonb)::uuid) and j.status='done' returning j.upload_id`,
     );
     return r.rows.length;
   }
@@ -109,7 +98,7 @@ export class PgPipelineRepository implements PipelineRepository {
     version: string,
   ): Promise<{ pending: number; done: number; failed: number }> {
     const r = await this.db.execute(
-      sql`select count(*) filter(where j.parser_version=${version})::int as done,count(*) filter(where j.reprocess_state='failed')::int as failed,count(*) filter(where j.parser_version is distinct from ${version} and j.reprocess_state is distinct from 'failed' and not exists(select 1 from file_deletions f where f.object_key=j.object_key))::int as pending from demo_jobs j where j.status='complete'`,
+      sql`select count(*) filter(where m.parser_version=${version})::int as done,count(*) filter(where j.kind='reprocess' and j.status='failed')::int as failed,count(*) filter(where m.parser_version is distinct from ${version} and not (j.kind='reprocess' and j.status='failed') and not exists(select 1 from file_deletions f where f.object_key=u.object_key))::int as pending from uploads u join matches m on m.id=u.match_id join demo_jobs j on j.upload_id=u.id where j.kind<>'reparse' or j.status='done'`,
     );
     const row = r.rows[0] ?? {};
     return {
@@ -117,31 +106,5 @@ export class PgPipelineRepository implements PipelineRepository {
       done: Number(row.done ?? 0),
       failed: Number(row.failed ?? 0),
     };
-  }
-
-  async inlineEvents(
-    limit: number,
-  ): Promise<{ id: string; events: unknown[] }[]> {
-    const r = await this.db.execute(
-      sql`select id,analysis->'events' as events from demo_jobs where status='complete' and analysis ? 'events' order by created_at limit ${limit}`,
-    );
-    return r.rows.map((row) => ({
-      id: row.id as string,
-      events: Array.isArray(row.events) ? (row.events as unknown[]) : [],
-    }));
-  }
-
-  async eventsMoved(id: string, count: number): Promise<boolean> {
-    const r = await this.db.execute(
-      sql`update demo_jobs set analysis=analysis-'events',events_count=${count} where id=${id} and analysis ? 'events' and jsonb_array_length(case when jsonb_typeof(analysis->'events')='array' then analysis->'events' else '[]'::jsonb end)=${count}`,
-    );
-    return (r.rowCount ?? 0) > 0;
-  }
-
-  async inlineEventsLeft(): Promise<number> {
-    const r = await this.db.execute(
-      sql`select count(*)::int as n from demo_jobs where status='complete' and analysis ? 'events'`,
-    );
-    return Number(r.rows[0]?.n ?? 0);
   }
 }

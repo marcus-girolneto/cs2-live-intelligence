@@ -2,7 +2,10 @@ import type { ApiConfig, JobOptions } from "../config/api-config.js";
 import type { RuntimeEnv } from "../config/env.js";
 import { AnalysesController } from "../modules/analyses/analyses.controller.js";
 import { AnalysesService } from "../modules/analyses/analyses.service.js";
-import { HydratingMatchesRepository } from "../modules/analyses/analysis-reader.js";
+import {
+  HydratingMatchesRepository,
+  UploadReplays,
+} from "../modules/analyses/analysis-reader.js";
 import { SteamPlayerBans } from "../infrastructure/steam/player-bans.js";
 import { BanCheckJob } from "../modules/integrity/ban-check.job.js";
 import { PgIntegrityRepository } from "../modules/integrity/integrity.repository.js";
@@ -96,14 +99,17 @@ export function createJobsContext(
     config.overrides,
     logger,
   );
-  // Every reader gets the full analysis (events re-attached from object storage, Steam bans
-  // merged into integrity).
+  // Every reader gets the full analysis of the upload's match (document and events from object
+  // storage, Steam bans merged into integrity).
   const integrityRepository = new PgIntegrityRepository(db);
   const matches = new HydratingMatchesRepository(
     new PgMatchesRepository(db),
+    workers.analyses,
     workers.events,
     integrityRepository,
   );
+  // Replays are stored per match and addressed by upload id.
+  const replays = new UploadReplays(matches, workers.replays);
   const uploads = new UploadService(
     matches,
     workers.storage,
@@ -126,12 +132,15 @@ export function createJobsContext(
   const coaching = new PgCoachingRepository(db);
   const coachPlans = new CoachPlansService(new PgCoachPlansRepository(db));
   // Personal features read only the account's own ("mine") matches.
-  const ownership = new OwnershipService(
-    new PgOwnershipRepository(db),
-    matches,
-    logger,
-  );
+  const ownership = new OwnershipService(new PgOwnershipRepository(db), logger);
   const mineHistory = new MineOnlyHistory(matches, ownership);
+  // Own matches as rows (ids and dates, indexed; no documents loaded).
+  const mineMatches = async (ownerId: string, limit: number) => {
+    const mine = await ownership.mine(ownerId);
+    return (await matches.completedRows(ownerId, limit, [...mine.keys()])).map(
+      (row) => ({ id: row.id, createdAt: row.createdAt }),
+    );
+  };
   const reviewAi = new SettingsReviewAi(aiSettings);
   const teamReviews = new PgTeamReviewRepository(db);
   const teamGateway: TeamAiGateway =
@@ -167,7 +176,7 @@ export function createJobsContext(
     features,
     ai: aiAccess,
     gateway: aiGateway,
-    replays: workers.replays,
+    replays,
     logger,
     reviewAi,
     teamRatings: teamReviews,
@@ -188,6 +197,7 @@ export function createJobsContext(
       deepReviewsBetween: (ownerId, steamId, from, to) =>
         coaching.deepReviewsBetween(ownerId, steamId, from, to),
       monthlyReport: (ownerId) => plans.feature(ownerId, "monthlyReport"),
+      completedMatches: mineMatches,
     },
     aiAccess,
     aiGateway,
@@ -199,6 +209,7 @@ export function createJobsContext(
     {
       playerSteamId: async (ownerId) =>
         (await coaching.profile(ownerId)).playerSteamId,
+      completedMatches: mineMatches,
       completedAnalyses: (ownerId, limit) =>
         mineHistory.completedAnalyses(ownerId, limit),
       reviews: async (ownerId) =>
@@ -316,7 +327,7 @@ export function createJobsContext(
       new FeedbackService(new PgFeedbackRepository(db)),
     ),
     replayController: new ReplayController(
-      new ReplayService(new MatchesReplayRepository(matches), workers.replays),
+      new ReplayService(new MatchesReplayRepository(matches), replays),
     ),
   };
 }

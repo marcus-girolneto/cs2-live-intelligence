@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
-import { isoDate } from "../../shared/db/rows.js";
+import { isoDate, uuidsOnly } from "../../shared/db/rows.js";
 
 export type AutoReviewSettings = {
   enabled: boolean;
@@ -85,7 +85,7 @@ export class PgAutoReviewRepository implements AutoReviewRepository {
     sinceHours: number,
   ): Promise<{ jobId: string; ownerId: string }[]> {
     const r = await this.db.execute(
-      sql`select j.id,j.owner_id from demo_jobs j left join auto_reviews a on a.job_id=j.id where j.status='complete' and a.job_id is null and j.updated_at > now() - make_interval(hours => ${sinceHours}) order by j.updated_at limit ${limit}`,
+      sql`select x.id,x.owner_id from uploads x left join auto_reviews a on a.upload_id=x.id where x.match_id is not null and a.upload_id is null and x.completed_at > now() - make_interval(hours => ${sinceHours}) order by x.completed_at limit ${limit}`,
     );
     return r.rows.map((x) => ({
       jobId: x.id as string,
@@ -95,7 +95,7 @@ export class PgAutoReviewRepository implements AutoReviewRepository {
 
   async claim(jobId: string, ownerId: string): Promise<boolean> {
     const r = await this.db.execute(
-      sql`insert into auto_reviews(job_id,owner_id,status) values(${jobId},${ownerId},'queued') on conflict(job_id) do nothing returning job_id`,
+      sql`insert into auto_reviews(upload_id,owner_id,status) values(${jobId},${ownerId},'queued') on conflict(upload_id) do nothing returning upload_id`,
     );
     return r.rows.length > 0;
   }
@@ -107,13 +107,13 @@ export class PgAutoReviewRepository implements AutoReviewRepository {
     reviewId: string | null = null,
   ): Promise<void> {
     await this.db.execute(
-      sql`update auto_reviews set status=${status},reason=${reason},review_id=${reviewId},attempts=attempts+${status === "running" ? 1 : 0},updated_at=now() where job_id=${jobId}`,
+      sql`update auto_reviews set status=${status},reason=${reason},review_id=${reviewId},attempts=attempts+${status === "running" ? 1 : 0},updated_at=now() where upload_id=${jobId}`,
     );
   }
 
   async expireRunning(minutes: number): Promise<number> {
     const r = await this.db.execute(
-      sql`update auto_reviews set status='failed',reason='error',updated_at=now() where status in ('running','queued') and updated_at < now() - make_interval(mins => ${minutes}) returning job_id`,
+      sql`update auto_reviews set status='failed',reason='error',updated_at=now() where status in ('running','queued') and updated_at < now() - make_interval(mins => ${minutes}) returning upload_id`,
     );
     return r.rows.length;
   }
@@ -122,15 +122,13 @@ export class PgAutoReviewRepository implements AutoReviewRepository {
     ownerId: string,
     jobIds: string[],
   ): Promise<AutoReviewRecord[]> {
-    if (!jobIds.length) return [];
+    const ids = uuidsOnly(jobIds);
+    if (!ids.length) return [];
     const r = await this.db.execute(
-      sql`select job_id,owner_id,status,reason,review_id,created_at from auto_reviews where owner_id=${ownerId} and job_id in (${sql.join(
-        jobIds.map((id) => sql`${id}`),
-        sql`,`,
-      )})`,
+      sql`select upload_id,owner_id,status,reason,review_id,created_at from auto_reviews where owner_id=${ownerId} and upload_id in (select jsonb_array_elements_text(${JSON.stringify(ids)}::jsonb)::uuid)`,
     );
     return r.rows.map((x) => ({
-      jobId: x.job_id as string,
+      jobId: x.upload_id as string,
       ownerId: x.owner_id as string,
       status: x.status as AutoReviewStatus,
       reason: (x.reason as AutoReviewReason | null) ?? null,

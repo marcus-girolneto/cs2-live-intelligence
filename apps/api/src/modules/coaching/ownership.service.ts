@@ -1,14 +1,16 @@
 import { NotFoundError, ValidationError } from "../../shared/errors/index.js";
 import type { Logger } from "../../shared/logging/logger.js";
-import type { AnalysisHistory } from "./coaching.ports.js";
 import {
   classifyOwnership,
   type Ownership,
   type OwnershipRecord,
 } from "./ownership.policy.js";
-import type { OwnershipRepository } from "./ownership.repository.js";
+import type {
+  OwnershipRepository,
+  RosterPlayer,
+} from "./ownership.repository.js";
 
-type Player = { steamId: string; name?: string };
+type Player = RosterPlayer;
 /** GET /v1/matches/ownership item. */
 export type OwnershipItemDto = {
   jobId: string;
@@ -19,23 +21,6 @@ export type OwnershipItemDto = {
   matchedBy: OwnershipRecord["matchedBy"];
 };
 
-const playersOf = (analysis: unknown): Player[] => {
-  const list = (analysis as { players?: unknown } | null)?.players;
-  return Array.isArray(list)
-    ? list
-        .filter(
-          (p): p is Player =>
-            typeof p === "object" &&
-            p !== null &&
-            typeof (p as Player).steamId === "string",
-        )
-        .map((p) => ({
-          steamId: p.steamId,
-          ...(typeof p.name === "string" ? { name: p.name.slice(0, 128) } : {}),
-        }))
-    : [];
-};
-
 /**
  * Classifies every processed demo as the account's own match ("mine") or someone else's
  * ("external") and keeps the account's in-demo identity per match. Personal features
@@ -44,19 +29,26 @@ const playersOf = (analysis: unknown): Player[] => {
 export class OwnershipService {
   constructor(
     private readonly repository: OwnershipRepository,
-    /** Unfiltered analyses of an owner (never the mine-only view). */
-    private readonly history: AnalysisHistory,
     private readonly logger: Logger,
   ) {}
+
+  /** Players of one completed upload of the owner (undefined when not complete/owned). */
+  private async players(
+    ownerId: string,
+    jobId: string,
+  ): Promise<Player[] | undefined> {
+    return (await this.repository.rosters(ownerId, { jobIds: [jobId] })).get(
+      jobId,
+    );
+  }
 
   /** (Re)classifies one completed job; undefined when it is not a completed analysis. */
   async classify(
     ownerId: string,
     jobId: string,
   ): Promise<(OwnershipRecord & { players: Player[] }) | undefined> {
-    const stored = await this.history.analysis(ownerId, jobId);
-    if (!stored) return undefined;
-    const players = playersOf(stored.analysis);
+    const players = await this.players(ownerId, jobId);
+    if (!players) return undefined;
     const [account, [previous]] = await Promise.all([
       this.repository.account(ownerId),
       this.repository.records(ownerId, [jobId]),
@@ -93,19 +85,20 @@ export class OwnershipService {
    * classified now, so reads never depend on the background backfill having run).
    */
   async ensure(ownerId: string): Promise<OwnershipRecord[]> {
-    const [records, analyses] = await Promise.all([
+    const [records, missing] = await Promise.all([
       this.repository.records(ownerId),
-      this.history.completedAnalyses(ownerId, 500),
+      this.repository.unclassifiedOf(ownerId),
     ]);
-    const known = new Set(records.map((r) => r.jobId));
-    const missing = analyses.filter((a) => !known.has(a.id));
     if (!missing.length) return records;
-    const account = await this.repository.account(ownerId);
-    for (const a of missing) {
+    const [account, rosters] = await Promise.all([
+      this.repository.account(ownerId),
+      this.repository.rosters(ownerId, { jobIds: missing }),
+    ]);
+    for (const [jobId, players] of rosters) {
       const record: OwnershipRecord = {
-        jobId: a.id,
+        jobId,
         ownerId,
-        ...classifyOwnership(playersOf(a.analysis), account, null),
+        ...classifyOwnership(players, account, null),
       };
       await this.repository.save(record);
       records.push(record);
@@ -126,6 +119,11 @@ export class OwnershipService {
     return this.ensure(ownerId);
   }
 
+  /** Players of every completed upload of the owner, newest first (match_players). */
+  rosters(ownerId: string): Promise<Map<string, Player[]>> {
+    return this.repository.rosters(ownerId);
+  }
+
   /** GET /v1/matches/ownership?ids= (unknown or unfinished ids are left out). */
   async list(
     ownerId: string,
@@ -134,13 +132,14 @@ export class OwnershipService {
     const known = new Map(
       (await this.repository.records(ownerId, ids)).map((r) => [r.jobId, r]),
     );
+    const rosters = await this.repository.rosters(ownerId, { jobIds: ids });
     const items: OwnershipItemDto[] = [];
     for (const id of ids) {
-      const stored = await this.history.analysis(ownerId, id);
-      if (!stored) continue;
+      const players = rosters.get(id);
+      if (!players) continue;
       const record = known.get(id) ?? (await this.classify(ownerId, id));
       if (!record) continue;
-      const name = playersOf(stored.analysis).find(
+      const name = players.find(
         (p) => p.steamId === record.playerSteamId,
       )?.name;
       items.push({
@@ -163,9 +162,8 @@ export class OwnershipService {
     ownership: Ownership,
     playerSteamId: string | undefined,
   ): Promise<OwnershipItemDto> {
-    const stored = await this.history.analysis(ownerId, jobId);
-    if (!stored) throw new NotFoundError("Analysis not found");
-    const players = playersOf(stored.analysis);
+    const players = await this.players(ownerId, jobId);
+    if (!players) throw new NotFoundError("Analysis not found");
     let player: string | null = null;
     if (ownership === "mine") {
       const account = await this.repository.account(ownerId);
@@ -206,24 +204,20 @@ export class OwnershipService {
     analysisIds: string[] | "all",
   ): Promise<{ steamId: string; updated: number; matches: number }> {
     const account = await this.repository.account(ownerId);
-    const analyses = await this.history.completedAnalyses(ownerId, 500);
-    const wanted =
-      analysisIds === "all" ? undefined : new Set<string>(analysisIds);
-    const targets = analyses.filter(
-      (a) =>
-        (!wanted || wanted.has(a.id)) &&
-        playersOf(a.analysis).some((p) => p.steamId === steamId),
-    );
+    const rosters = await this.repository.rosters(ownerId, {
+      steamId,
+      ...(analysisIds === "all" ? {} : { jobIds: analysisIds }),
+    });
+    const targets = [...rosters].slice(0, 500);
     if (!targets.length)
       throw new NotFoundError("That player is not in your demos.", {
         code: "player_not_found",
       });
     let updated = 0;
-    for (const a of targets) {
-      if (playersOf(a.analysis).some((p) => p.steamId === account.steamId))
-        continue;
+    for (const [jobId, players] of targets) {
+      if (players.some((p) => p.steamId === account.steamId)) continue;
       await this.repository.save({
-        jobId: a.id,
+        jobId,
         ownerId,
         ownership: "mine",
         playerSteamId: steamId,

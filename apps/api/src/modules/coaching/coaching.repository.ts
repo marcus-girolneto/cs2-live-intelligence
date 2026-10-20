@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
-import { isoDate } from "../../shared/db/rows.js";
+import { isoDate, uuidOrNull } from "../../shared/db/rows.js";
 import type {
   CoachProfileRecord,
   LiveCallRecord,
@@ -12,7 +12,10 @@ import type {
 } from "./coaching.dto.js";
 import type { DeepReview } from "@cs2/contracts";
 
-/** Coach profile, stored AI reviews (with ratings) and live calls. */
+/**
+ * Coach profile, stored AI player reviews (ai_reviews kind quick/deep, with ratings) and live
+ * calls. `analysisId` is the upload id.
+ */
 export interface CoachingRepository {
   profile(ownerId: string): Promise<CoachProfileRecord>;
   saveProfile(
@@ -78,9 +81,18 @@ export class PgCoachingRepository implements CoachingRepository {
 
   async saveReview(review: NewReview): Promise<string> {
     const id = randomUUID();
-    await this.db.execute(
-      sql`insert into coach_reviews(id,owner_id,analysis_id,steam_id,provider,model,prompt_version,lang,preferences,coaching,latency_ms,input_tokens,output_tokens,tier,credits_spent,variant) values(${id},${review.ownerId},${review.analysisId},${review.steamId},${review.provider},${review.model},${review.promptVersion},${review.lang},${JSON.stringify(review.preferences)}::jsonb,${JSON.stringify(review.coaching)}::jsonb,${review.latencyMs},${review.inputTokens ?? null},${review.outputTokens ?? null},${review.tier},${review.creditsSpent},${review.variant ?? "a"})`,
-    );
+    const payload = JSON.stringify(review.coaching);
+    await this.db.transaction(async (tx) => {
+      await tx.execute(
+        sql`insert into ai_reviews(id,owner_id,upload_id,steam_id,kind,provider,model,prompt_version,variant,lang,preferences,payload,credits_spent,latency_ms,input_tokens,output_tokens) values(${id},${review.ownerId},${review.analysisId},${review.steamId},${review.tier},${review.provider},${review.model},${review.promptVersion},${review.variant ?? "a"},${review.lang},${JSON.stringify(review.preferences)}::jsonb,${payload}::jsonb,${review.creditsSpent},${review.latencyMs},${review.inputTokens ?? null},${review.outputTokens ?? null})`,
+      );
+      // Deep modules measure crosshair placement and positioning: keep them on the player's
+      // match row for indexed progress queries.
+      if (review.tier === "deep")
+        await tx.execute(
+          sql`update match_players p set crosshair_median_deg=coalesce((${payload}::jsonb->'deep'->'crosshair'->>'medianOffset')::real,p.crosshair_median_deg),isolated_deaths_pct=coalesce((${payload}::jsonb->'deep'->'positioning'->>'isolatedPct')::real,p.isolated_deaths_pct) from uploads u where u.id=${review.analysisId} and p.match_id=u.match_id and p.steam_id=${review.steamId}`,
+        );
+    });
     return id;
   }
 
@@ -90,16 +102,16 @@ export class PgCoachingRepository implements CoachingRepository {
     steamId: string,
   ): Promise<MatchReviewRecord[]> {
     const r = await this.db.execute(
-      sql`select id,tier,provider,model,prompt_version,lang,coaching,rating,credits_spent,created_at from coach_reviews where owner_id=${ownerId} and analysis_id=${analysisId} and steam_id=${steamId} order by created_at desc limit 20`,
+      sql`select id,kind,provider,model,prompt_version,lang,payload,rating,credits_spent,created_at from ai_reviews where upload_id=${uuidOrNull(analysisId)} and owner_id=${ownerId} and steam_id=${steamId} and kind in ('quick','deep') order by created_at desc limit 20`,
     );
     return r.rows.map((row) => ({
       id: row.id as string,
-      tier: row.tier === "deep" ? "deep" : "quick",
+      tier: row.kind === "deep" ? "deep" : "quick",
       provider: row.provider as string,
       model: row.model as string,
       promptVersion: row.prompt_version as string,
       lang: row.lang as string,
-      coaching: row.coaching,
+      coaching: row.payload,
       rating: (row.rating as number | null) ?? null,
       creditsSpent: Number(row.credits_spent),
       createdAt: isoDate(row.created_at),
@@ -113,10 +125,10 @@ export class PgCoachingRepository implements CoachingRepository {
     to: string,
   ): Promise<{ analysisId: string; createdAt: string; deep: DeepReview }[]> {
     const r = await this.db.execute(
-      sql`select analysis_id,created_at,coaching->'deep' as deep from coach_reviews where owner_id=${ownerId} and steam_id=${steamId} and tier='deep' and coaching ? 'deep' and created_at>=${from}::timestamptz and created_at<${to}::timestamptz order by created_at limit 200`,
+      sql`select upload_id,created_at,payload->'deep' as deep from ai_reviews where owner_id=${ownerId} and steam_id=${steamId} and kind='deep' and payload ? 'deep' and created_at>=${from}::timestamptz and created_at<${to}::timestamptz order by created_at limit 200`,
     );
     return r.rows.map((row) => ({
-      analysisId: row.analysis_id as string,
+      analysisId: row.upload_id as string,
       createdAt: isoDate(row.created_at),
       deep: row.deep as DeepReview,
     }));
@@ -130,7 +142,7 @@ export class PgCoachingRepository implements CoachingRepository {
     limit: number,
   ): Promise<DeepReview[]> {
     const r = await this.db.execute(
-      sql`select distinct on (analysis_id) analysis_id,coaching->'deep' as deep,created_at from coach_reviews where owner_id=${ownerId} and steam_id=${steamId} and tier='deep' and coaching->>'map'=${map} and analysis_id<>${excludeAnalysisId} and coaching ? 'deep' order by analysis_id,created_at desc`,
+      sql`select distinct on (upload_id) upload_id,payload->'deep' as deep,created_at from ai_reviews where owner_id=${ownerId} and steam_id=${steamId} and kind='deep' and payload->>'map'=${map} and (${uuidOrNull(excludeAnalysisId)}::uuid is null or upload_id<>${uuidOrNull(excludeAnalysisId)}) and payload ? 'deep' order by upload_id,created_at desc`,
     );
     return r.rows
       .sort(
@@ -144,21 +156,21 @@ export class PgCoachingRepository implements CoachingRepository {
 
   async reviews(ownerId: string, limit = 50): Promise<ReviewRecord[]> {
     const r = await this.db.execute(
-      sql`select r.id,r.analysis_id,r.steam_id,r.provider,r.model,r.prompt_version,r.coaching,r.rating,r.latency_ms,r.created_at,r.tier,j.filename from coach_reviews r join demo_jobs j on j.id=r.analysis_id where r.owner_id=${ownerId} order by r.created_at desc limit ${limit}`,
+      sql`select r.id,r.upload_id,r.steam_id,r.provider,r.model,r.prompt_version,r.payload,r.rating,r.latency_ms,r.created_at,r.kind,x.filename from ai_reviews r join uploads x on x.id=r.upload_id where r.owner_id=${ownerId} and r.kind in ('quick','deep') order by r.created_at desc limit ${limit}`,
     );
     return r.rows.map((row) => ({
       id: row.id as string,
-      analysisId: row.analysis_id as string,
+      analysisId: row.upload_id as string,
       filename: row.filename as string,
       steamId: row.steam_id as string,
       provider: row.provider as string,
       model: row.model as string,
       promptVersion: row.prompt_version as string,
-      coaching: row.coaching as { summary?: string; plan?: string[] },
+      coaching: row.payload as { summary?: string; plan?: string[] },
       rating: (row.rating as number | null) ?? null,
       latencyMs: row.latency_ms as number,
       createdAt: isoDate(row.created_at),
-      tier: row.tier === "deep" ? ("deep" as const) : ("quick" as const),
+      tier: row.kind === "deep" ? ("deep" as const) : ("quick" as const),
     }));
   }
 
@@ -168,7 +180,7 @@ export class PgCoachingRepository implements CoachingRepository {
     rating: number,
   ): Promise<boolean> {
     const r = await this.db.execute(
-      sql`update coach_reviews set rating=${rating} where id=${id} and owner_id=${ownerId} returning id`,
+      sql`update ai_reviews set rating=${rating} where id=${uuidOrNull(id)} and owner_id=${ownerId} and kind in ('quick','deep') returning id`,
     );
     return r.rows.length > 0;
   }

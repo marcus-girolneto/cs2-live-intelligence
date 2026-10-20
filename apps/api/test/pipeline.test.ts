@@ -17,8 +17,9 @@ import {
 } from "../src/workers/worker-scheduler.js";
 import { demoBytes, LENIENT_UPLOAD_RATE } from "./support/demo-bytes.js";
 import { TestDatabase } from "./support/test-database.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 const fixture = process.env.DEMO_FIXTURE;
 const parserBin = process.env.DEMO_PARSER_BIN;
 
@@ -54,6 +55,7 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       await repo.seedDev("admin", "admin-token", "admin-device", "xd-token");
       await repo.pool.query("update users set role='admin' where id='admin'");
       directory = await mkdtemp(resolve(tmpdir(), "cs2-pipeline-"));
+      repo.storageDir = directory;
       payload = await readFile(fixture!);
       const options = {
         storageDir: directory,
@@ -99,7 +101,8 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       worker2 = await makeWorker();
     });
     beforeEach(async () => {
-      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from uploads");
+      await repo.pool.query("select delete_unreferenced_matches()");
       await repo.pool.query("delete from file_deletions");
       await repo.pool.query("delete from usage_counters");
       for (const owner of ["alice", "bob"]) {
@@ -140,9 +143,17 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
         },
         payload: body,
       });
+    /** Upload + job + match state of an upload (status as the API reports it). */
     const row = async (id: string) =>
-      (await repo.pool.query("select * from demo_jobs where id=$1", [id]))
-        .rows[0];
+      (
+        await repo.pool.query(
+          "select x.id,x.owner_id,x.match_id,case when x.match_id is not null and (j.kind<>'reparse' or j.status='done') then 'complete' when j.status='processing' then 'processing' when j.status='failed' then 'failed' else 'queued' end as status,j.kind,j.status as job_status,m.parser_version,m.events_count,m.summary from uploads x left join demo_jobs j on j.upload_id=x.id left join matches m on m.id=x.match_id where x.id=$1",
+          [id],
+        )
+      ).rows[0];
+    const matchCount = async () =>
+      (await repo.pool.query("select count(*)::int as n from matches")).rows[0]
+        .n as number;
     const exists = (name: string) =>
       stat(resolve(directory, name)).then(
         () => true,
@@ -155,19 +166,39 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       return id as string;
     }
 
-    it("stores events in object storage and every reader gets the full analysis", async () => {
+    it("stores the analysis and events per match in object storage and every reader gets the full analysis", async () => {
       const id = await parsedBy(alice);
       const stored = await row(id);
       expect(stored.status).toBe("complete");
-      expect(stored.analysis.events).toBeUndefined();
+      // Postgres keeps a slim summary only (no players, evidence or events).
+      expect(stored.summary.events).toBeUndefined();
+      expect(stored.summary.players).toBeUndefined();
+      expect(stored.summary.roundOutcomes.length).toBeGreaterThan(0);
       expect(stored.events_count).toBeGreaterThan(1000);
       expect(stored.parser_version).toMatch(/cs2live\./);
-      expect(await exists(`${id}.events.json.gz`)).toBe(true);
+      for (const suffix of [".analysis", ".events", ".replay"])
+        expect(await exists(`${stored.match_id}${suffix}.json.gz`)).toBe(true);
+      const players = await repo.pool.query(
+        "select steam_id,adr,kills,rounds_played,team_start from match_players where match_id=$1",
+        [stored.match_id],
+      );
+      expect(players.rows).toHaveLength(10);
+      expect(players.rows.every((p) => p.rounds_played > 0)).toBe(true);
+      const match = (
+        await repo.pool.query(
+          "select map,rounds_count,score_ct,score_t,played_at_source from matches where id=$1",
+          [stored.match_id],
+        )
+      ).rows[0];
+      expect(match.rounds_count).toBe(stored.summary.roundOutcomes.length);
+      expect(match.played_at_source).toBe("upload");
       const view = (
         await app.inject({ url: `/v1/analyses/${id}`, headers: alice })
       ).json();
+      expect(Object.keys(view)).toEqual(["id", "analysis", "coaching"]);
       expect(view.analysis.events).toHaveLength(stored.events_count);
       expect(view.analysis.players.length).toBe(10);
+      expect(view.analysis.map).toBe(match.map);
       const meta = await app.inject({
         url: `/v1/analyses/${id}/replay/meta`,
         headers: alice,
@@ -184,30 +215,30 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       ).toBeGreaterThan(0);
     }, 60_000);
 
-    it("dedupes by checksum: another account's upload completes at once with its own copies", async () => {
+    it("dedupes by checksum: another account's upload points at the same match (no copy), reference counted", async () => {
       const first = await parsedBy(alice);
       expect(parses).toBe(1);
       const response = await upload(bob);
       expect(response.statusCode).toBe(202);
       const second = response.json().id as string;
-      // Completed by the API before any worker run: no second parse.
+      // Completed by the API before any worker run: no second parse, no copied files.
       const copy = await row(second);
+      const original = await row(first);
       expect(copy.status).toBe("complete");
-      expect(copy.deduped_from).toBe(first);
       expect(copy.owner_id).toBe("bob");
+      expect(copy.match_id).toBe(original.match_id);
+      expect(await matchCount()).toBe(1);
       expect(parses).toBe(1);
-      for (const suffix of [".events.json.gz", ".replay.json.gz"])
-        expect(await exists(second + suffix)).toBe(true);
       const view = (
         await app.inject({ url: `/v1/analyses/${second}`, headers: bob })
       ).json();
       expect(view.analysis.events).toHaveLength(copy.events_count);
-      // Alice's copy stays private to Alice.
+      // Alice's upload stays private to Alice.
       expect(
         (await app.inject({ url: `/v1/analyses/${first}`, headers: bob }))
           .statusCode,
       ).toBe(404);
-      // Deleting Alice's account removes only Alice's files.
+      // Deleting Alice's account removes Alice's demo; the shared match survives for Bob.
       expect(
         (
           await app.inject({
@@ -218,8 +249,10 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
         ).statusCode,
       ).toBeLessThan(300);
       await worker.cleanup();
-      for (const suffix of [".dem", ".events.json.gz", ".replay.json.gz"])
-        expect(await exists(first + suffix)).toBe(false);
+      expect(await exists(`${first}.dem`)).toBe(false);
+      expect(await matchCount()).toBe(1);
+      for (const suffix of [".analysis", ".events", ".replay"])
+        expect(await exists(`${copy.match_id}${suffix}.json.gz`)).toBe(true);
       const after = (
         await app.inject({ url: `/v1/analyses/${second}`, headers: bob })
       ).json();
@@ -232,6 +265,16 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
           })
         ).statusCode,
       ).toBe(200);
+      // The last upload going away (retention) deletes the match and its files.
+      await repo.pool.query(
+        "update uploads set created_at=now()-interval '40 days' where id=$1",
+        [second],
+      );
+      await worker.cleanup();
+      expect(await matchCount()).toBe(0);
+      for (const suffix of [".analysis", ".events", ".replay"])
+        expect(await exists(`${copy.match_id}${suffix}.json.gz`)).toBe(false);
+      expect(await exists(`${second}.dem`)).toBe(false);
       await repo.seedDev("alice", "alice-token", "alice-device", "ad-token");
     }, 60_000);
 
@@ -240,20 +283,22 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       const [a, b] = await Promise.all([upload(alice), upload(bob)]);
       expect([a.statusCode, b.statusCode]).toEqual([202, 202]);
       // Both workers poll at the same time: one claims and parses, the other finds the same
-      // checksum in progress and claims nothing; afterwards the copy completes by dedupe.
+      // checksum in progress and claims nothing; afterwards the other upload dedupes.
       await Promise.all([worker.runOnce(), worker2.runOnce()]);
       await worker2.runOnce();
       const rows = [await row(a.json().id), await row(b.json().id)];
       expect(rows.map((r) => r.status)).toEqual(["complete", "complete"]);
       expect(parses).toBe(1);
-      expect(rows.filter((r) => r.deduped_from).length).toBe(1);
+      expect(rows[0].match_id).toBe(rows[1].match_id);
+      expect(await matchCount()).toBe(1);
     }, 60_000);
 
     it("re-parses analyses of an older parser in the background, behind fresh uploads", async () => {
       const id = await parsedBy(alice);
+      const old = (await row(id)).match_id as string;
       await repo.pool.query(
-        "update demo_jobs set parser_version='demoinfocs-golang/v5@v5.0.0+cs2live.1', analysis=jsonb_set(analysis,'{provenance,parserVersion}','\"demoinfocs-golang/v5@v5.0.0+cs2live.1\"') where id=$1",
-        [id],
+        "update matches set parser_version='demoinfocs-golang/v5@v5.0.0+cs2live.1' where id=$1",
+        [old],
       );
       const status = () =>
         app.inject({
@@ -270,7 +315,10 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       ).toBe(403);
       await worker.maintenance();
       await worker.maintenance(); // idempotent
-      expect((await row(id)).reprocess_state).toBe("queued");
+      expect(await row(id)).toMatchObject({
+        kind: "reprocess",
+        job_status: "queued",
+      });
       const before = (await status()).json();
       expect(before).toMatchObject({ pending: 1, done: 0, failed: 0 });
       expect(before.currentVersion).toMatch(/cs2live\./);
@@ -278,8 +326,9 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       const fresh = (await upload(bob, demoBytes("not parseable"))).json().id;
       await worker.runOnce();
       expect((await row(fresh)).status).toBe("failed");
-      expect((await row(id)).reprocess_state).toBe("queued");
+      expect((await row(id)).job_status).toBe("queued");
       // The analysis stays visible while queued.
+      expect((await row(id)).status).toBe("complete");
       expect(
         (await app.inject({ url: `/v1/analyses/${id}`, headers: alice }))
           .statusCode,
@@ -287,8 +336,13 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       await worker.runOnce();
       const done = await row(id);
       expect(done.status).toBe("complete");
-      expect(done.reprocess_state).toBeNull();
+      expect(done.job_status).toBe("done");
       expect(done.parser_version).toBe(before.currentVersion);
+      // The upload moved to the new parse; the old match was unreferenced and deleted.
+      expect(done.match_id).not.toBe(old);
+      expect(await matchCount()).toBe(1);
+      await worker.cleanup();
+      expect(await exists(`${old}.analysis.json.gz`)).toBe(false);
       expect((await status()).json()).toMatchObject({
         pending: 0,
         done: 1,
@@ -296,56 +350,6 @@ describe.skipIf(!databaseUrl || !fixture || !parserBin)(
       });
       // First parse, the failed fresh upload, the background re-parse.
       expect(parses).toBe(3);
-    }, 60_000);
-
-    it("migrates inline events of existing rows to object storage (idempotent, verified, large)", async () => {
-      const id = randomUUID();
-      await repo.createJob("alice", {
-        id,
-        filename: "legacy.dem",
-        objectKey: id + ".dem",
-        checksum: "legacy-" + id,
-        size: 1,
-      });
-      const events = Array.from({ length: 60_000 }, (_, i) => ({
-        id: `e${i}`,
-        tick: i,
-        round: 1 + (i % 24),
-        type: "shot",
-        shooterId: "76561198000000001",
-        weapon: "ak47",
-      }));
-      const analysis = {
-        schemaVersion: "1.0",
-        source: "demo",
-        provenance: { parserVersion: "legacy", metricVersion: "1" },
-        roundOutcomes: [],
-        events,
-        players: [],
-        evidence: [],
-        caveats: [],
-      };
-      await repo.pool.query(
-        "update demo_jobs set status='complete',analysis=$2::jsonb,coaching='{}'::jsonb where id=$1",
-        [id, JSON.stringify(analysis)],
-      );
-      await worker.maintenance();
-      const moved = await row(id);
-      expect(moved.analysis.events).toBeUndefined();
-      expect(moved.events_count).toBe(60_000);
-      const view = (
-        await app.inject({ url: `/v1/analyses/${id}`, headers: alice })
-      ).json();
-      expect(view.analysis.events).toEqual(events);
-      await worker.maintenance();
-      expect((await row(id)).events_count).toBe(60_000);
-      // Retention removes the events file with the demo.
-      await repo.pool.query(
-        "update demo_jobs set created_at=now()-interval '40 days' where id=$1",
-        [id],
-      );
-      await worker.cleanup();
-      expect(await exists(`${id}.events.json.gz`)).toBe(false);
     }, 60_000);
   },
 );

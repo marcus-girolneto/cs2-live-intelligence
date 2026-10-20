@@ -17,6 +17,7 @@ import {
   encryptSecret,
   encryptionKey,
 } from "../src/infrastructure/secrets/aes-gcm-secret-cipher.js";
+import { testDatabaseUrl } from "./support/database-url.js";
 
 describe("secret encryption", () => {
   it("round-trips with AES-256-GCM, binds context and rejects other keys", () => {
@@ -49,7 +50,7 @@ describe("secret encryption", () => {
   });
 });
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = testDatabaseUrl();
 describe.skipIf(!databaseUrl)(
   "roles, admin AI configuration and settings",
   () => {
@@ -200,6 +201,7 @@ describe.skipIf(!databaseUrl)(
       await repo.seedDev("user-1", "user-token", "d2", "d2-token");
       await repo.pool.query("update users set role='admin' where id='admin-1'");
       directory = await mkdtemp(resolve(tmpdir(), "cs2-admin-"));
+      repo.storageDir = directory;
       app = await buildApp({
         database: repo,
         devices: [],
@@ -844,7 +846,8 @@ describe.skipIf(!databaseUrl)(
     });
 
     it("re-queues finished analyses whose demo is still stored (admin only)", async () => {
-      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from uploads");
+      await repo.pool.query("select delete_unreferenced_matches()");
       // user-1: one complete with its file, one complete whose file is gone.
       const kept = await completedAnalysis("user-1");
       await writeFile(resolve(directory, kept.id + ".dem"), "demo");
@@ -905,7 +908,7 @@ describe.skipIf(!databaseUrl)(
         Object.fromEntries(
           (
             await repo.pool.query(
-              "select id,status,attempts,error from demo_jobs",
+              "select upload_id as id,status,attempts,error from demo_jobs",
             )
           ).rows.map((r) => [r.id, r]),
         );
@@ -931,7 +934,7 @@ describe.skipIf(!databaseUrl)(
       });
       expect(
         Object.values(rows).filter(
-          (r) => (r as { status: string }).status === "complete",
+          (r) => (r as { status: string }).status === "done",
         ),
       ).toHaveLength(1);
       // The worker can claim re-queued jobs again.
@@ -947,7 +950,8 @@ describe.skipIf(!databaseUrl)(
         action: "analyses.reprocess",
         details: { ownerId: null, queued: 1 },
       });
-      await repo.pool.query("delete from demo_jobs");
+      await repo.pool.query("delete from uploads");
+      await repo.pool.query("select delete_unreferenced_matches()");
     });
 
     it("lists users and protects the last admin", async () => {

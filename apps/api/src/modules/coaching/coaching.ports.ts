@@ -16,6 +16,8 @@ export interface AnalysisHistory {
   completedAnalyses(
     ownerId: string,
     limit?: number,
+    /** Only these upload ids (in SQL, before `limit`). */
+    ids?: readonly string[],
   ): Promise<CompletedAnalysis[]>;
 }
 /** telemetry: the server's authoritative live-session state. */

@@ -47,6 +47,8 @@ function setup(pro = true) {
     plans,
     {
       playerSteamId: async () => "p1",
+      completedMatches: async () =>
+        analyses.map(({ id, createdAt }) => ({ id, createdAt })),
       completedAnalyses: async () => analyses,
       reviews: async () => [
         {
