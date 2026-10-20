@@ -1,0 +1,363 @@
+{
+  "version": "training-1",
+  "map": "de_mirage",
+  "side": "T",
+  "area": "BombsiteA",
+  "role": "support",
+  "focus": ["utility", "positioning"],
+  "mindset": {
+    "code": "utility",
+    "text": "Call it, throw it, swing it: your lineups are ready."
+  },
+  "sessions": [
+    {
+      "id": "review-review_zone",
+      "step": "review",
+      "code": "review_zone",
+      "params": {
+        "area": "BombsiteA",
+        "side": "T",
+        "n": 3,
+        "map": "Mirage"
+      },
+      "title": "Review: why did you die at BombsiteA?",
+      "why": "You died 3 times at BombsiteA on T. Watch only those deaths in lost rounds, 30 to 60 minutes after the match.",
+      "successCriteria": "Write one sentence: what you will do differently at BombsiteA.",
+      "minutes": 20,
+      "resourceIds": [],
+      "clips": [
+        {
+          "round": 2,
+          "from": 51.67,
+          "to": 60.67,
+          "focusSteamId": "76561197964020430",
+          "eventIds": ["ev_4768598d3c4fe60a47e4f8e8fb542eb8"],
+          "label": "Death at BombsiteA"
+        },
+        {
+          "round": 5,
+          "from": 21.8,
+          "to": 30.8,
+          "focusSteamId": "76561197964020430",
+          "eventIds": ["ev_5c87a81cb1287735cb4682b9b7669094"],
+          "label": "Death at BombsiteA"
+        }
+      ]
+    },
+    {
+      "id": "warmup-warmup_aim",
+      "step": "warmup",
+      "code": "warmup_aim",
+      "params": {},
+      "title": "Warmup: Aim Botz, head height only",
+      "why": "Short mechanical warmup before the habit block. No long deathmatch.",
+      "successCriteria": "100 kills standing still, crosshair at head height; stop at 15 minutes.",
+      "minutes": 15,
+      "resourceIds": ["aim-botz"],
+      "skill": "aim"
+    },
+    {
+      "id": "habit-habit_lineups",
+      "step": "habit",
+      "code": "habit_lineups",
+      "params": {
+        "map": "Mirage",
+        "area": "BombsiteA",
+        "n": 3
+      },
+      "title": "Mirage: repeat your best throws",
+      "why": "Teleport to 3 of your own throws: rehearse the good ones and fix the team flashes.",
+      "successCriteria": "Land each lineup 4 times out of 5.",
+      "minutes": 15,
+      "resourceIds": ["utility-mirage"],
+      "skill": "utility",
+      "teleportIds": [
+        "lineup-ev_02dccefcc29d55ba958ea58390c9bce1",
+        "lineup-ev_55b1d8bb61ebab823b74d005bd11186d",
+        "teamflash-ev_d3b0019ff2201015f1985c7b9cc89b12"
+      ]
+    },
+    {
+      "id": "habit-habit_death_spots",
+      "step": "habit",
+      "code": "habit_death_spots",
+      "params": {
+        "map": "Mirage",
+        "area": "BombsiteA",
+        "n": 8
+      },
+      "title": "Mirage: hold the angle from where you died",
+      "why": "Teleport to your 8 death and enemy spots. See the angle the enemy had on you.",
+      "successCriteria": "For each spot, find a position where only one enemy angle sees you.",
+      "minutes": 10,
+      "resourceIds": ["your-spots"],
+      "skill": "positioning",
+      "teleportIds": [
+        "death-ev_4768598d3c4fe60a47e4f8e8fb542eb8",
+        "enemy-ev_4768598d3c4fe60a47e4f8e8fb542eb8",
+        "death-ev_5c87a81cb1287735cb4682b9b7669094",
+        "enemy-ev_5c87a81cb1287735cb4682b9b7669094",
+        "death-ev_ddbeb56134bdfc7946c7fd9d761307fc",
+        "enemy-ev_ddbeb56134bdfc7946c7fd9d761307fc",
+        "death-ev_96c34bc3e623e49ce56ed3ac120f31ca",
+        "enemy-ev_96c34bc3e623e49ce56ed3ac120f31ca"
+      ]
+    },
+    {
+      "id": "focus-focus_utility",
+      "step": "focus",
+      "code": "focus_utility",
+      "params": {
+        "area": "BombsiteA",
+        "side": "T",
+        "map": "Mirage"
+      },
+      "title": "Focused block: every flash blinds an enemy",
+      "why": "Throw your lineups in a real match on Mirage, call them before you throw.",
+      "successCriteria": "Next review: zero team flashes, more enemies blinded.",
+      "minutes": 30,
+      "resourceIds": [],
+      "skill": "utility"
+    },
+    {
+      "id": "debrief-debrief",
+      "step": "debrief",
+      "code": "debrief",
+      "params": {
+        "area": "BombsiteA"
+      },
+      "title": "Debrief: 3 lines",
+      "why": "What improved, what to keep, the question for the next review.",
+      "successCriteria": "Three lines written before you close the game.",
+      "minutes": 5,
+      "resourceIds": []
+    }
+  ],
+  "practiceConfig": [
+    "sv_cheats 1",
+    "bot_kick",
+    "mp_warmup_end",
+    "mp_freezetime 0",
+    "mp_roundtime_defuse 60",
+    "mp_buy_anywhere 1",
+    "mp_buytime 9999",
+    "mp_maxmoney 60000",
+    "mp_startmoney 60000",
+    "sv_infinite_ammo 1",
+    "ammo_grenade_limit_total 5",
+    "sv_grenade_trajectory_prac_pipreview 1",
+    "sv_showimpacts 1",
+    "mp_restartgame 1"
+  ],
+  "serverSetup": [
+    "map de_mirage",
+    "bot_add_ct",
+    "bot_stop 1",
+    "bot_dont_shoot 1"
+  ],
+  "teleports": [
+    {
+      "id": "death-ev_4768598d3c4fe60a47e4f8e8fb542eb8",
+      "kind": "death",
+      "label": "Round 2: where you died at BombsiteA",
+      "round": 2,
+      "callout": "BombsiteA",
+      "approximate": true,
+      "setpos": "setpos_exact -219.0 -2383.9 -163.2",
+      "setang": "setang -2.00 154.00 0",
+      "command": "setpos_exact -219.0 -2383.9 -163.2; setang -2.00 154.00 0",
+      "x": -219,
+      "y": -2383.9,
+      "z": -165.2
+    },
+    {
+      "id": "enemy-ev_4768598d3c4fe60a47e4f8e8fb542eb8",
+      "kind": "enemy",
+      "label": "Round 2: where the enemy was (BombsiteA)",
+      "round": 2,
+      "callout": "BombsiteA",
+      "botPlace": "setpos_exact -219.0 -2383.9 -163.2; setang 11.49 -176.09 0; bot_place",
+      "setpos": "setpos_exact -381.5 -2395.0 -140.3",
+      "setang": "setang 8.00 3.91 0",
+      "command": "setpos_exact -381.5 -2395.0 -140.3; setang 8.00 3.91 0",
+      "x": -381.5,
+      "y": -2395,
+      "z": -142.3
+    },
+    {
+      "id": "death-ev_5c87a81cb1287735cb4682b9b7669094",
+      "kind": "death",
+      "label": "Round 5: where you died at BombsiteA",
+      "round": 5,
+      "callout": "BombsiteA",
+      "approximate": true,
+      "setpos": "setpos_exact -142.0 -1950.5 -166.0",
+      "setang": "setang -15.00 6.00 0",
+      "command": "setpos_exact -142.0 -1950.5 -166.0; setang -15.00 6.00 0",
+      "x": -142,
+      "y": -1950.5,
+      "z": -168
+    },
+    {
+      "id": "enemy-ev_5c87a81cb1287735cb4682b9b7669094",
+      "kind": "enemy",
+      "label": "Round 5: where the enemy was (CTSpawn)",
+      "round": 5,
+      "callout": "CTSpawn",
+      "botPlace": "setpos_exact -142.0 -1950.5 -166.0; setang 2.99 -154.23 0; bot_place",
+      "setpos": "setpos_exact -1107.6 -2416.7 -166.0",
+      "setang": "setang 0.00 25.77 0",
+      "command": "setpos_exact -1107.6 -2416.7 -166.0; setang 0.00 25.77 0",
+      "x": -1107.6,
+      "y": -2416.7,
+      "z": -168
+    },
+    {
+      "id": "death-ev_ddbeb56134bdfc7946c7fd9d761307fc",
+      "kind": "death",
+      "label": "Round 6: where you died at BombsiteA",
+      "round": 6,
+      "callout": "BombsiteA",
+      "approximate": true,
+      "setpos": "setpos_exact -619.9 -1569.4 -111.8",
+      "setang": "setang 6.00 146.00 0",
+      "command": "setpos_exact -619.9 -1569.4 -111.8; setang 6.00 146.00 0",
+      "x": -619.9,
+      "y": -1569.4,
+      "z": -113.8
+    },
+    {
+      "id": "enemy-ev_ddbeb56134bdfc7946c7fd9d761307fc",
+      "kind": "enemy",
+      "label": "Round 6: where the enemy was (Catwalk)",
+      "round": 6,
+      "callout": "Catwalk",
+      "botPlace": "setpos_exact -619.9 -1569.4 -111.8; setang 4.90 94.61 0; bot_place",
+      "setpos": "setpos_exact -718.4 -347.5 -161.0",
+      "setang": "setang -2.30 -85.39 0",
+      "command": "setpos_exact -718.4 -347.5 -161.0; setang -2.30 -85.39 0",
+      "x": -718.4,
+      "y": -347.5,
+      "z": -163
+    },
+    {
+      "id": "death-ev_96c34bc3e623e49ce56ed3ac120f31ca",
+      "kind": "death",
+      "label": "Round 1: where you died at Middle",
+      "round": 1,
+      "callout": "Middle",
+      "crouched": true,
+      "approximate": true,
+      "setpos": "setpos_exact -1099.0 -604.5 -133.0",
+      "setang": "setang 7.00 -108.00 0",
+      "command": "setpos_exact -1099.0 -604.5 -133.0; setang 7.00 -108.00 0",
+      "x": -1099,
+      "y": -604.5,
+      "z": -135
+    },
+    {
+      "id": "enemy-ev_96c34bc3e623e49ce56ed3ac120f31ca",
+      "kind": "enemy",
+      "label": "Round 1: where the enemy was (CTSpawn)",
+      "round": 1,
+      "callout": "CTSpawn",
+      "botPlace": "setpos_exact -1099.0 -604.5 -133.0; setang 18.07 -103.48 0; bot_place",
+      "setpos": "setpos_exact -1162.6 -869.8 -166.0",
+      "setang": "setang -6.90 76.52 0",
+      "command": "setpos_exact -1162.6 -869.8 -166.0; setang -6.90 76.52 0",
+      "x": -1162.6,
+      "y": -869.8,
+      "z": -168
+    },
+    {
+      "id": "lineup-ev_02dccefcc29d55ba958ea58390c9bce1",
+      "kind": "lineup",
+      "label": "Round 5: your flash into PalaceInterior",
+      "round": 5,
+      "grenade": "flash",
+      "callout": "PalaceInterior",
+      "approximate": true,
+      "setpos": "setpos_exact 65.2 -1522.1 -152.0",
+      "setang": "setang -3.00 -95.00 0",
+      "command": "setpos_exact 65.2 -1522.1 -152.0; setang -3.00 -95.00 0",
+      "x": 65.2,
+      "y": -1522.1,
+      "z": -154
+    },
+    {
+      "id": "lineup-ev_55b1d8bb61ebab823b74d005bd11186d",
+      "kind": "lineup",
+      "label": "Round 6: your molotov into Catwalk",
+      "round": 6,
+      "grenade": "molotov",
+      "callout": "Catwalk",
+      "approximate": true,
+      "setpos": "setpos_exact -272.1 -934.6 -164.0",
+      "setang": "setang -5.00 123.00 0",
+      "command": "setpos_exact -272.1 -934.6 -164.0; setang -5.00 123.00 0",
+      "x": -272.1,
+      "y": -934.6,
+      "z": -166
+    },
+    {
+      "id": "teamflash-ev_d3b0019ff2201015f1985c7b9cc89b12",
+      "kind": "teamflash",
+      "label": "Round 6: flash into PalaceInterior that blinded 3 teammates",
+      "round": 6,
+      "grenade": "flash",
+      "callout": "PalaceInterior",
+      "approximate": true,
+      "setpos": "setpos_exact -490.3 -1854.9 -178.0",
+      "setang": "setang -2.00 30.00 0",
+      "command": "setpos_exact -490.3 -1854.9 -178.0; setang -2.00 30.00 0",
+      "x": -490.3,
+      "y": -1854.9,
+      "z": -180
+    },
+    {
+      "id": "crosshair-ev_979e67445d67d7563092970e99dfed4d",
+      "kind": "crosshair",
+      "label": "Round 5: BombsiteA, this is where your crosshair should have been",
+      "round": 5,
+      "callout": "BombsiteA",
+      "approximate": true,
+      "setpos": "setpos_exact -105.8 -1949.2 -117.0",
+      "setang": "setang -16.89 7.78 0",
+      "command": "setpos_exact -105.8 -1949.2 -117.0; setang -16.89 7.78 0",
+      "x": -105.8,
+      "y": -1949.2,
+      "z": -119
+    },
+    {
+      "id": "crosshair-ev_c45f7ffc18e7d647823f4df205ebf7c9",
+      "kind": "crosshair",
+      "label": "Round 6: Jungle, this is where your crosshair should have been",
+      "round": 6,
+      "callout": "Jungle",
+      "approximate": true,
+      "setpos": "setpos_exact -818.8 -1437.6 -166.0",
+      "setang": "setang 0.00 -71.42 0",
+      "command": "setpos_exact -818.8 -1437.6 -166.0; setang 0.00 -71.42 0",
+      "x": -818.8,
+      "y": -1437.6,
+      "z": -168
+    },
+    {
+      "id": "crosshair-ev_4c64d4f14d2959d0fc578c649f6315f7",
+      "kind": "crosshair",
+      "label": "Round 4: BombsiteB, this is where your crosshair should have been",
+      "round": 4,
+      "callout": "BombsiteB",
+      "approximate": true,
+      "setpos": "setpos_exact -2085.3 288.5 -158.0",
+      "setang": "setang 2.20 160.73 0",
+      "command": "setpos_exact -2085.3 288.5 -158.0; setang 2.20 160.73 0",
+      "x": -2085.3,
+      "y": 288.5,
+      "z": -160
+    }
+  ],
+  "caveats": [
+    "Spots taken from replay samples are approximate: fine-tune lineups with the trajectory preview."
+  ]
+}

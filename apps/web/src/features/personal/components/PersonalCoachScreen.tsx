@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useUsage } from "@/features/billing";
+import { PracticeWeekCard } from "@/features/training";
 import { useI18n } from "@/shared/i18n";
 import { useAccount } from "@/shared/session";
 import { Brain, Sparkle, Star } from "@/shared/icons";
@@ -113,6 +114,7 @@ export function PersonalCoachScreen() {
             weeks={plan.weeklyProgram}
             planKey={plan.generatedAt ?? plan.headline.slice(0, 40)}
           />
+          <PracticeWeekCard />
           <PerMapNotes maps={plan.perMap} />
           {plan.caveats.length > 0 && (
             <ul className="rd-caveats muted small">

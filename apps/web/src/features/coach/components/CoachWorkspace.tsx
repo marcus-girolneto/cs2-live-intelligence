@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useUsage } from "@/features/billing";
+import { TrainThis } from "@/features/training";
 import { useI18n } from "@/shared/i18n";
 import { ArrowRight, Refresh } from "@/shared/icons";
 import { Callout, Skeleton } from "@/shared/ui";
@@ -60,12 +61,19 @@ export function CoachWorkspace({
     );
   if (team.shown && team.latest)
     return (
-      <TeamReport
-        stored={team.latest}
-        nameOf={nameOf}
-        onPlay={onPlay}
-        onBack={team.close}
-      />
+      <>
+        <TeamReport
+          stored={team.latest}
+          nameOf={nameOf}
+          onPlay={onPlay}
+          onBack={team.close}
+        />
+        <TrainThis
+          analysisId={s.card.analysisId}
+          steamId={s.player?.steamId ?? null}
+          onPlay={onPlay}
+        />
+      </>
     );
   if (s.running)
     return (
@@ -130,9 +138,16 @@ export function CoachWorkspace({
               ) : null
             }
             tail={
-              r.tier === "quick" && !has.deep ? (
-                <DeepTeaser onRunDeep={() => s.run("deep")} />
-              ) : null
+              <>
+                {r.tier === "quick" && !has.deep && (
+                  <DeepTeaser onRunDeep={() => s.run("deep")} />
+                )}
+                <TrainThis
+                  analysisId={s.card.analysisId}
+                  steamId={s.player.steamId}
+                  onPlay={onPlay}
+                />
+              </>
             }
           />
         )}

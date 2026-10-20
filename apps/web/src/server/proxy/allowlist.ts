@@ -24,6 +24,10 @@ const routes: [string, RegExp][] = [
   ["GET", /^reports$/],
   ["GET", /^reports\/[A-Za-z0-9_-]+$/],
   ["POST", /^reports\/generate$/],
+  // Training: verified practice catalog, per-match plans and recommendations (no AI).
+  ["GET", /^training\/catalog$/],
+  ["GET", /^training\/recommended$/],
+  ["GET", /^analyses\/[A-Za-z0-9_-]+\/training$/],
   // Personal Coach (Pro): one plan from all matches.
   ["GET", /^coach\/personal$/],
   ["POST", /^coach\/personal\/generate$/],
@@ -120,7 +124,7 @@ const QUERY: [RegExp, Record<string, RegExp>][] = [
   [/^me\/webhooks\/deliveries$/, { limit: INT, webhookId: UUID }],
   [/^admin\/users\/[A-Za-z0-9_-]+\/ledger$/, { limit: INT }],
   [
-    /^analyses\/[A-Za-z0-9_-]+\/(reviews|reel|team-reviews|lobby)$/,
+    /^analyses\/[A-Za-z0-9_-]+\/(reviews|reel|team-reviews|lobby|training)$/,
     { steamId: PLAYER },
   ],
   [

@@ -1,0 +1,788 @@
+{
+  "verifiedAt": "2026-10-19T00:00:00.000Z",
+  "skills": [],
+  "entries": [
+    {
+      "id": "aim-botz",
+      "skill": "aim",
+      "title": "Aim Botz - Aim Training (CS2)",
+      "kind": "workshop",
+      "workshopId": "3070244462",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070244462",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Stand still, AK-47 or M4: 100 kills aiming at head height only.",
+        "Then 100 kills with counter-strafes: stop before every shot."
+      ],
+      "tags": ["warmup", "headshots", "classic"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3070244462",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070244462",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3070244462"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 14618079
+      }
+    },
+    {
+      "id": "fast-aim-reflex",
+      "skill": "aim",
+      "title": "FAST AIM/REFLEX TRAINING [CS2]",
+      "kind": "workshop",
+      "workshopId": "3070758981",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070758981",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Pick a short round and beat your previous score.",
+        "Keep the crosshair at head height between targets."
+      ],
+      "tags": ["reflex", "flicks"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3070758981",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070758981",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3070758981"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1162776
+      }
+    },
+    {
+      "id": "aim-rush",
+      "skill": "aim",
+      "title": "Aim_Rush / Aim training map",
+      "kind": "workshop",
+      "workshopId": "3105821815",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3105821815",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Pick a short round and beat your previous score.",
+        "Keep the crosshair at head height between targets."
+      ],
+      "tags": ["moving targets", "tracking"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3105821815",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3105821815",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3105821815"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 6530804
+      }
+    },
+    {
+      "id": "csstats-training",
+      "skill": "aim",
+      "title": "CSStats Training Map (CSGOHUB)",
+      "kind": "workshop",
+      "workshopId": "3070389038",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070389038",
+      "minutesPerSession": 10,
+      "howTo": [
+        "One short round with your main rifle, then stop.",
+        "Focus on first-bullet accuracy, not speed."
+      ],
+      "tags": ["warmup", "bots"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3070389038",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070389038",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3070389038"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 6930239
+      }
+    },
+    {
+      "id": "fast-warmup",
+      "skill": "aim",
+      "title": "Fast Warmup: Bot Training",
+      "kind": "workshop",
+      "workshopId": "3083320026",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3083320026",
+      "minutesPerSession": 10,
+      "howTo": [
+        "One short round with your main rifle, then stop.",
+        "Focus on first-bullet accuracy, not speed."
+      ],
+      "tags": ["warmup", "bots"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3083320026",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3083320026",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3083320026"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 2302187
+      }
+    },
+    {
+      "id": "official-deathmatch",
+      "skill": "aim",
+      "title": "Deathmatch (official mode)",
+      "kind": "official",
+      "url": "steam://rungameid/730",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Play one deathmatch with ONE objective (for example: headshots only, or counter-strafe every kill).",
+        "Stop after 10 minutes; long unfocused deathmatch does not fix positioning or utility."
+      ],
+      "tags": ["official", "one objective"],
+      "links": {
+        "launch": "steam://rungameid/730"
+      }
+    },
+    {
+      "id": "crosshair-generator",
+      "skill": "crosshair",
+      "title": "crashz' Crosshair Generator v4",
+      "kind": "workshop",
+      "workshopId": "3070193546",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070193546",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Pick or tune a crosshair you can see on every map.",
+        "Keep it: changing it every week costs consistency."
+      ],
+      "tags": ["setup"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3070193546",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070193546",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3070193546"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 8422354
+      }
+    },
+    {
+      "id": "yprac-hub",
+      "skill": "crosshair",
+      "title": "Yprac Hub by Yesber",
+      "kind": "workshop",
+      "workshopId": "3070715607",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070715607",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Use the aim and prefire modes for 10 to 15 minutes.",
+        "Pick one mode per session and track your score."
+      ],
+      "tags": ["prefire", "aim", "hub"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3070715607",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3070715607",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3070715607"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1287626
+      }
+    },
+    {
+      "id": "refrag-hub",
+      "skill": "crosshair",
+      "title": "Refrag.gg - Aim, Movement, Crosshair, Prefire!",
+      "kind": "workshop",
+      "workshopId": "3416003536",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3416003536",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Use the aim and prefire modes for 10 to 15 minutes.",
+        "Pick one mode per session and track your score."
+      ],
+      "tags": ["prefire", "movement", "hub"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3416003536",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3416003536",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3416003536"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1307388
+      }
+    },
+    {
+      "id": "prefire-mirage",
+      "skill": "crosshair",
+      "title": "Mirage Prefire",
+      "kind": "workshop",
+      "workshopId": "3267302800",
+      "maps": ["de_mirage"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3267302800",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3267302800",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3267302800",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3267302800"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 2650804
+      }
+    },
+    {
+      "id": "prefire-dust2",
+      "skill": "crosshair",
+      "title": "Dust 2 Prefire",
+      "kind": "workshop",
+      "workshopId": "3295650711",
+      "maps": ["de_dust2"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3295650711",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3295650711",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3295650711",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3295650711"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1904713
+      }
+    },
+    {
+      "id": "prefire-inferno",
+      "skill": "crosshair",
+      "title": "Inferno Prefire",
+      "kind": "workshop",
+      "workshopId": "3289507717",
+      "maps": ["de_inferno"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3289507717",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3289507717",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3289507717",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3289507717"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1418456
+      }
+    },
+    {
+      "id": "prefire-anubis",
+      "skill": "crosshair",
+      "title": "Anubis Prefire",
+      "kind": "workshop",
+      "workshopId": "3307639951",
+      "maps": ["de_anubis"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3307639951",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3307639951",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3307639951",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3307639951"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1064058
+      }
+    },
+    {
+      "id": "prefire-nuke",
+      "skill": "crosshair",
+      "title": "Nuke Prefire",
+      "kind": "workshop",
+      "workshopId": "3318295422",
+      "maps": ["de_nuke"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3318295422",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3318295422",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3318295422",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3318295422"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1077848
+      }
+    },
+    {
+      "id": "prefire-ancient",
+      "skill": "crosshair",
+      "title": "Ancient Prefire",
+      "kind": "workshop",
+      "workshopId": "3282067356",
+      "maps": ["de_ancient"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3282067356",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3282067356",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3282067356",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3282067356"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1053466
+      }
+    },
+    {
+      "id": "prefire-vertigo",
+      "skill": "crosshair",
+      "title": "Vertigo Prefire",
+      "kind": "workshop",
+      "workshopId": "3274138705",
+      "maps": ["de_vertigo"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3274138705",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3274138705",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3274138705",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3274138705"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 665724
+      }
+    },
+    {
+      "id": "prefire-overpass",
+      "skill": "crosshair",
+      "title": "Overpass Prefire",
+      "kind": "workshop",
+      "workshopId": "3328383138",
+      "maps": ["de_overpass"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3328383138",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3328383138",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3328383138",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3328383138"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 534715
+      }
+    },
+    {
+      "id": "prefire-train",
+      "skill": "crosshair",
+      "title": "Train Prefire",
+      "kind": "workshop",
+      "workshopId": "3562576256",
+      "maps": ["de_train"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3562576256",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Pick the route you play in matches (your side and site).",
+        "Run it twice on easy, then on the hardest difficulty.",
+        "Clear every angle with your crosshair already at head height."
+      ],
+      "tags": ["prefire", "routes", "head height"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3562576256",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3562576256",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3562576256"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 301521
+      }
+    },
+    {
+      "id": "utility-mirage",
+      "skill": "utility",
+      "title": "Mirage Utility",
+      "kind": "workshop",
+      "workshopId": "3312981414",
+      "maps": ["de_mirage"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3312981414",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3312981414",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3312981414",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3312981414"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 3119132
+      }
+    },
+    {
+      "id": "utility-dust2",
+      "skill": "utility",
+      "title": "Dust 2 Utility",
+      "kind": "workshop",
+      "workshopId": "3360435602",
+      "maps": ["de_dust2"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3360435602",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3360435602",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3360435602",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3360435602"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 2217245
+      }
+    },
+    {
+      "id": "utility-inferno",
+      "skill": "utility",
+      "title": "Inferno Utility",
+      "kind": "workshop",
+      "workshopId": "3332771164",
+      "maps": ["de_inferno"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3332771164",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3332771164",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3332771164",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3332771164"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1682074
+      }
+    },
+    {
+      "id": "utility-nuke",
+      "skill": "utility",
+      "title": "Nuke Utility",
+      "kind": "workshop",
+      "workshopId": "3340925621",
+      "maps": ["de_nuke"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3340925621",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3340925621",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3340925621",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3340925621"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1346314
+      }
+    },
+    {
+      "id": "utility-anubis",
+      "skill": "utility",
+      "title": "Anubis Utility",
+      "kind": "workshop",
+      "workshopId": "3368313759",
+      "maps": ["de_anubis"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3368313759",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3368313759",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3368313759",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3368313759"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1237729
+      }
+    },
+    {
+      "id": "utility-ancient",
+      "skill": "utility",
+      "title": "Ancient Utility",
+      "kind": "workshop",
+      "workshopId": "3351615311",
+      "maps": ["de_ancient"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3351615311",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3351615311",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3351615311",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3351615311"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 1485360
+      }
+    },
+    {
+      "id": "utility-vertigo",
+      "skill": "utility",
+      "title": "Vertigo Utility",
+      "kind": "workshop",
+      "workshopId": "3323457022",
+      "maps": ["de_vertigo"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3323457022",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3323457022",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3323457022",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3323457022"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 773199
+      }
+    },
+    {
+      "id": "utility-overpass",
+      "skill": "utility",
+      "title": "Overpass Utility",
+      "kind": "workshop",
+      "workshopId": "3566472167",
+      "maps": ["de_overpass"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3566472167",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3566472167",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3566472167",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3566472167"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 379503
+      }
+    },
+    {
+      "id": "utility-train",
+      "skill": "utility",
+      "title": "Train Utility",
+      "kind": "workshop",
+      "workshopId": "3569811497",
+      "maps": ["de_train"],
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3569811497",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Choose your side and the site you play.",
+        "Learn 2 smokes and 1 flash you can use next match.",
+        "Throw each lineup 5 times in a row without help."
+      ],
+      "tags": ["smokes", "flashes", "molotovs"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3569811497",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3569811497",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3569811497"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 250821
+      }
+    },
+    {
+      "id": "practice-server",
+      "skill": "utility",
+      "title": "Private practice server (official map + config)",
+      "kind": "official",
+      "url": "steam://rungameid/730",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Play, then Practice, pick the map with bots off.",
+        "Open the console and paste the practice config from this page.",
+        "Use the teleports to rehearse your own spots."
+      ],
+      "tags": ["official", "lineups", "your spots"],
+      "links": {
+        "launch": "steam://rungameid/730"
+      }
+    },
+    {
+      "id": "recoil-master",
+      "skill": "spray",
+      "title": "Recoil Master - Spray Training (CS2)",
+      "kind": "workshop",
+      "workshopId": "3100869952",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3100869952",
+      "minutesPerSession": 10,
+      "howTo": [
+        "AK-47 and M4: spray the pattern at 10 m, then 20 m.",
+        "Then spray-transfer between two bots."
+      ],
+      "tags": ["spray", "recoil"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3100869952",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3100869952",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3100869952"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 4800915
+      }
+    },
+    {
+      "id": "movement-hub",
+      "skill": "movement",
+      "title": "Movement Hub",
+      "kind": "workshop",
+      "workshopId": "3355497176",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3355497176",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Practice counter-strafing: tap the opposite key, shoot only when stopped.",
+        "Then jumps and routes you use in matches."
+      ],
+      "tags": ["movement", "jumps"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3355497176",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3355497176",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3355497176"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 2789623
+      }
+    },
+    {
+      "id": "counter-strafe-master",
+      "skill": "movement",
+      "title": "Counter-strafe Master",
+      "kind": "workshop",
+      "workshopId": "3667395967",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3667395967",
+      "minutesPerSession": 10,
+      "howTo": [
+        "Shoot only when fully stopped; watch the score per stop.",
+        "Repeat until most stops are perfect."
+      ],
+      "tags": ["counter-strafe"],
+      "links": {
+        "steam": "steam://url/CommunityFilePage/3667395967",
+        "web": "https://steamcommunity.com/sharedfiles/filedetails/?id=3667395967",
+        "launch": "steam://rungameid/730",
+        "command": "host_workshop_map 3667395967"
+      },
+      "verified": {
+        "at": "2026-10-20T01:39:37.790Z",
+        "subscriptions": 16656
+      }
+    },
+    {
+      "id": "your-spots",
+      "skill": "positioning",
+      "title": "Your spots on a practice server",
+      "kind": "official",
+      "url": "steam://rungameid/730",
+      "minutesPerSession": 15,
+      "howTo": [
+        "Play, then Practice, pick the map with bots off.",
+        "Open the console and paste the practice config from this page.",
+        "Use the teleports to rehearse your own spots."
+      ],
+      "tags": ["official", "teleports", "angles"],
+      "links": {
+        "launch": "steam://rungameid/730"
+      }
+    }
+  ]
+}

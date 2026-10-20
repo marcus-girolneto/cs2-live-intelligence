@@ -1,0 +1,423 @@
+/* ---------- Training ("Train this", /training, Pro-team week) ---------- */
+.train-this,
+.tr-plan,
+.tr-plan > *,
+.tr-server,
+.tr-spots > * {
+  min-width: 0;
+}
+.tr-plan {
+  display: grid;
+  gap: var(--s3);
+}
+.tr-plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+.tr-mins {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.tr-focus {
+  margin: 0;
+  color: var(--text-2);
+}
+.tr-mindset {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+}
+.tr-sessions {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tr-session {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.tr-session.focus {
+  border-color: var(--accent);
+}
+.tr-step {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-2);
+  color: var(--accent-2);
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.tr-body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.tr-body h4,
+.tr-res h4 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.tr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+  margin: 0;
+}
+.tr-step-name,
+.tr-skill {
+  color: var(--accent-2);
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tr-why {
+  margin: 0;
+  color: var(--text-2);
+}
+.tr-done {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  color: var(--good);
+}
+.tr-done b {
+  white-space: nowrap;
+}
+.tr-tp-note {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin: 0;
+}
+.tr-clips,
+.tr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.tr-linked {
+  display: grid;
+  gap: 6px;
+  padding-top: var(--s2);
+  border-top: 1px dashed var(--line);
+}
+.tr-linked-title {
+  font-weight: 600;
+}
+/* Practice server */
+.tr-server {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+}
+.tr-server-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s2);
+}
+.tr-server-head h4 {
+  display: inline-flex;
+  gap: var(--s2);
+  align-items: center;
+  margin: 0;
+}
+.tr-server-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.tr-code {
+  display: grid;
+  gap: var(--s2);
+  justify-items: start;
+}
+.tr-code pre,
+.tr-tp code {
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.tr-code pre {
+  width: 100%;
+  max-height: 180px;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.tr-spots {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: start;
+}
+.tr-map {
+  margin: 0;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.tr-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tr-map-cell {
+  fill: rgba(160, 180, 205, 0.16);
+}
+.tr-pin circle {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  fill: var(--accent);
+}
+.tr-pin.death circle,
+.tr-pin.teamflash circle {
+  fill: var(--bad);
+}
+.tr-pin.enemy circle {
+  fill: var(--t);
+}
+.tr-pin.lineup circle {
+  fill: var(--good);
+}
+.tr-pin.crosshair circle {
+  fill: var(--info);
+}
+.tr-pin text {
+  fill: var(--bg);
+  font-size: 9px;
+  font-weight: 700;
+}
+.tr-groups {
+  display: grid;
+  gap: var(--s3);
+}
+.tr-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s2);
+}
+.tr-group h5 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+.tr-group ul {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tr-tp {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: var(--s2);
+  align-items: center;
+  padding: 6px var(--s2);
+  border: 1px solid var(--line);
+}
+.tr-tp-n {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.tr-tp.death .tr-tp-n,
+.tr-tp.teamflash .tr-tp-n {
+  background: var(--bad);
+}
+.tr-tp.enemy .tr-tp-n {
+  background: var(--t);
+}
+.tr-tp.lineup .tr-tp-n {
+  background: var(--good);
+}
+.tr-tp.crosshair .tr-tp-n {
+  background: var(--info);
+}
+.tr-tp-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+}
+.tr-tp code {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.tr-tp-copy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.tr-caveats {
+  margin: 0;
+  padding-left: 18px;
+}
+/* Catalog */
+.tr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+  margin-bottom: var(--s3);
+}
+.tr-filters .chip {
+  cursor: pointer;
+}
+.tr-map-filter select {
+  min-height: 32px;
+  padding: 0 var(--s2);
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  color: var(--text);
+}
+.tr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+.tr-res {
+  display: grid;
+  gap: var(--s2);
+  align-content: start;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.tr-res header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+.tr-maps {
+  margin: 0;
+}
+.tr-howto {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.tr-sub {
+  margin: var(--s4) 0 var(--s2);
+  font-size: 16px;
+}
+/* Week */
+.tr-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s2);
+  margin: var(--s2) 0 var(--s3);
+  padding: 0;
+  list-style: none;
+}
+.tr-day {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.tr-day.rest {
+  opacity: 0.7;
+  border-style: dashed;
+}
+.tr-day h5 {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font-size: 14px;
+}
+.tr-day ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+.tr-day li {
+  display: grid;
+  gap: 1px;
+}
+.tr-day .tr-step-name {
+  font-size: 11px;
+  color: var(--text-2);
+}
+@media (max-width: 1100px) {
+  .tr-week {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .tr-spots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tr-map {
+    max-width: 340px;
+  }
+  .tr-week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .tr-session {
+    grid-template-columns: 1fr;
+  }
+  .tr-step {
+    display: none;
+  }
+  .tr-tp {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .tr-tp-copy {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+  .tr-week {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
