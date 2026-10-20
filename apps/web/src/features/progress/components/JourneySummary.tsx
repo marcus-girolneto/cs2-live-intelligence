@@ -50,7 +50,7 @@ export function JourneySummary({
           if (!tr) return null;
           const info = METRIC_INFO[key];
           const fmt = (v: number) =>
-            `${formatNumber(v, info.digits, locale) ?? "—"}${info.unit}`;
+            `${formatNumber(v, info.digits, locale) ?? "–"}${info.unit}`;
           return (
             <div key={key} className={`js-tile ${tr.direction}`}>
               <span className="js-label">
@@ -109,7 +109,7 @@ function AdherenceRing({ value }: { value: number | null }) {
     <span
       className="adh-ring"
       role="img"
-      aria-label={value === null ? "—" : `${Math.round(v)}%`}
+      aria-label={value === null ? "–" : `${Math.round(v)}%`}
     >
       <svg viewBox="0 0 64 64" width="64" height="64" aria-hidden>
         <circle cx="32" cy="32" r={r} className="adh-track" />
@@ -124,7 +124,7 @@ function AdherenceRing({ value }: { value: number | null }) {
           />
         )}
       </svg>
-      <b>{value === null ? "—" : `${formatNumber(v, 0, locale)}%`}</b>
+      <b>{value === null ? "–" : `${formatNumber(v, 0, locale)}%`}</b>
     </span>
   );
 }

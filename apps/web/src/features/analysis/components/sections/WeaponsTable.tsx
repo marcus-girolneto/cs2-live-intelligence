@@ -42,11 +42,11 @@ export function WeaponsTable({ rows }: { rows: WeaponRow[] }) {
                 </span>
               </td>
               <td className="r">
-                {w.hsRate === null ? "—" : `${num(w.hsRate)}%`}
+                {w.hsRate === null ? "–" : `${num(w.hsRate)}%`}
               </td>
               <td>
                 {w.accuracy === null ? (
-                  <span className="muted">—</span>
+                  <span className="muted">–</span>
                 ) : (
                   <span className="acc-cell">
                     <Meter
@@ -65,7 +65,7 @@ export function WeaponsTable({ rows }: { rows: WeaponRow[] }) {
               </td>
               <td className="r">{num(w.damage)}</td>
               <td className="r muted">
-                {w.shots === null ? "—" : `${num(w.hits)}/${num(w.shots)}`}
+                {w.shots === null ? "–" : `${num(w.hits)}/${num(w.shots)}`}
               </td>
             </tr>
           ))}

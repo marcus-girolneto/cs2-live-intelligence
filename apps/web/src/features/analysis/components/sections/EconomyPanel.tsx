@@ -29,7 +29,7 @@ export function EconomyPanel({ insight }: { insight: Insight }) {
         <div>
           <span className="ti-label">{t("Avg. equipment")}</span>
           <b className="money">
-            {avg === null ? "—" : `$${Math.round(avg).toLocaleString(locale)}`}
+            {avg === null ? "–" : `$${Math.round(avg).toLocaleString(locale)}`}
           </b>
         </div>
         {e.antiEcoKills !== undefined && (

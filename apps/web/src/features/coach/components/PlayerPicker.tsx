@@ -54,7 +54,7 @@ export function PlayerPicker({
                     <span className="rc-stats">
                       {p.kills !== null && p.deaths !== null
                         ? `${formatNumber(p.kills, 0, locale)}–${formatNumber(p.deaths, 0, locale)}`
-                        : "—"}
+                        : "–"}
                       <small>
                         {p.adr !== null
                           ? `${formatNumber(p.adr, 0, locale)} ADR`

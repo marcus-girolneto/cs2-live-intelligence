@@ -53,7 +53,7 @@ export function FormPanel({
                 <span className="form-label">{t(label)}</span>
                 <b>
                   {recent === null
-                    ? "—"
+                    ? "–"
                     : `${formatNumber(recent, digits, locale)}${unit ?? ""}`}
                 </b>
                 <span className="form-delta">

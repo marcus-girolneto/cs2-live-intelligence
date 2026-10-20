@@ -48,7 +48,7 @@ export function DevicesPanel({ vm }: { vm: SettingsVM }) {
           <span className="eyebrow">{t("Pairing code")}</span>
           <strong data-testid="pairing-code">{pairing.code}</strong>
           <p className="muted small">
-            {t("Expires:")} {formatDate(pairing.expiresAt, locale) ?? "—"} ·{" "}
+            {t("Expires:")} {formatDate(pairing.expiresAt, locale) ?? "–"} ·{" "}
             {t(
               "Pass this code to the collector pairing command. It can be used once.",
             )}

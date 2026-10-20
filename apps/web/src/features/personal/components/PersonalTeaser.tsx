@@ -26,7 +26,7 @@ export function PersonalTeaser({
     <section className="pc-teaser" data-testid="personal-teaser">
       <div className="pc-teaser-hero">
         <div className="pc-seen" aria-hidden={counts === null}>
-          <b>{counts === null ? "—" : seen}</b>
+          <b>{counts === null ? "–" : seen}</b>
           <span>
             {seen === 1 ? t("match analyzed") : t("matches analyzed")}
           </span>

@@ -28,7 +28,7 @@ export function AiQualityPanel() {
   }, [api]);
   if (!ratings?.length && !evalRun) return null;
   const pct = (v: number | null) =>
-    v === null ? "—" : `${formatNumber(v * 100, 0, locale)}%`;
+    v === null ? "–" : `${formatNumber(v * 100, 0, locale)}%`;
   const tiles: [string, string][] = evalRun
     ? [
         [t("Runs"), `${evalRun.runs - evalRun.failed}/${evalRun.runs}`],
@@ -38,13 +38,13 @@ export function AiQualityPanel() {
         [
           t("Average latency"),
           evalRun.avgLatencyMs === null
-            ? "—"
+            ? "–"
             : `${formatNumber(evalRun.avgLatencyMs / 1000, 1, locale)} s`,
         ],
         [
           t("Cost"),
           evalRun.costUsd === null
-            ? "—"
+            ? "–"
             : `$${formatNumber(evalRun.costUsd, 2, locale)}`,
         ],
       ]
@@ -107,7 +107,7 @@ export function AiQualityPanel() {
                   <td className="r tabular">{r.rated}</td>
                   <td className="r tabular">
                     {r.avgRating === null
-                      ? "—"
+                      ? "–"
                       : `${formatNumber(r.avgRating, 2, locale)} ★`}
                   </td>
                 </tr>

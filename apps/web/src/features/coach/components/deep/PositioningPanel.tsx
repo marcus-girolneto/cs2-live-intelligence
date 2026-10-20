@@ -60,7 +60,7 @@ export function PositioningPanel({
                       {[
                         z.deaths !== null
                           ? t("{n} deaths", {
-                              n: formatNumber(z.deaths, 0, locale) ?? "—",
+                              n: formatNumber(z.deaths, 0, locale) ?? "–",
                             })
                           : null,
                         z.rounds.length

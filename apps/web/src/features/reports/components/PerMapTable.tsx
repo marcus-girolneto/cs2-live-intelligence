@@ -7,7 +7,7 @@ import type { MapRow } from "../model/report";
 /** Per-map form for the month (win-rate bar, ADR, K/D). */
 export function PerMapTable({ rows }: { rows: MapRow[] }) {
   const { t, locale } = useI18n();
-  const f = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "—";
+  const f = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "–";
   return (
     <div className="table-wrap">
       <table className="table permap">
@@ -39,7 +39,7 @@ export function PerMapTable({ rows }: { rows: MapRow[] }) {
               <td className="r tabular">{f(r.matches)}</td>
               <td>
                 {r.winRate === null ? (
-                  "—"
+                  "–"
                 ) : (
                   <span className="pm-win">
                     <span className="meter-mini" aria-hidden>

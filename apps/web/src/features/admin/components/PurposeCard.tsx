@@ -216,7 +216,7 @@ export function PurposeCard({
             <>
               <Check size={16} />{" "}
               {t("Answered in {ms} ms", {
-                ms: formatNumber(result?.latencyMs ?? null, 0, locale) ?? "—",
+                ms: formatNumber(result?.latencyMs ?? null, 0, locale) ?? "–",
               })}
               {result?.reply && <q>{result.reply}</q>}
             </>
@@ -229,7 +229,7 @@ export function PurposeCard({
           {saved
             ? t("Saved: {model} · {date}", {
                 model: saved.model,
-                date: formatDate(saved.updatedAt, locale) ?? "—",
+                date: formatDate(saved.updatedAt, locale) ?? "–",
               })
             : t("Not assigned")}
         </span>

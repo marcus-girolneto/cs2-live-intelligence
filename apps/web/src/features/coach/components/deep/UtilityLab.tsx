@@ -22,7 +22,7 @@ export function UtilityLab({
   onPlay: (clip: ClipRef, title: string) => void;
 }) {
   const { t, locale } = useI18n();
-  const n = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "—";
+  const n = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "–";
   return (
     <div className="deep-block utility-lab">
       {u.summary && <p className="lead deep-summary">{u.summary}</p>}
@@ -88,7 +88,7 @@ export function UtilityLab({
                 {u.throws.slice(0, 40).map((g, i) => (
                   <tr key={i} className={g.verdict ? `nl-${g.verdict}` : ""}>
                     <td className="tabular">
-                      {g.round ?? "—"}
+                      {g.round ?? "–"}
                       {g.time !== null && (
                         <small className="muted"> {clock(g.time)}</small>
                       )}
@@ -99,7 +99,7 @@ export function UtilityLab({
                         {t(NADE_LABEL[g.type])}
                       </span>
                     </td>
-                    <td>{g.place ? placeName(g.place) : "—"}</td>
+                    <td>{g.place ? placeName(g.place) : "–"}</td>
                     <td>
                       {g.verdict && (
                         <span

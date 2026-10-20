@@ -83,7 +83,7 @@ export function CompareView({
               {(["quick", "deep"] as const).map((tier) => (
                 <span role="cell" key={tier} className={`cmp-bar ${tier}`}>
                   <i style={{ width: `${s[tier] ?? 0}%` }} />
-                  <b className="tabular">{s[tier] ?? "—"}</b>
+                  <b className="tabular">{s[tier] ?? "–"}</b>
                 </span>
               ))}
             </div>

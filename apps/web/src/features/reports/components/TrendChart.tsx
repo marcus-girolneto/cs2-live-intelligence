@@ -27,7 +27,7 @@ export function TrendChart({ s }: { s: Series }) {
   const area = `${path} L${x(s.points.length - 1)} ${H} L${x(0)} ${H} Z`;
   const digits = Math.abs(hi) < 10 ? 2 : Math.abs(hi) < 100 ? 1 : 0;
   const fmt = (v: number) =>
-    `${formatNumber(v, digits, locale) ?? "—"}${s.unit}`;
+    `${formatNumber(v, digits, locale) ?? "–"}${s.unit}`;
   const d = seriesDelta(s);
   const shown = hover !== null ? s.points[hover]! : null;
   return (

@@ -25,7 +25,7 @@ const VERDICT: Record<Verdict, string> = {
 export function KeyStats({ stats }: { stats: KeyStat[] }) {
   const { t, locale } = useI18n();
   const fmt = (v: number, d: number, u: string) =>
-    `${formatNumber(v, d, locale) ?? "—"}${u}`;
+    `${formatNumber(v, d, locale) ?? "–"}${u}`;
   return (
     <div className="key-stats">
       {stats.map((s) => {

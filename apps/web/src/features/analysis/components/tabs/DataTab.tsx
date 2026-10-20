@@ -42,7 +42,7 @@ export function DataTab({ vm }: { vm: AnalysisVM }) {
                   <td className="r">
                     {m.complete
                       ? v === null
-                        ? "—"
+                        ? "–"
                         : unit === "%"
                           ? `${num(v)}%`
                           : unit === "adr" || unit === "dec"
@@ -55,7 +55,7 @@ export function DataTab({ vm }: { vm: AnalysisVM }) {
                       : t("Incomplete")}
                   </td>
                   <td className="r">
-                    {num(m.numerator) ?? "—"} / {num(m.denominator) ?? "—"}
+                    {num(m.numerator) ?? "–"} / {num(m.denominator) ?? "–"}
                   </td>
                   <td className="muted">{m.formula}</td>
                   <td className="r">{eventCount}</td>
@@ -67,8 +67,8 @@ export function DataTab({ vm }: { vm: AnalysisVM }) {
       </div>
       <p className="muted small">
         Steam ID <code>{player.steamId}</code> · Parser{" "}
-        {analysis.provenance?.parserVersion ?? "—"} · {t("Metrics")}{" "}
-        {analysis.provenance?.metricVersion ?? "—"}
+        {analysis.provenance?.parserVersion ?? "–"} · {t("Metrics")}{" "}
+        {analysis.provenance?.metricVersion ?? "–"}
       </p>
       {analysis.caveats.map((c, i) => (
         <p className="callout tone-warn" key={i}>

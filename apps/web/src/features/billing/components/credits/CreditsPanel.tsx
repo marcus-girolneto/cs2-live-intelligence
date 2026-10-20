@@ -81,7 +81,7 @@ export function CreditsPanel({ history = true }: { history?: boolean }) {
       {credits.planExpiresAt && credits.buckets.plan > 0 && (
         <p className="muted small">
           {t("Plan credits renew on {date}.", {
-            date: formatDate(credits.planExpiresAt, locale) ?? "—",
+            date: formatDate(credits.planExpiresAt, locale) ?? "–",
           })}
         </p>
       )}

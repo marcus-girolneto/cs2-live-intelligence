@@ -27,9 +27,9 @@ export function FocusAreas({ areas }: { areas: FocusArea[] }) {
               <div className="pc-target">
                 {f.targetMetric && <small>{f.targetMetric}</small>}
                 <div className="pc-target-vals">
-                  <b>{n(f.current) ?? "—"}</b>
+                  <b>{n(f.current) ?? "–"}</b>
                   <ArrowRight size={14} />
-                  <b className="goal">{n(f.target) ?? "—"}</b>
+                  <b className="goal">{n(f.target) ?? "–"}</b>
                 </div>
                 {f.progress !== null && (
                   <div

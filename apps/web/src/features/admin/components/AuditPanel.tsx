@@ -103,7 +103,7 @@ export function AuditPanel({ onForbidden }: { onForbidden: () => void }) {
                     <code>{action}</code>
                   </div>
                   <span className="small muted">
-                    {formatDate(e.createdAt, locale) ?? "—"} ·{" "}
+                    {formatDate(e.createdAt, locale) ?? "–"} ·{" "}
                     {e.adminId
                       ? (names.get(e.adminId) ?? e.adminId)
                       : t("System")}

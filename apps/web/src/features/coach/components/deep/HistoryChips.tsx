@@ -33,7 +33,7 @@ export function HistoryChips({ chips }: { chips: HistoryChip[] }) {
         const trend = trendOf(c);
         const delta = c.current - c.baseline;
         const fmt = (v: number) =>
-          `${formatNumber(v, Math.abs(v) < 10 && !Number.isInteger(v) ? 1 : 0, locale) ?? "—"}${c.unit}`;
+          `${formatNumber(v, Math.abs(v) < 10 && !Number.isInteger(v) ? 1 : 0, locale) ?? "–"}${c.unit}`;
         return (
           <li key={c.key} className={`chip hc ${trend}`}>
             <Trend size={14} className={delta < 0 ? "down" : ""} />

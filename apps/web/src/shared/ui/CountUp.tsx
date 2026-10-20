@@ -13,7 +13,7 @@ export function CountUp({
   digits = 0,
   suffix = "",
   prefix = "",
-  fallback = "—",
+  fallback = "–",
   duration = 900,
 }: {
   value: unknown;

@@ -10,7 +10,7 @@ export function LobbyRanks({ metrics }: { metrics: LobbyMetric[] }) {
   if (!metrics.length) return null;
   const fmt = (v: number | null, unit: string) =>
     v === null
-      ? "—"
+      ? "–"
       : `${formatNumber(v, Math.abs(v) < 10 && unit !== "%" ? 2 : 0, locale)}${unit}`;
   return (
     <section className="lobby-ranks" aria-labelledby="lobby-h">

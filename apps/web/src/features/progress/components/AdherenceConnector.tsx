@@ -32,7 +32,7 @@ export function AdherenceConnector({ items }: { items: Adherence[] }) {
         {items.map((a) => {
           const info = isMetric(a.metric) ? METRIC_INFO[a.metric] : null;
           const fmt = (v: number) =>
-            `${formatNumber(v, info?.digits ?? 0, locale) ?? "—"}${info?.unit ?? ""}`;
+            `${formatNumber(v, info?.digits ?? 0, locale) ?? "–"}${info?.unit ?? ""}`;
           const s = STATUS[a.status];
           return (
             <li key={a.planItemId} className={`adh-item ${a.status}`}>

@@ -16,7 +16,7 @@ export function MatchSpotlight({
 }) {
   const { t, locale } = useI18n();
   const id = m.matchId ?? m.analysisId;
-  const stat = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "—";
+  const stat = (v: number | null, d = 0) => formatNumber(v, d, locale) ?? "–";
   return (
     <article className={`spotlight ${kind}`}>
       <header>

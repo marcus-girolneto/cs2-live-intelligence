@@ -16,7 +16,7 @@ const PHASES: Record<string, string> = {
 };
 const show = (v: unknown) => {
   const n = finite(v);
-  return n !== null ? String(n) : (text(v) ?? "—");
+  return n !== null ? String(n) : (text(v) ?? "–");
 };
 
 export function Hud({
@@ -62,11 +62,11 @@ export function Hud({
           <i aria-hidden="true" />
           {t(badgeLabel[badge])}
         </span>
-        <h2 data-testid="map">{mapName(state?.map) ?? "—"}</h2>
+        <h2 data-testid="map">{mapName(state?.map) ?? "–"}</h2>
         <div className="phase">
           <span>{t("Phase")}</span>
           <strong data-testid="phase">
-            {phase ? t(PHASES[phase] ?? phase) : "—"}
+            {phase ? t(PHASES[phase] ?? phase) : "–"}
           </strong>
         </div>
       </div>
@@ -128,7 +128,7 @@ export function Hud({
             <span>K/D</span>
             <strong>
               {kd === null
-                ? "—"
+                ? "–"
                 : kd.toLocaleString(locale, { maximumFractionDigits: 2 })}
             </strong>
             {baseline?.kd != null ? (

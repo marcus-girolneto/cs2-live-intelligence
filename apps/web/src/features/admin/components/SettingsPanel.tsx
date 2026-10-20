@@ -176,7 +176,7 @@ export function SettingsPanel({ onForbidden }: { onForbidden: () => void }) {
         {data?.updatedAt && (
           <p className="small muted">
             {t("Last changed {date}", {
-              date: formatDate(data.updatedAt, locale) ?? "—",
+              date: formatDate(data.updatedAt, locale) ?? "–",
             })}
           </p>
         )}

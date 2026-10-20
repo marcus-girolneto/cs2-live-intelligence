@@ -197,10 +197,10 @@ export function UsersPanel({
                       <UserPlanCell userId={u.id} name={name} plan={u.plan} />
                     </td>
                     <td className="r">
-                      {formatNumber(u.matches, 0, locale) ?? "—"}
+                      {formatNumber(u.matches, 0, locale) ?? "–"}
                     </td>
                     <td className="r">
-                      {formatNumber(u.reviews, 0, locale) ?? "—"}
+                      {formatNumber(u.reviews, 0, locale) ?? "–"}
                     </td>
                     <td>
                       <button
@@ -214,7 +214,7 @@ export function UsersPanel({
                       </button>
                     </td>
                     <td className="nowrap">
-                      {formatDate(u.createdAt, locale) ?? "—"}
+                      {formatDate(u.createdAt, locale) ?? "–"}
                     </td>
                     <td className="nowrap">
                       {formatDate(u.lastLoginAt, locale) ?? t("Never")}

@@ -59,7 +59,7 @@ export function CrosshairPanel({ c }: { c: DeepCrosshair }) {
                   <small className="muted">
                     {" "}
                     {t("{n}° on average", {
-                      n: formatNumber(Math.abs(c.pitchBias), 1, locale) ?? "—",
+                      n: formatNumber(Math.abs(c.pitchBias), 1, locale) ?? "–",
                     })}
                   </small>
                 )}
@@ -102,12 +102,12 @@ export function CrosshairPanel({ c }: { c: DeepCrosshair }) {
                 <span className="tabular">
                   {w.offset !== null
                     ? `${formatNumber(w.offset, 1, locale)}°`
-                    : "—"}
+                    : "–"}
                 </span>
                 {w.duels !== null && (
                   <small className="muted">
                     {t("{n} duels", {
-                      n: formatNumber(w.duels, 0, locale) ?? "—",
+                      n: formatNumber(w.duels, 0, locale) ?? "–",
                     })}
                   </small>
                 )}

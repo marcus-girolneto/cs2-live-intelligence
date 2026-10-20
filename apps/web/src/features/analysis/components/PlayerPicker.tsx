@@ -42,9 +42,9 @@ export function PlayerPicker({ vm }: { vm: AnalysisVM }) {
             {you && <small className="you-badge">{t("You")}</small>}
           </span>
           <span className="pp-kd">
-            {pk !== null && pd !== null ? `${num(pk)}–${num(pd)}` : "—"}
+            {pk !== null && pd !== null ? `${num(pk)}–${num(pd)}` : "–"}
           </span>
-          <span className="pp-adr">{num(metricValue(p, "adr")) ?? "—"}</span>
+          <span className="pp-adr">{num(metricValue(p, "adr")) ?? "–"}</span>
         </button>
       </li>
     );
@@ -80,7 +80,7 @@ export function PlayerPicker({ vm }: { vm: AnalysisVM }) {
         >
           {players.map((p) => (
             <option key={p.steamId} value={p.steamId}>
-              {names.get(p.steamId)} · {num(metricValue(p, "adr")) ?? "—"} ADR
+              {names.get(p.steamId)} · {num(metricValue(p, "adr")) ?? "–"} ADR
             </option>
           ))}
         </select>

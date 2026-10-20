@@ -47,7 +47,7 @@ export function AimSummary({
           )}
         </svg>
         <div className="ar-text">
-          <b>{acc === null ? "—" : <CountUp value={acc} suffix="%" />}</b>
+          <b>{acc === null ? "–" : <CountUp value={acc} suffix="%" />}</b>
           <small>{t("Accuracy")}</small>
         </div>
       </div>
@@ -57,12 +57,12 @@ export function AimSummary({
           <dd>
             {insight.hits !== null && insight.shots !== null
               ? `${num(insight.hits)} / ${num(insight.shots)}`
-              : "—"}
+              : "–"}
           </dd>
         </div>
         <div>
           <dt>{t("Match avg. accuracy")}</dt>
-          <dd>{accuracyRef === null ? "—" : `${num(accuracyRef)}%`}</dd>
+          <dd>{accuracyRef === null ? "–" : `${num(accuracyRef)}%`}</dd>
         </div>
         <div>
           <dt>{t("Hits to the head")}</dt>
@@ -75,7 +75,7 @@ export function AimSummary({
                 : undefined
             }
           >
-            {headShare === null ? "—" : `${num(headShare)}%`}
+            {headShare === null ? "–" : `${num(headShare)}%`}
           </dd>
         </div>
         {insight.avgKillDistance !== null && (

@@ -102,7 +102,7 @@ export function ReprocessPanel({ onForbidden }: { onForbidden: () => void }) {
               {
                 done: formatNumber(status.done, 0, locale) ?? "0",
                 total: formatNumber(total, 0, locale) ?? "0",
-                v: status.currentVersion ?? "—",
+                v: status.currentVersion ?? "–",
                 pending: formatNumber(status.pending, 0, locale) ?? "0",
                 failed: formatNumber(status.failed, 0, locale) ?? "0",
               },

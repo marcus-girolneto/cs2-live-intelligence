@@ -19,7 +19,7 @@ export function OffsetGauge({ value }: { value: number }) {
     const a1 = Math.PI * (1 - to / MAX);
     return `M ${cx + r * Math.cos(a0)} ${cy - r * Math.sin(a0)} A ${r} ${r} 0 0 1 ${cx + r * Math.cos(a1)} ${cy - r * Math.sin(a1)}`;
   };
-  const label = formatNumber(value, 1, locale) ?? "—";
+  const label = formatNumber(value, 1, locale) ?? "–";
   return (
     <figure className={`offset-gauge ${tone}`}>
       <svg

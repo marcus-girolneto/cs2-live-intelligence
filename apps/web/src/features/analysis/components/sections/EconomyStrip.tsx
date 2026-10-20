@@ -38,7 +38,7 @@ export function EconomyStrip({
           <span className="es-val">
             {r.equipmentValue !== undefined
               ? `$${(r.equipmentValue / 1000).toLocaleString(locale, { maximumFractionDigits: 1 })}k`
-              : "—"}
+              : "–"}
           </span>
           <span className="es-k">
             {Array.from({ length: Math.min(5, r.kills) }, (_, i) => (

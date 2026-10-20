@@ -41,7 +41,7 @@ export function normalizeRatings(raw: unknown): RatingRow[] {
       {
         purpose,
         variant: text(o.variant) ?? "a",
-        promptVersion: text(o.promptVersion) ?? "—",
+        promptVersion: text(o.promptVersion) ?? "–",
         reviews: Math.max(0, finite(o.reviews) ?? 0),
         rated: Math.max(0, finite(o.rated) ?? 0),
         avgRating: finite(o.avgRating),

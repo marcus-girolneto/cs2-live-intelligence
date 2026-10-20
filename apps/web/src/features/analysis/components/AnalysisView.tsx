@@ -123,38 +123,38 @@ export function AnalysisView({ result }: { result: AnalysisResult }) {
           </header>
           <div className="ph-strip">
             <span>
-              <b>{num(kills) ?? "—"}</b>
+              <b>{num(kills) ?? "–"}</b>
               <small>{t("Kills")}</small>
             </span>
             <span>
-              <b>{num(deaths) ?? "—"}</b>
+              <b>{num(deaths) ?? "–"}</b>
               <small>{t("Deaths")}</small>
             </span>
             <span>
               <b
                 className={kd !== null ? (kd >= 1 ? "good" : "bad") : undefined}
               >
-                {num(kd, 2) ?? "—"}
+                {num(kd, 2) ?? "–"}
               </b>
               <small>
                 <Term id="kd">K/D</Term>
               </small>
             </span>
             <span>
-              <b>{num(adr, 1) ?? "—"}</b>
+              <b>{num(adr, 1) ?? "–"}</b>
               <small>
                 <Term id="adr">ADR</Term>
               </small>
             </span>
             <span>
-              <b>{hs !== null ? `${num(hs)}%` : "—"}</b>
+              <b>{hs !== null ? `${num(hs)}%` : "–"}</b>
               <small>
                 <Term id="hs">HS%</Term>
               </small>
             </span>
             <span>
               <b>
-                {insight.accuracy !== null ? `${num(insight.accuracy)}%` : "—"}
+                {insight.accuracy !== null ? `${num(insight.accuracy)}%` : "–"}
               </b>
               <small>
                 <Term id="accuracy">{t("Accuracy")}</Term>

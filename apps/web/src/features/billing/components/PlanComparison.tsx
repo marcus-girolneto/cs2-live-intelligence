@@ -18,7 +18,7 @@ export function PlanComparison({ plans }: { plans: Plan[] }) {
     {
       label: t("Deep review cost"),
       value: (l) =>
-        l.deepCost === null ? "—" : t("{n} credits", { n: l.deepCost }),
+        l.deepCost === null ? "–" : t("{n} credits", { n: l.deepCost }),
     },
     {
       label: t("Live AI IGL matches per day"),

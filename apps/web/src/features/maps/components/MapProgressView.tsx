@@ -76,7 +76,7 @@ export function MapProgressView({
                       </small>
                     </span>
                     <span className="mp-num">
-                      <b>{adr === null ? "—" : formatNumber(adr, 0, locale)}</b>
+                      <b>{adr === null ? "–" : formatNumber(adr, 0, locale)}</b>
                       <small>ADR</small>
                     </span>
                     {m.openPlanItems.length > 0 && (
@@ -104,7 +104,7 @@ export function MapProgressView({
                   <span>{t(label)}</span>
                   <b>
                     {recent === null
-                      ? "—"
+                      ? "–"
                       : `${formatNumber(recent, digits, locale)}${unit ?? ""}`}
                   </b>
                   <small
@@ -170,7 +170,7 @@ export function MapProgressView({
               {general.length ? (
                 <PlanList items={general} compact />
               ) : (
-                <p className="muted small">—</p>
+                <p className="muted small">–</p>
               )}
             </section>
           </div>

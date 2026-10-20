@@ -36,12 +36,12 @@ export function LiveStatusBar({
       <span data-testid="last-updated">
         {t("Updated:")}{" "}
         {ageSeconds === null
-          ? "—"
+          ? "–"
           : t("{s}s ago", { s: (ageSeconds / 1000).toFixed(1) })}
       </span>
       <span>
         {t("Source:")}{" "}
-        <strong data-testid="source">{hasState ? "GSI" : "—"}</strong>
+        <strong data-testid="source">{hasState ? "GSI" : "–"}</strong>
       </span>
       {sim.running && (
         <>

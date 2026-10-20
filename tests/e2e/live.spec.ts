@@ -115,8 +115,8 @@ test("100 mock updates cross collector, API and owner WebSocket into browser", a
   await request.post("http://127.0.0.1:3102/gsi", {
     data: { auth: { token: "e2e-gsi-secret" } },
   });
-  await expect(page.getByTestId("kills")).toHaveText("—");
-  await expect(page.getByTestId("map")).toHaveText("—");
+  await expect(page.getByTestId("kills")).toHaveText("–");
+  await expect(page.getByTestId("map")).toHaveText("–");
   await page.screenshot({
     path: testInfo.outputPath("dashboard.png"),
     fullPage: true,

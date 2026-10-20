@@ -87,7 +87,7 @@ export function TimingPanel({
               {i.icon}
               {i.label}
             </span>
-            <b>{i.value ?? "—"}</b>
+            <b>{i.value ?? "–"}</b>
             {i.ref && <small>{t("match avg {v}", { v: i.ref })}</small>}
           </div>
         ))}

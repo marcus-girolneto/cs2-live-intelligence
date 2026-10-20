@@ -48,25 +48,25 @@ export function RoundTable({
               <th scope="row" className="tabular">
                 {r.round}
               </th>
-              <td>{r.side ? <SideTag side={r.side} /> : "—"}</td>
+              <td>{r.side ? <SideTag side={r.side} /> : "–"}</td>
               <td>
                 {r.won === null ? (
-                  "—"
+                  "–"
                 ) : (
                   <span className={`chip ${r.won ? "good" : "bad"}`}>
                     {r.won ? t("Won") : t("Lost")}
                   </span>
                 )}
               </td>
-              <td>{r.buy ?? "—"}</td>
+              <td>{r.buy ?? "–"}</td>
               <td className="r tabular">
-                {formatNumber(r.kills, 0, locale) ?? "—"}
+                {formatNumber(r.kills, 0, locale) ?? "–"}
                 {r.died && (
                   <Skull size={14} className="rt-died" title={t("Died")} />
                 )}
               </td>
               <td className="r tabular">
-                {formatNumber(r.damage, 0, locale) ?? "—"}
+                {formatNumber(r.damage, 0, locale) ?? "–"}
               </td>
               <td>
                 <span className="rt-tags">
