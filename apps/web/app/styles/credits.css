@@ -968,8 +968,8 @@
 }
 .xh-dot-na,
 .xh-key.na {
-  fill: var(--muted);
-  background: var(--muted);
+  fill: color-mix(in srgb, var(--text) 50%, transparent);
+  background: color-mix(in srgb, var(--text) 50%, transparent);
 }
 .xh-key {
   display: inline-block;
