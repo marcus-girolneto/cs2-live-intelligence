@@ -238,7 +238,9 @@ function throwTeleports(
   let lineups = 0;
   for (const t of best)
     if (lineups < MAX_LINEUPS && add(t, "lineup")) lineups++;
-  for (const t of worst) add(t, "teamflash");
+  // A flash already shown as a lineup to repeat is not listed again as a team flash.
+  const shown = new Set(out.map((t) => t.id.replace(/^lineup-/, "")));
+  for (const t of worst) if (!shown.has(t.eventId)) add(t, "teamflash");
   return out;
 }
 
