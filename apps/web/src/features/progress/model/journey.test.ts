@@ -109,11 +109,11 @@ describe("trends and summary", () => {
     });
     const low = normalizeJourney({
       timeline: [
-        { analysisId: "1", playedAt: "2026-01-01", crosshairMedianDeg: 6 },
-        { analysisId: "2", playedAt: "2026-01-02", crosshairMedianDeg: 4 },
+        { analysisId: "1", playedAt: "2026-01-01", isolatedDeathsPct: 60 },
+        { analysisId: "2", playedAt: "2026-01-02", isolatedDeathsPct: 40 },
       ],
     });
-    expect(trendOf(low.timeline, "crosshairMedianDeg")?.direction).toBe(
+    expect(trendOf(low.timeline, "isolatedDeathsPct")?.direction).toBe(
       "better",
     );
     expect(trendOf(low.timeline, "adr")).toBeNull();

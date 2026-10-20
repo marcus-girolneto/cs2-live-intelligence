@@ -3,6 +3,7 @@
  * deterministic mistake/highlight tag), and the Pro history comparison against previous deep
  * reviews on the same map.
  */
+import { onTargetPct } from "@cs2/contracts/crosshair";
 import type { Analysis, DeepPositioning, DeepReview } from "@cs2/contracts";
 import { mean, r1, uniqueGrenades, type Player } from "./common.js";
 
@@ -91,18 +92,11 @@ type Metric = {
 /** Metrics compared against previous deep reviews on the same map. */
 export const HISTORY_METRICS: Metric[] = [
   {
-    key: "crosshair-offset",
-    label: "Crosshair offset at duel start",
-    unit: "°",
-    better: "lower",
-    value: (d) => d.crosshair?.medianOffset,
-  },
-  {
-    key: "pre-aimed",
-    label: "Duels pre-aimed (< 5°)",
+    key: "crosshair-on-target",
+    label: "Duels with the crosshair already on the enemy",
     unit: "%",
     better: "higher",
-    value: (d) => d.crosshair?.preAimedPct,
+    value: (d) => onTargetPct(d.crosshair?.samples ?? []),
   },
   {
     key: "enemies-per-flash",

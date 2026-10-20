@@ -69,8 +69,7 @@ export const BUY_LABEL: Record<string, string> = {
 
 /** History-compare metrics by key (the stored label is English). */
 export const HISTORY_LABEL: Record<string, string> = {
-  "crosshair-offset": "Crosshair offset at duel start",
-  "pre-aimed": "Duels pre-aimed (< 5°)",
+  "crosshair-on-target": "Duels with the crosshair already on the enemy",
   "enemies-per-flash": "Enemies blinded per flash",
   "team-flash-rate": "Team-flash rate",
   "isolated-deaths": "Isolated deaths",
@@ -150,3 +149,50 @@ export function lineupWhy(l: Lineup, t: Translate, locale: string) {
     );
   return parts.join(" ");
 }
+
+/** Where the crosshair usually sits, in body heights. */
+export const HEIGHT_TEXT: Record<string, { label: string; tip: string }> = {
+  above: {
+    label: "Your crosshair tends to sit too high, above the head.",
+    tip: "Lower it a touch: aim where heads appear, not over them.",
+  },
+  head: {
+    label: "Your crosshair usually sits at head height.",
+    tip: "Good height. Keep it there while you move.",
+  },
+  neck: {
+    label: "Your crosshair tends to sit a little low: around neck height.",
+    tip: "Raise it slightly so the first bullet goes to the head.",
+  },
+  chest: {
+    label: "Your crosshair tends to sit low: around chest height.",
+    tip: "Raise it to head height before you peek.",
+  },
+  stomach: {
+    label: "Your crosshair tends to sit very low: around stomach height.",
+    tip: "Raise it to head height before you peek; check it every time you stop.",
+  },
+  legs: {
+    label: "Your crosshair tends to sit very low: around the legs.",
+    tip: "Raise it to head height before you peek; check it every time you stop.",
+  },
+};
+export const SIDE_TEXT: Record<string, string> = {
+  left: "It also tends to be to the left of where enemies appear: check the other side of the angle first.",
+  right:
+    "It also tends to be to the right of where enemies appear: check the other side of the angle first.",
+};
+export const CATEGORY_TEXT: Record<string, { label: string; tip: string }> = {
+  on: {
+    label: "On target",
+    tip: "Your crosshair was already on the enemy.",
+  },
+  close: {
+    label: "Near",
+    tip: "One small adjustment away.",
+  },
+  off: {
+    label: "Big flick",
+    tip: "You needed a big flick.",
+  },
+};

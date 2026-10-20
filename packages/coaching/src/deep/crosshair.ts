@@ -23,6 +23,7 @@ import {
   type DeepTrack,
   type Timed,
 } from "./common.js";
+import { onTargetPct, summarizeCrosshair } from "@cs2/contracts/crosshair";
 
 type Duel = DeepCrosshair["samples"][number];
 /** Contact more than this many seconds after the previous one starts a new duel. */
@@ -59,6 +60,8 @@ export function aimOffset(
   to: { x: number; y: number; z: number },
 ): {
   yaw: number;
+  /** Signed horizontal error: positive = crosshair right of the target. */
+  yawError: number;
   pitch: number;
   pitchError: number;
   total: number;
@@ -86,6 +89,8 @@ export function aimOffset(
   );
   return {
     yaw: Math.abs(yaw),
+    // Game yaw grows counter-clockwise: a larger view yaw looks left of the target.
+    yawError: -yaw,
     pitch: Math.abs(pitchError),
     pitchError,
     total: Math.acos(dot) / RAD,
@@ -207,6 +212,7 @@ export function measureDuels(
       pitchOffset: r1(o.pitch),
       offset: r1(o.total),
       pitchError: r1(o.pitchError),
+      yawError: r1(o.yawError),
       distance: Math.round(o.distance),
       ...(outcome ? { won: outcome.attackerId === steamId } : {}),
     });
@@ -247,6 +253,9 @@ export function crosshairModule(
     offsets.filter((o) => o < PRE_AIM_DEGREES).length,
     offsets.length,
   );
+  // Users and the model get categories, body heights and counts; degrees stay internal.
+  const summary = summarizeCrosshair(samples);
+  const { onTarget, close, off, total } = summary.preAim;
   const evidence = defined([
     fact(
       "deep-crosshair-duels",
@@ -256,36 +265,44 @@ export function crosshairModule(
       ids,
     ),
     fact(
-      "deep-crosshair-median-offset",
+      "deep-crosshair-on-target",
       "deep-crosshair",
-      "Median angle between your crosshair and the enemy at the start of a duel (degrees)",
-      medianOffset === null ? null : r1(medianOffset),
+      `Duels where your crosshair was already on the enemy when the duel started (${onTarget} of ${total})`,
+      total ? onTarget : null,
       ids,
     ),
     fact(
-      "deep-crosshair-preaimed",
+      "deep-crosshair-close",
       "deep-crosshair",
-      `Duels started with the crosshair within ${PRE_AIM_DEGREES} degrees of the enemy (%)`,
-      preAimed,
+      `Duels that needed one small adjustment to reach the enemy (${close} of ${total})`,
+      total ? close : null,
       ids,
     ),
     fact(
-      "deep-crosshair-pitch-bias",
+      "deep-crosshair-off",
       "deep-crosshair",
-      "Mean vertical crosshair error at duel start (degrees, negative = below the enemy's head height)",
-      bias === null ? null : r1(bias),
+      `Duels that needed a big flick to reach the enemy (${off} of ${total})`,
+      total ? off : null,
       ids,
     ),
-    ...worst.map((w) =>
+    fact(
+      "deep-crosshair-on-target-pct",
+      "deep-crosshair",
+      "Duels started with the crosshair already on the enemy (%)",
+      onTargetPct(samples),
+      ids,
+    ),
+    ...summary.perCallout.map((w) =>
       fact(
-        `deep-crosshair-place-${placeKey(w.place)}`,
+        `deep-crosshair-place-${placeKey(w.callout)}`,
         "place-crosshair",
-        `Median crosshair offset at ${w.place} over ${w.duels} duels (degrees)`,
-        w.medianOffset,
-        w.ids,
+        `Duels at ${w.callout} where your crosshair was not on the enemy yet (${w.total - w.onTarget} of ${w.total})`,
+        w.total - w.onTarget,
+        samples.filter((s) => s.place === w.callout).map((s) => s.eventId),
       ),
     ),
   ]);
+
   return {
     crosshair: {
       duels,
@@ -319,6 +336,7 @@ export function crosshairModule(
         duels: d,
       })),
       samples: samples.slice(0, 80),
+      ...summary,
       evidenceIds: evidence.map((e) => e.id),
     },
     evidence,

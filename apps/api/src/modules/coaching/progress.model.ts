@@ -6,6 +6,7 @@
  */
 import type { Analysis, DeepReview, TargetMetric } from "@cs2/contracts";
 import { planTarget, type Direction } from "@cs2/coaching";
+import { onTargetPct } from "@cs2/contracts/crosshair";
 
 export const PROGRESS_METRICS = [
   "adr",
@@ -18,6 +19,7 @@ export const PROGRESS_METRICS = [
   "utilityDamagePerRound",
   "crosshairMedianDeg",
   "isolatedDeathsPct",
+  "crosshairOnTargetPct",
 ] as const;
 export type ProgressMetric = (typeof PROGRESS_METRICS)[number];
 export type MetricValues = Partial<Record<ProgressMetric, number>>;
@@ -34,6 +36,7 @@ export const ADHERENCE_THRESHOLDS: Record<ProgressMetric, number> = {
   utilityDamagePerRound: 3,
   crosshairMedianDeg: 1,
   isolatedDeathsPct: 10,
+  crosshairOnTargetPct: 10,
 };
 /** Minimum sample (rounds, deaths, duels, shots...) for a metric to be judged in one match. */
 export const MIN_SAMPLES: Record<ProgressMetric, number> = {
@@ -47,6 +50,7 @@ export const MIN_SAMPLES: Record<ProgressMetric, number> = {
   utilityDamagePerRound: 8,
   crosshairMedianDeg: 5,
   isolatedDeathsPct: 3,
+  crosshairOnTargetPct: 5,
 };
 
 type Player = Analysis["players"][number];
@@ -91,6 +95,12 @@ export function matchMetrics(
     set(
       "crosshairMedianDeg",
       deep.crosshair.medianOffset,
+      deep.crosshair.measured,
+    );
+  if (deep?.crosshair)
+    set(
+      "crosshairOnTargetPct",
+      onTargetPct(deep.crosshair.samples ?? []),
       deep.crosshair.measured,
     );
   if (deep?.positioning)

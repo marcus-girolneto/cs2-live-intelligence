@@ -38,9 +38,7 @@ export function compareReviews(
     extras.push({
       key: "crosshair",
       label: "{n} duels measured for crosshair placement",
-      n:
-        d.crosshair.duels ??
-        d.crosshair.histogram.reduce((s, b) => s + b.count, 0),
+      n: d.crosshair.preAim.total,
     });
   if (d?.positioning)
     extras.push({

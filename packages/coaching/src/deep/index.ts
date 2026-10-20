@@ -5,6 +5,7 @@
 import type { Analysis, DeepReview, Evidence } from "@cs2/contracts";
 import { CalloutIndex, ReplayIndex, type DeepReplay } from "./common.js";
 import { crosshairModule } from "./crosshair.js";
+import { meters } from "./positioning.js";
 import { positioningModule } from "./positioning.js";
 import { deepHistory, roundTable } from "./rounds.js";
 import { utilityModule } from "./utility.js";
@@ -109,40 +110,50 @@ export function deepContext(deep: DeepReview) {
       : {}),
     ...(c
       ? {
+          // No angles: the model talks about the crosshair the way players do.
           crosshair: {
             duels: c.duels,
             measured: c.measured,
-            medianOffset: c.medianOffset,
-            medianYawOffset: c.medianYawOffset,
-            medianPitchOffset: c.medianPitchOffset,
-            preAimedPct: c.preAimedPct,
-            pitchBias: c.pitchBias,
-            pitchTendency: c.pitchTendency,
-            histogram: c.histogram,
-            worstCallouts: c.worstCallouts,
+            ...(c.preAim ? { preAim: c.preAim } : {}),
+            typicalHeight: c.heightBand ?? null,
+            sideDrift: c.horizontalBias ?? null,
+            worstCallouts: (c.perCallout ?? []).map((w) => ({
+              place: w.callout,
+              duels: w.total,
+              crosshairNotOnEnemy: w.total - w.onTarget,
+            })),
           },
         }
       : {}),
     ...(p
       ? {
+          // Distances in meters (stored in world units).
           positioning: {
             deaths: p.deaths,
-            avgIsolation: p.avgIsolation,
+            avgIsolationMeters:
+              p.avgIsolation === null ? null : meters(p.avgIsolation),
             isolatedPct: p.isolatedPct,
             tradedPct: p.tradedPct,
             crossfirePct: p.crossfirePct,
             avgHoldSeconds: p.avgHoldSeconds,
-            byCallout: p.byCallout,
+            byCallout: p.byCallout.map(({ avgIsolation, ...c }) => ({
+              ...c,
+              avgIsolationMeters:
+                avgIsolation === null ? null : meters(avgIsolation),
+            })),
             dangerZones: p.dangerZones.map((z) => ({
               place: z.place,
               deaths: z.deaths,
               rounds: z.rounds,
               why: z.why,
             })),
-            deathsDetail: p.deathsDetail.map((d) => ({
-              ...d,
-              eventId: undefined,
-            })),
+            deathsDetail: p.deathsDetail.map(
+              ({ nearestTeammate, eventId: _id, ...d }) => ({
+                ...d,
+                nearestTeammateMeters:
+                  nearestTeammate === null ? null : meters(nearestTeammate),
+              }),
+            ),
           },
         }
       : {}),

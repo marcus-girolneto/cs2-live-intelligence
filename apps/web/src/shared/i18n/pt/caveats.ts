@@ -33,6 +33,8 @@ export const ptCaveats: Record<string, string> = {
     "O tempo de bloqueio do molotov não pode ser obtido da demo; o local de queda é o callout mais próximo visto nesta partida.",
   "No replay samples for this match: view angles are computed toward the enemy, and lineups and crosshair spots are unavailable.":
     "Esta partida não tem amostras de replay: a direção da visão é calculada em relação ao inimigo, e lineups e pontos de mira não estão disponíveis.",
+  "Spots taken from replay samples are approximate: fine-tune lineups with the trajectory preview.":
+    "Os pontos tirados das amostras de replay são aproximados: ajuste as lineups com a prévia da trajetória.",
   "Angles from replay samples are whole degrees taken a few times per second: fine-tune lineups with the trajectory preview.":
     "Os ângulos das amostras de replay são aproximados e registrados poucas vezes por segundo: ajuste as lineups com a prévia da trajetória.",
 };

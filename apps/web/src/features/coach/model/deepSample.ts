@@ -17,15 +17,16 @@ export const DEEP_SAMPLE: DeepReview = normalizeDeep({
     ],
   },
   crosshair: {
-    medianOffset: 5.2,
-    wellPreAimed: 41,
-    duels: 34,
-    pitch: "low",
-    histogram: [
-      { from: 0, to: 3, count: 14 },
-      { from: 3, to: 6, count: 11 },
-      { from: 6, to: 9, count: 6 },
-      { from: 9, count: 3 },
+    preAim: { onTarget: 9, close: 14, off: 11, total: 34 },
+    heightBand: "chest",
+    horizontalBias: "centered",
+    perCallout: [{ callout: "Connector", onTarget: 1, total: 5 }],
+    dots: [
+      { x: 0.2, y: -1.1, won: true, category: "on" },
+      { x: -0.9, y: -1.6, won: false, category: "close" },
+      { x: 1.8, y: -0.8, won: false, category: "off" },
+      { x: 0.4, y: -0.2, won: true, category: "on" },
+      { x: -2.3, y: -2.1, won: false, category: "off" },
     ],
   },
   positioning: {

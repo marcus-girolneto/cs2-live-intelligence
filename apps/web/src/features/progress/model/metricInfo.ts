@@ -4,7 +4,7 @@ import type { JourneyMetric } from "./journey";
 /** How each followed metric is labelled, explained and formatted. */
 export const METRIC_INFO: Record<
   JourneyMetric,
-  { label: string; term?: GlossaryId; unit: "" | "%" | "°"; digits: number }
+  { label: string; term?: GlossaryId; unit: "" | "%"; digits: number }
 > = {
   adr: { label: "ADR", term: "adr", unit: "", digits: 0 },
   kd: { label: "K/D", term: "kd", unit: "", digits: 2 },
@@ -29,11 +29,11 @@ export const METRIC_INFO: Record<
     unit: "",
     digits: 0,
   },
-  crosshairMedianDeg: {
-    label: "Crosshair offset",
+  crosshairOnTargetPct: {
+    label: "Crosshair already on the enemy",
     term: "preAim",
-    unit: "°",
-    digits: 1,
+    unit: "%",
+    digits: 0,
   },
   isolatedDeathsPct: {
     label: "Isolated deaths",

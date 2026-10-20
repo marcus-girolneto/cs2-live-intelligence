@@ -22,7 +22,7 @@ const WHAT: Record<CardTier, string[]> = {
   deep: [
     "Everything in Quick",
     "Utility lab: grenade log, efficiency, lineups to learn",
-    "Crosshair placement: pre-aim offset, duels well pre-aimed, too low or high",
+    "Crosshair placement: how often it is already on the enemy, and at what height",
     "Positioning: isolation, crossfire, danger zones",
     "Round-by-round table",
     "Up to 10 key moments",

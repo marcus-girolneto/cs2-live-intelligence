@@ -21,8 +21,8 @@ import {
   type DataBoundary,
 } from "./security.js";
 
-export const POST_MATCH_PROMPT_VERSION = "igl-review-v10";
-export const LIVE_PROMPT_VERSION = "igl-live-v5";
+export const POST_MATCH_PROMPT_VERSION = "igl-review-v11";
+export const LIVE_PROMPT_VERSION = "igl-live-v6";
 
 const GROUNDING = `
 GROUNDING RULES:
@@ -61,7 +61,7 @@ OUTPUT FIELDS (every field is required; use an empty list when there is nothing 
 - "insights" (improvements first, 2-6; fewer when the sample is small): "observation" = what happened with concrete rounds and numbers (max 2 short sentences); "actionablePractice" = the call (max 2 short sentences); "evidenceIds" = 1-4 ids from "facts"; "confidence" = "high" only for patterns backed by many events, "medium" for clear but smaller patterns, "low" for small samples or likely-but-unproven causes; "caveats" = 0-2 short notes naming missing data or a small sample (empty list when none); "kind" = "improve" | "strength"; "scope" (see SCOPE).
 - "keyMoments" (3-6 when candidates allow): "eventId" must be an "id" from "momentCandidates"; "title" max 8 words; "whatHappened" one sentence from the candidate's data (situation, place, weapon, HP, trade outcome); "whatToDoInstead" one sentence (for highlights: what to repeat); "kind" = "mistake" | "highlight"; "scope". Prefer moments that repeat a pattern you diagnosed. Never pick an id that is not in momentCandidates. Each candidate's "outcome" says what happened to you: "YOU KILLED…" is your kill (a "highlight"), "YOU DIED…" is your death (a "mistake"); "whatHappened" must state that same outcome, never the opposite. Describe ONLY that candidate: its round number, time, situation, places, weapon, HP and trade outcome; do not mix in other rounds or weapons (moments naming a different round are discarded).
 - "drills" (2-4): concrete practice routines tied to the weaknesses. "name" (e.g. "Aim Botz: first-bullet headshots", "Yprac prefire map for this map", "Deathmatch: rifles only, tap/burst", "Utility lineups: 2 smokes + 1 flash for your T-side execute", "Retake/trade practice with a friend"), "durationMinutes" (integer, realistic, 5-30), "howTo" (one or two sentences: exact rules), "metric" (how the player measures progress in the NEXT match using metrics this app reports, e.g. "opening duels won", "deaths traded", "accuracy with the AK-47"; never invent a target number that is not derived from the data), "scope".
-- "plan" (1-3): ordered priorities for the next match, each {"text": max ~12 words, imperative, "scope", "targetMetric", "direction"}. "targetMetric" is the metric this app will use to check the priority in the next matches: "adr", "kd", "kast", "hsPct", "accuracy", "tradedDeathsPct", "openingWinPct", "utilityDamagePerRound", "crosshairMedianDeg", "isolatedDeathsPct", or "none" when no metric fits; "direction" is "up" or "down" (the way the metric should move; lower is better for crosshairMedianDeg and isolatedDeathsPct; use "up" with "none").
+- "plan" (1-3): ordered priorities for the next match, each {"text": max ~12 words, imperative, "scope", "targetMetric", "direction"}. "targetMetric" is the metric this app will use to check the priority in the next matches: "adr", "kd", "kast", "hsPct", "accuracy", "tradedDeathsPct", "openingWinPct", "utilityDamagePerRound", "crosshairOnTargetPct" (duels started with the crosshair already on the enemy, deep reviews only), "isolatedDeathsPct", or "none" when no metric fits; "direction" is "up" or "down" (the way the metric should move; lower is better for isolatedDeathsPct; use "up" with "none").
 
 SCOPE (tag every insight, key moment, drill and plan item):
 - "map": depends on THIS map: callouts/places, positions, map timings (e.g. dying at a callout in the first 20 s), side-on-this-map patterns, map-specific lineups or prefire routes.

@@ -129,7 +129,6 @@ export const pt: Record<string, string> = {
     "Os créditos só são gastos quando a review é escrita. Abrir uma review que você já tem é sempre grátis.",
   "of duels well pre-aimed": "dos duelos com boa pré-mira",
   "duels measured": "duelos medidos",
-  "{n}° on average": "{n}° em média",
   "Distribution of pre-aim offsets": "Distribuição do desvio de pré-mira",
   "Duels by how far your crosshair was from the enemy's head":
     "Duelos pela distância da sua mira até a cabeça do inimigo",
@@ -141,7 +140,6 @@ export const pt: Record<string, string> = {
     "Comparado com suas partidas anteriores",
   "vs {v} before": "vs {v} antes",
   "Where your {n} grenades landed": "Onde suas {n} granadas caíram",
-  "Median pre-aim offset {n}°": "Desvio mediano de pré-mira {n}°",
   "median pre-aim offset": "desvio mediano de pré-mira",
   "Deaths while isolated": "Mortes isolado",
   "Fights taken in a crossfire": "Duelos em fogo cruzado",
@@ -168,8 +166,8 @@ export const pt: Record<string, string> = {
   "Everything in Quick": "Tudo da Quick",
   "Utility lab: grenade log, efficiency, lineups to learn":
     "Laboratório de utilitárias: registro de granadas, eficiência, lineups para aprender",
-  "Crosshair placement: pre-aim offset, duels well pre-aimed, too low or high":
-    "Posicionamento da mira: desvio de pré-mira, duelos bem pré-mirados, baixa ou alta demais",
+  "Crosshair placement: how often it is already on the enemy, and at what height":
+    "Posicionamento da mira: quantas vezes ela já está no inimigo e em que altura",
   "Positioning: isolation, crossfire, danger zones":
     "Posicionamento: isolamento, fogo cruzado, zonas de perigo",
   "Up to 10 key moments": "Até 10 momentos-chave",

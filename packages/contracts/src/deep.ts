@@ -140,6 +140,8 @@ export const crosshairDuelSchema = z.object({
   offset: num.nonnegative(),
   /** Signed vertical error: positive = crosshair above the target, negative = below. */
   pitchError: num,
+  /** Signed horizontal error, degrees: positive = crosshair right of the enemy. */
+  yawError: num.optional(),
   distance: num.nonnegative(),
   won: z.boolean().optional(),
 });
@@ -160,6 +162,33 @@ export const crosshairSchema = z.object({
     .array(z.object({ place, medianOffset: num.nonnegative(), duels: count }))
     .max(5),
   samples: z.array(crosshairDuelSchema).max(80),
+  /**
+   * Player-facing summary (crosshair.ts): degrees above stay internal, users and the model see
+   * these categories, bands and dots (x/y in body units: 16 world units, y up, 0 = eyes).
+   */
+  preAim: z
+    .object({ onTarget: count, close: count, off: count, total: count })
+    .optional(),
+  heightBand: z
+    .enum(["above", "head", "neck", "chest", "stomach", "legs"])
+    .nullable()
+    .optional(),
+  horizontalBias: z.enum(["left", "right", "centered"]).nullable().optional(),
+  perCallout: z
+    .array(z.object({ callout: place, onTarget: count, total: count }))
+    .max(5)
+    .optional(),
+  dots: z
+    .array(
+      z.object({
+        x: num,
+        y: num,
+        won: z.boolean().optional(),
+        category: z.enum(["on", "close", "off"]),
+      }),
+    )
+    .max(80)
+    .optional(),
   evidenceIds,
 });
 export type DeepCrosshair = z.infer<typeof crosshairSchema>;

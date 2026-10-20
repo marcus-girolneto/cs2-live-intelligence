@@ -29,7 +29,12 @@ describe("normalizePersonal", () => {
             current: 29,
             target: 45,
           },
-          { area: "Pre-aim", targetMetric: "Offset °", current: 6, target: 4 },
+          {
+            area: "Pre-aim",
+            targetMetric: "On target %",
+            current: 40,
+            target: 55,
+          },
           { area: "Nothing" },
         ],
         weeklyProgram: [
@@ -57,7 +62,7 @@ describe("normalizePersonal", () => {
       { text: "Utility", evidence: null },
     ]);
     expect(p.notWorking).toHaveLength(1);
-    expect(p.focusAreas.map((f) => f.progress)).toEqual([64, 67, null]);
+    expect(p.focusAreas.map((f) => f.progress)).toEqual([64, 73, null]);
     expect(p.weeklyProgram.map((w) => w.week)).toEqual([1, 2]);
     expect(p.weeklyProgram[0]!.drills[0]).toMatchObject({
       id: "w1-0",

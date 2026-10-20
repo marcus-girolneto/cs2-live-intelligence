@@ -4,13 +4,12 @@
  */
 import { parseClip } from "@/features/replay";
 import { finite, text } from "@/shared/format";
+import { parseCrosshair } from "./deepCrosshair";
 import { parseHistory } from "./history";
 import { arr, first, num, obj, opt, pct, point, strs } from "./parse";
 
 import type {
-  Bin,
   DangerZone,
-  DeepCrosshair,
   DeepPositioning,
   DeepReview,
   DeepUtility,
@@ -140,69 +139,6 @@ function parseUtility(raw: unknown): DeepUtility | undefined {
     throws,
     perType,
     lineups,
-  };
-}
-
-function parseCrosshair(raw: unknown): DeepCrosshair | undefined {
-  const o = obj(raw);
-  if (!o) return undefined;
-  const p = text(first(o, ["pitch", "pitchTendency", "tendency"]));
-  const bias = num(o, ["pitchBias", "pitchBiasDeg", "verticalOffset"]);
-  const pitch =
-    p === "low" || p === "too_low"
-      ? "low"
-      : p === "high" || p === "too_high"
-        ? "high"
-        : p === "level" || p === "ok"
-          ? "level"
-          : bias !== null
-            ? bias < -1
-              ? "low"
-              : bias > 1
-                ? "high"
-                : "level"
-            : null;
-  const histogram = arr(first(o, ["histogram", "distribution"]))
-    .map((b): Bin | null => {
-      const x = obj(b);
-      const c = x && count(first(x, ["count", "n", "value"]));
-      if (!x || c === null) return null;
-      const from = num(x, ["from", "min", "deg"]);
-      const to = num(x, ["to", "max"]);
-      const label =
-        text(x.label) ??
-        (from !== null ? (to !== null ? `${from}–${to}°` : `${from}°+`) : null);
-      return label ? { label, from, to, count: c } : null;
-    })
-    .filter((x): x is Bin => !!x);
-  const worst = arr(first(o, ["worstCallouts", "worst", "callouts"]))
-    .map((w) => {
-      const x = obj(w);
-      const place = x && text(first(x, ["place", "callout", "name"]));
-      return x && place
-        ? {
-            place,
-            offset: num(x, ["offset", "offsetDeg", "medianOffset"]),
-            duels: count(first(x, ["duels", "count"])),
-          }
-        : null;
-    })
-    .filter((x): x is DeepCrosshair["worst"][number] => !!x);
-  const median = num(o, ["medianOffset", "medianOffsetDeg", "preAimOffset"]);
-  const well = pct(
-    first(o, ["wellPreAimed", "wellPreAimedPct", "preAimedPct"]),
-  );
-  if (median === null && well === null && !histogram.length && !worst.length)
-    return undefined;
-  return {
-    ...opt("summary", text(o.summary)),
-    medianOffset: median === null ? null : Math.abs(median),
-    wellPreAimed: well,
-    duels: count(first(o, ["duels", "samples"])),
-    pitch,
-    pitchBias: bias,
-    histogram,
-    worst,
   };
 }
 

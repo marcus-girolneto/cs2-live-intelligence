@@ -29,7 +29,9 @@ export const SAMPLE_REPORT: Report = normalizeReport({
     { title: "Flashes that blind teammates", count: 5, trend: "worse" },
   ],
   utility: { series: { efficiency: weeks([44, 49, 52, 58]) } },
-  crosshair: { series: { medianOffset: weeks([6.1, 5.4, 4.9, 4.2]) } },
+  crosshair: {
+    series: { "crosshair-on-target": weeks([20, 27, 33, 40]) },
+  },
   bestMatch: { map: "de_mirage", kills: 27, deaths: 14, adr: 112.4, score: 86 },
   worstMatch: { map: "de_nuke", kills: 11, deaths: 19, adr: 58.3, score: 41 },
   plan: [

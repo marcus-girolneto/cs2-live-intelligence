@@ -25,7 +25,7 @@ const RULES: [RegExp, TargetMetric][] = [
   ],
   [
     /\b(?:crosshair|pre-?aim\w*|pr[eé]-?mir\w*|mira|head level|altura da cabe[cç]a)\b/i,
-    "crosshairMedianDeg",
+    "crosshairOnTargetPct",
   ],
   [/\b(?:headshots?|hs|cabe[cç]a|capa)\b/i, "hsPct"],
   [
@@ -61,6 +61,9 @@ export function planTarget(
   const metric = TARGET_METRICS.find((m) => m === targetMetric);
   if (!metric) return inferTarget(text);
   if (metric === "none") return { targetMetric: "none", direction: "up" };
+  // Degrees are internal: older crosshair targets are tracked as "already on the enemy".
+  if (metric === "crosshairMedianDeg")
+    return { targetMetric: "crosshairOnTargetPct", direction: "up" };
   return {
     targetMetric: metric,
     direction:

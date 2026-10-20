@@ -151,7 +151,8 @@ export type ProgressMetricKey =
   | "openingWinPct"
   | "utilityDamagePerRound"
   | "crosshairMedianDeg"
-  | "isolatedDeathsPct";
+  | "isolatedDeathsPct"
+  | "crosshairOnTargetPct";
 export type ProgressMetricsDto = Partial<Record<ProgressMetricKey, number>>;
 export type TargetMetricDto = ProgressMetricKey | "none";
 /** A plan item of a review on the progress timeline (id = `${reviewId}:${index}`). */

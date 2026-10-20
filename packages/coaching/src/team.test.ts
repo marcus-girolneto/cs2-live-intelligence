@@ -177,7 +177,7 @@ describe("team review", () => {
       owner: "team",
       targetMetric: "utilityDamagePerRound",
     });
-    expect(review.provenance).toMatchObject({ promptVersion: "igl-team-v3" });
+    expect(review.provenance).toMatchObject({ promptVersion: "igl-team-v4" });
     expect(review.provenance!.verification!.dropped).toBeGreaterThanOrEqual(1);
     expect(review.teamScores).toBeDefined();
   });

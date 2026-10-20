@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./languages": "./src/languages.ts",
-    "./callouts": "./src/callouts.ts"
+    "./callouts": "./src/callouts.ts",
+    "./crosshair": "./src/crosshair.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

@@ -238,7 +238,10 @@ const planItem = {
   properties: {
     text: string,
     scope,
-    targetMetric: { type: "string", enum: [...TARGET_METRICS] },
+    targetMetric: {
+      type: "string",
+      enum: TARGET_METRICS.filter((m) => m !== "crosshairMedianDeg"),
+    },
     direction: { type: "string", enum: ["up", "down"] },
   },
 };

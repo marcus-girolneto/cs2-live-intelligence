@@ -57,7 +57,9 @@ describe("monthly report", () => {
           },
         ],
         utilityCrosshair: [
+          // Older reports carry a degree trend: it is never shown.
           trend("medianOffset", [6, 5], "lower"),
+          trend("crosshair-on-target", [20, 35]),
           trend("flashEfficiency", [30, 40]),
         ],
         best: {
@@ -95,7 +97,9 @@ describe("monthly report", () => {
       count: 4,
       tip: "Stop dry peeks.",
     });
-    expect(r.crosshair!.series.map((s) => s.key)).toEqual(["medianOffset"]);
+    expect(r.crosshair!.series.map((s) => s.key)).toEqual([
+      "crosshair-on-target",
+    ]);
     expect(r.utility!.series.map((s) => s.key)).toEqual(["flashEfficiency"]);
     expect(seriesDelta(r.crosshair!.series[0]!).good).toBe(true);
     expect(r.bestMatch).toMatchObject({

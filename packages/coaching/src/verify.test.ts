@@ -382,8 +382,13 @@ describe("plan targets", () => {
       direction: "down",
     });
     expect(inferTarget("Crosshair at head level").targetMetric).toBe(
-      "crosshairMedianDeg",
+      "crosshairOnTargetPct",
     );
+    // Older degree targets are tracked as "already on the enemy" (higher is better).
+    expect(planTarget("Pre-aim", "crosshairMedianDeg", "down")).toEqual({
+      targetMetric: "crosshairOnTargetPct",
+      direction: "up",
+    });
     expect(inferTarget("Use mais granadas antes de entrar").targetMetric).toBe(
       "utilityDamagePerRound",
     );

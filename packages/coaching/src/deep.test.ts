@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
+import { onTargetPct } from "@cs2/contracts/crosshair";
 import { describe, expect, it } from "vitest";
 import { analyzeDemo } from "@cs2/analytics";
 import { deepSchema, type Analysis, type DemoEvent } from "@cs2/contracts";
@@ -419,14 +420,20 @@ describe("deep modules", () => {
   it("compares with previous deep reviews on the map", () => {
     const { deep } = computeDeep(analysis(events), ME, replay);
     const older = structuredClone(deep);
-    older.crosshair!.medianOffset = 7;
+    // Earlier matches: every duel needed a big flick (0% already on the enemy).
+    older.crosshair!.samples = older.crosshair!.samples.map((x) => ({
+      ...x,
+      offset: 40,
+    }));
+    const now = onTargetPct(deep.crosshair!.samples)!;
     const chips = deepHistory(deep, [older, older]);
-    expect(chips.find((c) => c.key === "crosshair-offset")).toMatchObject({
-      current: 3,
-      baseline: 7,
-      better: "lower",
+    expect(chips.find((c) => c.key === "crosshair-on-target")).toMatchObject({
+      current: now,
+      baseline: 0,
+      better: "higher",
       matches: 2,
     });
+    expect(JSON.stringify(chips)).not.toMatch(/°|degree/);
   });
 });
 

@@ -11,7 +11,7 @@ export const JOURNEY_METRICS = [
   "tradedDeathsPct",
   "openingWinPct",
   "utilityDamagePerRound",
-  "crosshairMedianDeg",
+  "crosshairOnTargetPct",
   "isolatedDeathsPct",
 ] as const;
 export type JourneyMetric = (typeof JOURNEY_METRICS)[number];
@@ -25,10 +25,7 @@ const ALIASES: Partial<Record<JourneyMetric, string[]>> = {
 };
 
 /** Metrics where a lower number is better. */
-export const LOWER_IS_BETTER = new Set<JourneyMetric>([
-  "crosshairMedianDeg",
-  "isolatedDeathsPct",
-]);
+export const LOWER_IS_BETTER = new Set<JourneyMetric>(["isolatedDeathsPct"]);
 
 export type Candidate = {
   steamId: string;

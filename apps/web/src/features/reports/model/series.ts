@@ -54,8 +54,12 @@ const KNOWN: Record<
     unit: "",
     better: "higher",
   },
-  medianOffset: { label: "Pre-aim offset", unit: "°", better: "lower" },
   wellPreAimed: { label: "Duels well pre-aimed", unit: "%", better: "higher" },
+  "crosshair-on-target": {
+    label: "Crosshair already on the enemy",
+    unit: "%",
+    better: "higher",
+  },
 };
 
 function parsePoints(v: unknown): SeriesPoint[] {
@@ -77,24 +81,32 @@ export function parseSeries(raw: unknown): Series[] {
   const entries: [string, unknown][] = o
     ? Object.entries(o).filter(([k]) => k !== "summary")
     : arr(raw).map((s) => [String(obj(s)?.key ?? ""), s]);
-  return entries
-    .map(([key, v]): Series | null => {
-      const s = obj(v);
-      const points = parsePoints(
-        Array.isArray(v) ? v : Array.isArray(s?.series) ? s.series : s?.points,
-      );
-      if (points.length < 2) return null;
-      const known = KNOWN[key];
-      return {
-        key: key || String(text(s?.label) ?? "series"),
-        label: text(s?.label) ?? known?.label ?? key,
-        unit: text(s?.unit) ?? known?.unit ?? "",
-        better: s?.better === "lower" ? "lower" : (known?.better ?? "higher"),
-        points,
-      };
-    })
-    .filter((x): x is Series => !!x)
-    .slice(0, 6);
+  return (
+    entries
+      .map(([key, v]): Series | null => {
+        const s = obj(v);
+        const points = parsePoints(
+          Array.isArray(v)
+            ? v
+            : Array.isArray(s?.series)
+              ? s.series
+              : s?.points,
+        );
+        if (points.length < 2) return null;
+        const known = KNOWN[key];
+        return {
+          key: key || String(text(s?.label) ?? "series"),
+          label: text(s?.label) ?? known?.label ?? key,
+          unit: text(s?.unit) ?? known?.unit ?? "",
+          better: s?.better === "lower" ? "lower" : (known?.better ?? "higher"),
+          points,
+        };
+      })
+      .filter((x): x is Series => !!x)
+      // Angles are internal: older reports' degree series are not shown.
+      .filter((s) => s.unit !== "°" && !/offset/i.test(s.key))
+      .slice(0, 6)
+  );
 }
 export function parseEvolution(raw: unknown): Evolution | null {
   const o = obj(raw);

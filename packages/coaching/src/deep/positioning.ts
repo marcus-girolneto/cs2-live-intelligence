@@ -113,6 +113,9 @@ export function deathFacts(
     });
 }
 
+/** World units to whole meters (1 unit is about 2.54 cm); the model and users see meters. */
+export const meters = (units: number) => Math.round(units * 0.0254);
+
 const zoneWhy = (deaths: Death[], place: string): string => {
   const traded = deaths.filter((d) => d.traded).length;
   const iso = defined(deaths.map((d) => d.nearestTeammate ?? undefined));
@@ -121,7 +124,7 @@ const zoneWhy = (deaths: Death[], place: string): string => {
     `${deaths.length} deaths at ${place}`,
     `${traded} traded`,
     ...(iso.length
-      ? [`nearest teammate ${Math.round(mean(iso)!)} units away on average`]
+      ? [`nearest teammate about ${meters(mean(iso)!)} m away on average`]
       : []),
     ...(cross ? [`${cross} in a crossfire`] : []),
   ];
@@ -194,15 +197,15 @@ export function positioningModule(
     fact(
       "deep-pos-isolated",
       "deep-positioning",
-      `Deaths with no living teammate within ${ISOLATED_UNITS} units (%)`,
+      `Deaths with no living teammate within ${meters(ISOLATED_UNITS)} m (%)`,
       pct(isolated, withReplay.length),
       ids,
     ),
     fact(
       "deep-pos-avg-isolation",
       "deep-positioning",
-      "Average distance to the nearest living teammate when you died (units)",
-      iso.length ? Math.round(mean(iso)!) : null,
+      "Average distance to the nearest living teammate when you died (meters)",
+      iso.length ? meters(mean(iso)!) : null,
       ids,
     ),
     fact(

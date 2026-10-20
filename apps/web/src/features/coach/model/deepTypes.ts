@@ -1,4 +1,9 @@
 /** Types of the Deep review view model (see deep.ts). */
+import type {
+  CrosshairCategory,
+  HeightBand,
+  HorizontalBias,
+} from "@cs2/contracts/crosshair";
 import type { ClipRef } from "@/features/replay";
 
 export type NadeType = "flash" | "smoke" | "he" | "molotov" | "decoy";
@@ -49,21 +54,14 @@ export type DeepUtility = {
   perType: NadeStat[];
   lineups: Lineup[];
 };
-export type Bin = {
-  label: string;
-  from: number | null;
-  to: number | null;
-  count: number;
-};
+/** Crosshair placement in player terms (degrees stay on the server). */
 export type DeepCrosshair = {
   summary?: string;
-  medianOffset: number | null;
-  wellPreAimed: number | null;
-  duels: number | null;
-  pitch: "low" | "high" | "level" | null;
-  pitchBias: number | null;
-  histogram: Bin[];
-  worst: { place: string; offset: number | null; duels: number | null }[];
+  preAim: { onTarget: number; close: number; off: number; total: number };
+  heightBand: HeightBand | null;
+  horizontalBias: HorizontalBias | null;
+  perCallout: { callout: string; onTarget: number; total: number }[];
+  dots: { x: number; y: number; won?: boolean; category: CrosshairCategory }[];
 };
 export type DangerZone = {
   place: string;

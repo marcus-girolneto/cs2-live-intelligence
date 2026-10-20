@@ -1,0 +1,117 @@
+[
+  {
+    "offset": 0.3,
+    "pitchError": -0.1,
+    "yawOffset": 0.3,
+    "distance": 1987,
+    "place": "CTSpawn",
+    "won": false
+  },
+  {
+    "offset": 34.8,
+    "pitchError": 0.2,
+    "yawOffset": 34.9,
+    "distance": 1377,
+    "place": "CTSpawn",
+    "won": false
+  },
+  {
+    "offset": 1.7,
+    "pitchError": -1.4,
+    "yawOffset": 0.9,
+    "distance": 1182,
+    "place": "CTSpawn",
+    "won": true
+  },
+  {
+    "offset": 51.2,
+    "pitchError": -3.4,
+    "yawOffset": 51.1,
+    "distance": 1246,
+    "place": "CTSpawn",
+    "won": false
+  },
+  {
+    "offset": 2.6,
+    "pitchError": -0.2,
+    "yawOffset": 2.6,
+    "distance": 1176,
+    "place": "CTSpawn",
+    "won": false
+  },
+  {
+    "offset": 4.7,
+    "pitchError": -1,
+    "yawOffset": 4.6,
+    "distance": 387,
+    "place": "PalaceInterior"
+  },
+  {
+    "offset": 3.9,
+    "pitchError": -1,
+    "yawOffset": 3.8,
+    "distance": 502,
+    "place": "Jungle",
+    "won": false
+  },
+  {
+    "offset": 5.5,
+    "pitchError": -3.6,
+    "yawOffset": 4.3,
+    "distance": 829,
+    "place": "Stairs"
+  },
+  {
+    "offset": 47.9,
+    "pitchError": 1.6,
+    "yawOffset": 48.2,
+    "distance": 789,
+    "place": "Connector"
+  },
+  {
+    "offset": 28.6,
+    "pitchError": -8,
+    "yawOffset": 27.5,
+    "distance": 217,
+    "place": "BombsiteA",
+    "won": false
+  },
+  {
+    "offset": 10.1,
+    "pitchError": -7.3,
+    "yawOffset": 7,
+    "distance": 1144,
+    "place": "PalaceInterior"
+  },
+  {
+    "offset": 1,
+    "pitchError": -0.4,
+    "yawOffset": 0.9,
+    "distance": 1317,
+    "place": "BombsiteA",
+    "won": false
+  },
+  {
+    "offset": 0.3,
+    "pitchError": 0,
+    "yawOffset": 0.3,
+    "distance": 805,
+    "place": "PalaceInterior",
+    "won": true
+  },
+  {
+    "offset": 54.5,
+    "pitchError": -26,
+    "yawOffset": 50.2,
+    "distance": 1105,
+    "place": "PalaceInterior"
+  },
+  {
+    "offset": 54.4,
+    "pitchError": 2,
+    "yawOffset": 54.4,
+    "distance": 1283,
+    "place": "BombsiteA",
+    "won": false
+  }
+]

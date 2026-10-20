@@ -28,14 +28,30 @@ const deepRaw = {
     ],
   },
   crosshair: {
-    medianOffsetDeg: -4.2,
-    wellPreAimedPct: 38,
-    pitchBiasDeg: -2.5,
-    histogram: [
-      { from: 0, to: 3, count: 5 },
-      { label: "9°+", count: 2 },
+    medianOffset: 4.2,
+    samples: [
+      {
+        offset: 0.5,
+        pitchError: -0.2,
+        yawOffset: 0.4,
+        distance: 900,
+        won: true,
+      },
+      {
+        offset: 3,
+        pitchError: -1,
+        yawOffset: 2.8,
+        distance: 700,
+        place: "BombsiteA",
+      },
+      {
+        offset: 30,
+        pitchError: 2,
+        yawOffset: 29,
+        distance: 1200,
+        place: "BombsiteA",
+      },
     ],
-    worstCallouts: [{ place: "BombsiteA", offsetDeg: 7.1, duels: 4 }],
   },
   positioning: {
     isolation: 45,
@@ -69,12 +85,11 @@ describe("deep review", () => {
     expect(d.utility!.throws[0]!.clip?.round).toBe(3);
     expect(d.utility!.perType.map((s) => s.type)).toEqual(["flash", "smoke"]);
     expect(d.utility!.lineups).toHaveLength(1);
+    // Degrees never reach the page: the section is built from the measured duels.
     expect(d.crosshair).toMatchObject({
-      medianOffset: 4.2,
-      wellPreAimed: 38,
-      pitch: "low",
+      preAim: { onTarget: 1, close: 1, off: 1, total: 3 },
     });
-    expect(d.crosshair!.histogram.map((b) => b.label)).toEqual(["0–3°", "9°+"]);
+    expect(JSON.stringify(d.crosshair)).not.toMatch(/°|offset|pitch/i);
     expect(d.positioning!.zones[0]!.rounds).toEqual([2, 5]);
     expect(d.rounds.map((r) => [r.round, r.won])).toEqual([
       [1, true],

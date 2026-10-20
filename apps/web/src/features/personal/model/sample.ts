@@ -9,7 +9,7 @@ export const SAMPLE_PLAN: PersonalPlan = {
   ],
   notWorking: [
     { text: "Deaths nobody trades", evidence: "47% isolated" },
-    { text: "Crosshair below head height", evidence: "5.4° median" },
+    { text: "Crosshair at chest height", evidence: "6 of 15 on target" },
   ],
   focusAreas: [
     {
@@ -23,10 +23,10 @@ export const SAMPLE_PLAN: PersonalPlan = {
     {
       area: "Pre-aim",
       why: "Head height on every corner.",
-      targetMetric: "Offset °",
-      current: 5.4,
-      target: 4,
-      progress: 74,
+      targetMetric: "On target %",
+      current: 40,
+      target: 55,
+      progress: 73,
     },
     {
       area: "Flashes",

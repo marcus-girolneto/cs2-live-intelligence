@@ -454,8 +454,11 @@ export const TARGET_METRICS = [
   "tradedDeathsPct",
   "openingWinPct",
   "utilityDamagePerRound",
+  /** Legacy (degrees, internal): read as crosshairOnTargetPct, never offered to the model. */
   "crosshairMedianDeg",
   "isolatedDeathsPct",
+  /** Duels started with the crosshair already on the enemy, in %. */
+  "crosshairOnTargetPct",
   "none",
 ] as const;
 export const targetMetricSchema = z.enum(TARGET_METRICS);

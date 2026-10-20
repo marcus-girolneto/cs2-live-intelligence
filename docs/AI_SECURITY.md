@@ -1,9 +1,9 @@
 # AI security (prompt injection, prompt leakage, output handling)
 
-Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v10`), deep review
-(`igl-review-v11-deep`), team review (`igl-team-v3`), claim verifier (`verify-v3`), live IGL call
-(`igl-live-v5`), Pro monthly report (`monthly-report-v4`) and Pro Personal Coach
-(`personal-coach-v4`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
+Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v11`), deep review
+(`igl-review-v12-deep`), team review (`igl-team-v4`), claim verifier (`verify-v4`), live IGL call
+(`igl-live-v6`), Pro monthly report (`monthly-report-v5`) and Pro Personal Coach
+(`personal-coach-v5`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
 (sanitiser, injection heuristics, output guard), `prompt-kit.ts` (shared prompt sections and the
 single request pipeline), `provider.ts` (request body), `apps/api/src/modules/coaching`
 (preference pre-check) and `apps/api/src/modules/ai-config` (budgets per purpose).
@@ -128,6 +128,7 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
 - **Language guard**: Portuguese requested but mostly English stop-words (or the reverse) adds a
   caveat (does not fail).
 - **Orthography check** (`orthography.ts`): an answer in a language with diacritics that contains
+- **No angles, readable callouts:** the model never receives degree numbers (crosshair placement is sent as on target / near / big flick counts, body height and side drift) and any sentence that still mentions an angle in any language is dropped (`degrees.ts`). Raw demo callouts are sent and shown as players say them ("Top of Mid", not "TopofMid"), and distances are in meters.
   two or more known accent-less forms ("nao", "voce", "posicao") is asked again once with a
   stronger orthography line; if it is still accent-less, a small whole-word map restores the
   common words (case kept). No caveat is shown because the text then reads correctly.
