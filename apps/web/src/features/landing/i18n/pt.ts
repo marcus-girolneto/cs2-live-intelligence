@@ -11,18 +11,17 @@ export const pt: Record<string, string> = {
   "How it works": "Como funciona",
   "From demo to plan in three steps": "Da demo ao plano em três passos",
   "Fair play & privacy": "Fair play e privacidade",
-  "Built to make you better, not to cheat":
-    "Feito para te deixar melhor, não para trapacear",
+  "No cheats, no hidden info": "Sem cheat, sem informação escondida",
   "No game injection": "Nada injetado no jogo",
   "Reads demos and the official game state integration only.":
     "Lê apenas demos e a integração oficial de estado do jogo.",
   "Only what you could see": "Só o que você poderia ver",
   "Live calls use your own player data, between rounds.":
     "As calls ao vivo usam só os dados do seu jogador, entre os rounds.",
-  "Your data, your call": "Seus dados, sua decisão",
+  "You control your data": "Você controla seus dados",
   "Consent, retention and full account deletion in Settings.":
     "Consentimento, retenção e exclusão total da conta nas Configurações.",
-  "Your next match starts here.": "Sua próxima partida começa aqui.",
+  "Upload your last match.": "Envie sua última partida.",
   "Sign in, drop a demo, and find out what is really costing you rounds.":
     "Entre, envie uma demo e descubra o que realmente está te custando rounds.",
   Opening: "Abertura",

@@ -10,8 +10,8 @@ export const pt: Record<string, string> = {
   "Coach review history": "Histórico de reviews do coach",
   "No AI reviews yet. Open the AI Coach and pick a match.":
     "Nenhuma review de IA ainda. Abra o Coach de IA e escolha uma partida.",
-  "Everything here is saved to your account: every analyzed match, every AI review and every live call. The coach uses it to adapt to you.":
-    "Tudo aqui fica salvo na sua conta: cada partida analisada, cada análise da IA e cada call ao vivo. O coach usa isso para se adaptar a você.",
+  "Your analyzed matches, AI reviews and live calls are saved to your account. The coach uses them to adapt to you.":
+    "Suas partidas analisadas, reviews da IA e calls ao vivo ficam salvas na sua conta. O coach usa isso para se adaptar a você.",
   "From {m} matches and {r} rounds.": "A partir de {m} partidas e {r} rounds.",
   "How you are evolving": "Como você está evoluindo",
   "Last {n} matches": "Últimas {n} partidas",

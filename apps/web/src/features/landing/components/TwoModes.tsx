@@ -19,7 +19,9 @@ export function TwoModes() {
     >
       <div className="ls-head">
         <span className="eyebrow">{t("Two modes")}</span>
-        <h2 id="modes-title">{t("Review after. Lead during.")}</h2>
+        <h2 id="modes-title">
+          {t("Review after the match, get calls during it.")}
+        </h2>
       </div>
       <div className="tm-grid">
         <article className="tm-card post">
@@ -74,7 +76,7 @@ export function TwoModes() {
             </li>
             <li>
               <ShieldCheck size={14} />{" "}
-              {t("Never during the fight. Never hidden information.")}
+              {t("Only between rounds, and only what you could see yourself.")}
             </li>
             <li>
               <Check size={14} />{" "}

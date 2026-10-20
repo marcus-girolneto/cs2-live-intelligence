@@ -18,7 +18,8 @@ export const ptShowcase: Record<string, string> = {
   "Round 7 · Buy armor and play for the trade on A. You died alone 3 rounds in a row.":
     "Round 7 · Compre colete e jogue pela troca no A. Você morreu sozinho 3 rounds seguidos.",
   "Two modes": "Dois modos",
-  "Review after. Lead during.": "Revise depois. Comande durante.",
+  "Review after the match, get calls during it.":
+    "Revise depois da partida, receba calls durante.",
   "Upload a demo, get your AI Coach report.":
     "Envie uma demo e receba o relatório do seu Coach de IA.",
   "Verdict, scores, key moments as 2D replays and a plan.":
@@ -30,8 +31,8 @@ export const ptShowcase: Record<string, string> = {
     "Entre os rounds, a IA vira o seu in-game leader.",
   "One call per round, from your own live game state.":
     "Uma call por round, a partir do estado do seu próprio jogo.",
-  "Never during the fight. Never hidden information.":
-    "Nunca durante a luta. Nunca informação escondida.",
+  "Only between rounds, and only what you could see yourself.":
+    "Só entre rounds, e só o que você mesmo poderia ver.",
   "Phone or second monitor. Nothing runs inside the game.":
     "Celular ou segundo monitor. Nada roda dentro do jogo.",
   "Sound familiar?": "Soa familiar?",
@@ -87,5 +88,5 @@ export const ptShowcase: Record<string, string> = {
   "AI Coach report": "Relatório do Coach de IA",
   "Aim analysis": "Análise de mira",
   "Second-screen HUD": "HUD da segunda tela",
-  "Fair play by design": "Fair play por design",
+  "Fair play": "Fair play",
 };

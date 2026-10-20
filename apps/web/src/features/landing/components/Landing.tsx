@@ -71,7 +71,7 @@ export function Landing() {
                 <Check size={14} /> {t("No password shared")}
               </li>
               <li>
-                <Check size={14} /> {t("Fair play by design")}
+                <Check size={14} /> {t("Fair play")}
               </li>
             </ul>
           </div>
@@ -108,9 +108,7 @@ export function Landing() {
         >
           <div className="ls-head">
             <span className="eyebrow">{t("Fair play & privacy")}</span>
-            <h2 id="trust-title">
-              {t("Built to make you better, not to cheat")}
-            </h2>
+            <h2 id="trust-title">{t("No cheats, no hidden info")}</h2>
           </div>
           <div className="trust-grid">
             <div>
@@ -129,7 +127,7 @@ export function Landing() {
             </div>
             <div>
               <Lock size={24} />
-              <strong>{t("Your data, your call")}</strong>
+              <strong>{t("You control your data")}</strong>
               <span>
                 {t("Consent, retention and full account deletion in Settings.")}
               </span>
@@ -162,7 +160,7 @@ export function Landing() {
         </section>
 
         <section className="final-cta">
-          <h2>{t("Your next match starts here.")}</h2>
+          <h2>{t("Upload your last match.")}</h2>
           <p className="lead">
             {t(
               "Sign in, drop a demo, and find out what is really costing you rounds.",
