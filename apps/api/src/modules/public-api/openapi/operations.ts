@@ -115,7 +115,7 @@ export const demoOperations: OperationSpec[] = [
       413: error("Larger than the upload limit (too_large)"),
       415: error("Use Content-Type: application/octet-stream"),
       429: error(
-        "Upload rate, concurrency or plan quota reached (upload_rate_limited with Retry-After)",
+        "Upload rate (upload_rate_limited, with Retry-After), concurrency or daily/storage quota (quota_exceeded) reached",
       ),
     },
   },

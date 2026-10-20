@@ -29,7 +29,7 @@ body { margin: 0; background: #0b0f14; font-family: system-ui, -apple-system, "S
 .fm-sub { color: #e9eef4; opacity: 0.8; font-size: 14px; }
 .fm-bar a { margin-left: auto; color: #ffc561; font-size: 14px; text-decoration: none; }
 #swagger-ui { filter: invert(0.9) hue-rotate(180deg); background: #fff; min-height: 100vh; }
-#swagger-ui .microlight, #swagger-ui .highlight-code, #swagger-ui img { filter: invert(1) hue-rotate(180deg); }
+#swagger-ui .microlight, #swagger-ui img { filter: invert(1) hue-rotate(180deg); }
 `;
 
 /** The page itself: no inline script or style, so the CSP can allow only 'self'. */

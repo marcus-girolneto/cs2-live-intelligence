@@ -31,7 +31,7 @@ const DEFAULT_CODES: Record<number, string> = {
   409: "conflict",
   413: "payload_too_large",
   415: "unsupported_media_type",
-  429: "rate_limited",
+  429: "quota_exceeded",
   500: "internal_error",
   502: "upstream_failed",
   503: "service_unavailable",

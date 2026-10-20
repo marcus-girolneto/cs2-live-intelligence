@@ -60,7 +60,8 @@ quota and storage quota, 10 uploads per minute per account and 30 per network, a
 concurrent uploads, the admin size limit (500 MB by default) and a CS2 demo signature check on
 the bytes. A demo that was already analysed completes immediately. Reviews cost the same credits
 as in the app (`402 insufficient_credits` with the balance and packs otherwise) and a failed
-review is never charged.
+review is never charged. An upload over the daily upload or storage quota answers `429 quota_exceeded`;
+too many uploads per minute answer `429 upload_rate_limited` with `Retry-After`.
 
 ## Errors, rate limits, CORS
 
