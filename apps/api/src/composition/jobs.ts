@@ -42,6 +42,9 @@ import { ReportsController } from "../modules/reports/reports.controller.js";
 import { PgReportsRepository } from "../modules/reports/reports.repository.js";
 import { ReportsService } from "../modules/reports/reports.service.js";
 import { DailyJobsWorker } from "../workers/daily-jobs.worker.js";
+import { DataRetentionJob } from "../workers/data-retention.job.js";
+import { PgMaintenanceRepository } from "../modules/maintenance/maintenance.repository.js";
+import { DATA_RETENTION_DEFAULTS } from "../modules/ai-config/ai-config.dto.js";
 import { PersonalCoachController } from "../modules/personal-coach/personal-coach.controller.js";
 import { PgPersonalCoachRepository } from "../modules/personal-coach/personal-coach.repository.js";
 import { PersonalCoachService } from "../modules/personal-coach/personal-coach.service.js";
@@ -241,12 +244,23 @@ export function createJobsContext(
     clock,
     logger,
   );
+  const dataRetention = new DataRetentionJob(
+    new PgMaintenanceRepository(db),
+    {
+      retention: async () => ({
+        ...DATA_RETENTION_DEFAULTS,
+        ...(await aiSettings.settings()).retention,
+      }),
+    },
+    logger,
+  );
   const accountJobs = new DailyJobsWorker(
     plans,
     credits.credits,
     reports,
     logger,
     personalCoach,
+    dataRetention,
   );
   // Steam ban checks of match participants need the internet: API process, hourly.
   const banChecks = new BanCheckJob(

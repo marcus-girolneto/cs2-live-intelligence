@@ -14,12 +14,17 @@ export interface ScheduledReports {
 export interface AutoCoach {
   autoRegenerate(ownerId: string, viewer: ViewerPolicy): Promise<boolean>;
 }
+/** Global upkeep after the per-account jobs (data retention, partitions). */
+export interface Upkeep {
+  run(): Promise<void>;
+}
 
 /**
  * Hourly account jobs: grants the current period's plan credits to every entitled subscription
  * (idempotent per owner, plan and period start; covers admin-granted plans and monthly credits
  * of yearly subscriptions), writes the Pro monthly reports in the first days of a month and
- * regenerates Personal Coach plans once enough new analyses arrived.
+ * regenerates Personal Coach plans once enough new analyses arrived; then the global upkeep
+ * (retention of append-only tables and their monthly partitions).
  */
 export class DailyJobsWorker {
   private running?: Promise<void>;
@@ -29,6 +34,7 @@ export class DailyJobsWorker {
     private readonly reports: ScheduledReports | undefined,
     private readonly logger: Logger,
     private readonly coach?: AutoCoach,
+    private readonly upkeep?: Upkeep,
   ) {}
 
   run(): Promise<void> {
@@ -55,5 +61,10 @@ export class DailyJobsWorker {
     }
     if (granted || reports)
       this.logger.info({ granted, reports }, "daily account jobs");
+    try {
+      await this.upkeep?.run();
+    } catch (error) {
+      this.logger.info({ err: String(error) }, "data retention failed");
+    }
   }
 }

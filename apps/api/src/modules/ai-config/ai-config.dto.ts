@@ -99,9 +99,33 @@ export const appSettingsSchema = z
         review_team: z.number().int().min(0).max(100).optional(),
       })
       .strict(),
+    /**
+     * Global retention of append-only tables in days (absent keys use DATA_RETENTION_DEFAULTS).
+     * Per-account retention (users.retention_days) still applies on top for owned rows.
+     */
+    retention: z
+      .object({
+        telemetryEventsDays: z.number().int().min(1).max(3650),
+        productEventsDays: z.number().int().min(1).max(3650),
+        adminAuditDays: z.number().int().min(30).max(3650),
+        usageDays: z.number().int().min(7).max(3650),
+        fileDeletionsDays: z.number().int().min(1).max(365),
+      })
+      .partial()
+      .strict()
+      .optional(),
   })
   .strict();
 export type AppSettings = z.infer<typeof appSettingsSchema>;
+export type DataRetention = Required<NonNullable<AppSettings["retention"]>>;
+/** Defaults of the global data retention (docs/DATABASE.md, "Retention"). */
+export const DATA_RETENTION_DEFAULTS: DataRetention = {
+  telemetryEventsDays: 30,
+  productEventsDays: 180,
+  adminAuditDays: 365,
+  usageDays: 90,
+  fileDeletionsDays: 7,
+};
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   dailyLimit: null,
   maxInputBytes: null,
