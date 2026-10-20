@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PLANS } from "./catalogue";
@@ -8,22 +8,29 @@ import { DEFAULT_PLANS } from "./catalogue";
  * never advertise anything the backend doesn't sell: compare it with the API's seed migrations.
  */
 const MIGRATIONS = resolve(__dirname, "../../../../../api/migrations");
-const sql = (file: string) => readFileSync(resolve(MIGRATIONS, file), "utf8");
 
+/** Replays the plan seeds/updates of every migration, in order (squashed or not). */
 function backendDefaults() {
+  const sql = readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((f) => readFileSync(resolve(MIGRATIONS, f), "utf8"))
+    .join("\n");
   const prices = new Map<string, unknown>();
-  for (const m of sql("0006_plans_billing.sql").matchAll(
-    /\('(\w+)', '\w+', '(\{[^']*\})'::jsonb/g,
-  ))
-    prices.set(m[1]!, JSON.parse(m[2]!));
   const limits = new Map<string, Record<string, unknown>>();
-  for (const m of sql("0007_credits_tiers_reports.sql").matchAll(
+  for (const m of sql.matchAll(
+    /\('(\w+)', '\w+', '(\{[^']*\})'::jsonb,\s*'(\{[^']*\})'::jsonb/g,
+  )) {
+    prices.set(m[1]!, JSON.parse(m[2]!));
+    limits.set(m[1]!, JSON.parse(m[3]!));
+  }
+  for (const m of sql.matchAll(
     /UPDATE plans SET limits = '(\{[^']*\})'::jsonb.*?WHERE id = '(\w+)'/g,
   ))
     limits.set(m[2]!, JSON.parse(m[1]!));
-  // 0008: Personal Coach is a Pro feature.
-  expect(sql("0008_personal_coach.sql")).toMatch(/'personalCoach', id = 'pro'/);
-  for (const [id, l] of limits) l.personalCoach = id === "pro";
+  if (/'personalCoach', id = 'pro'/.test(sql))
+    for (const [id, l] of limits) l.personalCoach = id === "pro";
+  expect(limits.size).toBeGreaterThan(0);
   return { prices, limits };
 }
 
