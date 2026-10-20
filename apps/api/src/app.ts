@@ -24,6 +24,7 @@ import {
 } from "./modules/auth/static-auth.routes.js";
 import { registerBillingRoutes } from "./modules/billing/billing.routes.js";
 import { registerCoachingRoutes } from "./modules/coaching/coaching.routes.js";
+import { registerTrainingRoutes } from "./modules/training/training.routes.js";
 import { registerCoachExtrasRoutes } from "./modules/coaching/coach-extras.routes.js";
 import { registerAiQualityRoutes } from "./modules/ai-config/ai-quality.controller.js";
 import { registerCreditsRoutes } from "./modules/credits/credits.routes.js";
@@ -93,6 +94,7 @@ async function registerJobs(
   registerMatchesRoutes(app, jobs.matchesController, guards, jobs.maxBytes);
   registerAnalysesRoutes(app, jobs.analysesController, guards);
   registerCoachingRoutes(app, jobs.coachingController, guards);
+  registerTrainingRoutes(app, jobs.trainingController, guards);
   registerCoachExtrasRoutes(app, jobs.coachExtrasController, guards);
   registerAiQualityRoutes(app, jobs.aiQualityController, guards);
   registerFeedbackRoutes(app, jobs.feedbackController, guards);

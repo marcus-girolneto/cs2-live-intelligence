@@ -5,6 +5,7 @@ import { creditsPaths } from "./credits-paths.js";
 import { integrationsPaths } from "./integrations-paths.js";
 import { livePaths } from "./live-paths.js";
 import { productPaths } from "./product-paths.js";
+import { trainingPaths } from "./training-paths.js";
 
 /** The OpenAPI 3.0 document served at /openapi.json. */
 export function openApiDocument(): Record<string, unknown> {
@@ -31,6 +32,7 @@ export function openApiDocument(): Record<string, unknown> {
       ...creditsPaths,
       ...integrationsPaths,
       ...livePaths,
+      ...trainingPaths,
     },
   };
 }

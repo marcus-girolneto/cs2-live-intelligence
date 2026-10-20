@@ -21,6 +21,7 @@ import { PersonalizationService } from "../modules/coaching/personalization.serv
 import { ProgressService } from "../modules/coaching/progress.service.js";
 import { ReelService } from "../modules/coaching/reel.service.js";
 import { ReviewService } from "../modules/coaching/review.service.js";
+import { createTrainingContext } from "./training.js";
 import { SettingsReviewAi } from "../modules/coaching/review-ai.policy.js";
 import { CoachExtrasController } from "../modules/coaching/coach-extras.controller.js";
 import { MineOnlyHistory } from "../modules/coaching/mine-history.js";
@@ -145,6 +146,13 @@ export function createJobsContext(
     );
   };
   const reviewAi = new SettingsReviewAi(aiSettings);
+  // Practice catalog and deterministic training plans (no AI).
+  const training = createTrainingContext({
+    matches,
+    replays,
+    coaching,
+    mine: mineHistory,
+  });
   const teamReviews = new PgTeamReviewRepository(db);
   const teamGateway: TeamAiGateway =
     "teamReview" in aiGateway
@@ -159,6 +167,7 @@ export function createJobsContext(
     gateway: teamGateway,
     reviewAi,
     logger,
+    training: training.service,
   });
   const personalization = new PersonalizationService(
     coaching,
@@ -183,6 +192,7 @@ export function createJobsContext(
     logger,
     reviewAi,
     teamRatings: teamReviews,
+    training: training.service,
   });
   const autoReviewRepository = new PgAutoReviewRepository(db);
   const autoReviews = new AutoReviewService(
@@ -345,6 +355,7 @@ export function createJobsContext(
       autoReviews,
     ),
     personalCoachController: new PersonalCoachController(personalCoach, guards),
+    trainingController: training.controller,
     daily,
     feedbackController: new FeedbackController(
       new FeedbackService(new PgFeedbackRepository(db)),

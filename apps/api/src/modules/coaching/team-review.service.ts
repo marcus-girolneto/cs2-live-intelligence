@@ -20,6 +20,7 @@ import type {
 import { NO_REVIEW_AI, type ReviewAi } from "./review-ai.policy.js";
 import type { TeamReviewRepository } from "./team-review.repository.js";
 import type { ViewerPolicy } from "./viewer.policy.js";
+import type { ReviewTraining } from "./review.service.js";
 
 export type TeamReviewDependencies = {
   reviews: TeamReviewRepository;
@@ -30,6 +31,8 @@ export type TeamReviewDependencies = {
   gateway: TeamAiGateway;
   reviewAi?: ReviewAi;
   logger: Logger;
+  /** The requesting player's practice plan, added as `training`. */
+  training?: ReviewTraining;
 };
 
 /**
@@ -131,6 +134,7 @@ export class TeamReviewService {
         balance: await credits.balance(ownerId),
         call: viewer.callMeta(call),
         teamReview: viewer.coaching(result.review),
+        ...(await this.deps.training?.attach(ownerId, analysisId, steamId)),
       };
     } catch (error) {
       await release();
@@ -169,6 +173,7 @@ export class TeamReviewService {
           ),
         ),
       })),
+      ...(await this.deps.training?.attach(ownerId, analysisId, steamId)),
     };
   }
 

@@ -130,6 +130,7 @@ marks routes whose errors always include `code` (see ADR-004, preserved quirks).
 | public-api     | `/api/v1/*` (demos, analyses, players, reviews, progress, me, credits ledger, webhooks; see [PUBLIC_API.md](PUBLIC_API.md)), GET `/api/v1/openapi.json`                                                                       | API key + scope                   |
 | public-api     | GET `/api/docs` (Swagger UI, self-hosted assets)                                                                                                                                                                              | public                            |
 | feedback       | POST `/v1/feedback`, POST `/v1/events`                                                                                                                                                                                        | user                              |
+| training       | GET `/v1/training/catalog`, GET `/v1/training/recommended`, GET `/v1/analyses/:id/training` (+ `training` in review responses; no AI)                                                                                         | user                              |
 
 `usage` has no routes: it provides daily plan quotas (`QuotaService`) to matches and coaching
 (AI reviews: the per-account daily safety cap from the credit settings).

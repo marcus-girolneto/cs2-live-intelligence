@@ -26,6 +26,15 @@ import type { PersonalizationService } from "./personalization.service.js";
 import type { ViewerPolicy } from "./viewer.policy.js";
 import { NO_REVIEW_AI, type ReviewAi } from "./review-ai.policy.js";
 
+/** training: the practice plan of a match/player (`review` = the coaching just produced). */
+export interface ReviewTraining {
+  attach(
+    ownerId: string,
+    analysisId: string,
+    steamId: string,
+    review?: unknown,
+  ): Promise<Record<string, unknown>>;
+}
 /** Previous deep reviews on the same map fed to a Pro deep review. */
 export const DEEP_HISTORY_MATCHES = 5;
 export type ReviewTier = "quick" | "deep";
@@ -42,6 +51,8 @@ export type ReviewDependencies = {
   logger: Logger;
   /** Verifier + prompt A/B (default: deterministic checks only, variant "a"). */
   reviewAi?: ReviewAi;
+  /** Deterministic practice plan added to responses as `training` (never fails a review). */
+  training?: ReviewTraining;
   /** Team reviews share the rating endpoint. */
   teamRatings?: {
     rate(ownerId: string, id: string, rating: number): Promise<boolean>;
@@ -171,6 +182,12 @@ export class ReviewService {
           learnedFromMatches: personal.history?.matches ?? 0,
           previousPlans: personal.previousPlans?.length ?? 0,
         },
+        ...(await this.deps.training?.attach(
+          ownerId,
+          analysisId,
+          steamId,
+          result.coaching,
+        )),
       };
     } catch (error) {
       await release();
@@ -230,6 +247,12 @@ export class ReviewService {
         ...(viewer.admin ? { provider: r.provider, model: r.model } : {}),
         coaching: viewer.coaching(r.coaching),
       })),
+      ...(await this.deps.training?.attach(
+        ownerId,
+        analysisId,
+        steamId,
+        reviews[0]?.coaching,
+      )),
     };
   }
 
