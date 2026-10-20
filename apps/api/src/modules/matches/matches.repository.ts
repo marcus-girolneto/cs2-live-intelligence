@@ -64,10 +64,10 @@ export interface MatchesRepository {
 export const VISIBLE = sql.raw(
   `(u.match_id is not null and (j.upload_id is null or j.kind<>'reparse' or j.status='done'))`,
 );
-const STATUS = sql.raw(
+export const STATUS = sql.raw(
   `case when (u.match_id is not null and (j.upload_id is null or j.kind<>'reparse' or j.status='done')) then 'complete' when j.status='processing' then 'processing' when j.status='failed' then 'failed' else 'queued' end`,
 );
-const ERROR = sql.raw(
+export const ERROR = sql.raw(
   `case when j.status='failed' and not (u.match_id is not null and (j.kind<>'reparse' or j.status='done')) then j.error end`,
 );
 /** 0 for admins and plans with the priorityQueue feature (Pro), else 1 (owner alias `o`). */

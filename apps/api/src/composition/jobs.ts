@@ -279,9 +279,18 @@ export function createJobsContext(
       });
     },
   };
+  const progress = new ProgressService(
+    coaching,
+    matches,
+    coachPlans,
+    ownership,
+  );
+  const analyses = new AnalysesService(matches);
   return {
     maxBytes,
     workers,
+    /** Services shared with the public API (composition/public-api.ts). */
+    services: { uploads, analyses, reviews: reviewService, teams, progress },
     matchesController: new MatchesController(
       new MatchesService(
         matches,
@@ -295,14 +304,14 @@ export function createJobsContext(
       guards,
     ),
     analysesController: new AnalysesController(
-      new AnalysesService(matches),
+      analyses,
       guards,
       new IntegrityService(matches, integrityRepository),
     ),
     aiStatusController: new AiStatusController(aiAccess, guards),
     coachingController: new CoachingController(
       new CoachProfileService(coaching, autoReviewRepository),
-      new ProgressService(coaching, matches, coachPlans, ownership),
+      progress,
       reviewService,
       new LiveCallService(
         coaching,

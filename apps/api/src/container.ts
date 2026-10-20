@@ -15,6 +15,10 @@ import {
   createPlatformContext,
   type PlatformContext,
 } from "./composition/platform.js";
+import {
+  createPublicApiContext,
+  type PublicApiContext,
+} from "./composition/public-api.js";
 import { StaticIdentity } from "./modules/auth/identity.js";
 import { PgPrivacyRepository } from "./modules/privacy/privacy.repository.js";
 import type { Database } from "./shared/db/database.js";
@@ -44,6 +48,8 @@ export interface Container {
   platform: PlatformContext | undefined;
   /** Database mode with `jobs` only. */
   jobs: JobsContext | undefined;
+  /** API keys, /api/v1, webhooks and docs (database mode with `jobs`). */
+  publicApi: PublicApiContext | undefined;
   /** Memory mode only: static tokens (logout revokes them in process). */
   staticIdentity: StaticIdentity | undefined;
 }
@@ -58,6 +64,7 @@ export function createContainer(config: ApiConfig): Container {
   const live = createLiveContext(config, db, metrics);
   let platform: PlatformContext | undefined;
   let jobs: JobsContext | undefined;
+  let publicApi: PublicApiContext | undefined;
   try {
     platform = db
       ? createPlatformContext(config, db, live, env, logger)
@@ -74,6 +81,10 @@ export function createContainer(config: ApiConfig): Container {
             logger,
           )
         : undefined;
+    publicApi =
+      db && platform && jobs
+        ? createPublicApiContext(config, db, platform, jobs, env, logger)
+        : undefined;
   } catch (error) {
     live.broadcaster.close();
     throw error;
@@ -87,6 +98,7 @@ export function createContainer(config: ApiConfig): Container {
     live,
     platform,
     jobs,
+    publicApi,
     staticIdentity: db
       ? undefined
       : new StaticIdentity(config.owners, config.devices),

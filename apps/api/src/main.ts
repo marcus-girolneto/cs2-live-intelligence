@@ -32,6 +32,8 @@ const app = await buildApp({
   owners: dev ? [{ token: dev.webToken, ownerId: dev.ownerId }] : [],
   webOrigin: config.webOrigin,
   apiPublicUrl: config.apiPublicUrl,
+  // Webhooks to localhost/private addresses only in local development (APP_ENV=local).
+  webhooks: { allowPrivateNetworks: !config.production },
 });
 await app.listen({ host: config.host, port: config.port });
 for (const signal of ["SIGTERM", "SIGINT"])

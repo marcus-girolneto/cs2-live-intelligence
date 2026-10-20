@@ -12,6 +12,7 @@ import type { WorkerOptions } from "../workers/worker-scheduler.js";
 import type { DemoParser } from "../infrastructure/parser/demo-parser.js";
 import type { JobQueueRepository } from "../modules/matches/job-queue.repository.js";
 import type { UploadRate } from "../modules/matches/upload-rate-limit.js";
+import type { WebhookTransport } from "../infrastructure/http/webhook-transport.js";
 
 /** Demo storage, parser and worker settings (database mode only). */
 export interface JobOptions extends WorkerOptions {
@@ -66,6 +67,13 @@ export interface ApiConfig {
   /** Model gateway override (tests); default @cs2/coaching. */
   aiGateway?: AiGateway & OfflineCoach;
   logger?: Logger;
+  /** Public API webhooks (database mode with `jobs`). */
+  webhooks?: {
+    /** Local development only: allow http://localhost and private addresses. */
+    allowPrivateNetworks?: boolean;
+    /** Outbound HTTP override (tests). */
+    transport?: WebhookTransport;
+  };
   /** Adapter/repository overrides for the background worker (tests). */
   overrides?: {
     jobQueue?: JobQueueRepository;

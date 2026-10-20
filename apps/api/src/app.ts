@@ -40,11 +40,26 @@ import { registerReplayRoutes } from "./modules/replay/replay.routes.js";
 import { registerSystemRoutes } from "./modules/system/system.routes.js";
 import { registerTelemetryRoutes } from "./modules/telemetry/telemetry.routes.js";
 import { registerUsersRoutes } from "./modules/users/users.routes.js";
+import { registerApiKeysRoutes } from "./modules/api-keys/api-keys.routes.js";
+import { registerDocsRoutes } from "./modules/public-api/docs.routes.js";
+import {
+  registerPublicApi,
+  type PublicRoute,
+} from "./modules/public-api/public-api.routes.js";
+import { registerWebhookSessionRoutes } from "./modules/webhooks/webhooks.routes.js";
+import type { PublicApiContext } from "./composition/public-api.js";
 import { installErrorHandler } from "./shared/errors/index.js";
 import { AuthGuards } from "./shared/http/guards.js";
 import { installRequestLogging } from "./shared/logging/metrics.js";
 
 export type { ApiConfig, JobOptions } from "./config/api-config.js";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    /** Routes registered under /api/v1 (the OpenAPI spec test compares them to the document). */
+    publicApiRoutes: PublicRoute[];
+  }
+}
 export { project } from "./modules/telemetry/projection.js";
 
 /** Builds the container from `config`, then the HTTP app around it. */
@@ -89,12 +104,30 @@ async function registerJobs(
     jobs.personalCoachController,
     guards.withStyle("coded"),
   );
+  if (container.publicApi)
+    await registerPublicSurface(app, container.publicApi, guards, container);
   const worker = await startContainerWorkers(jobs, container.config.jobs!);
   app.addHook("onClose", async () => worker.stop());
   container.metrics.addGauge(
     () =>
       `cs2_demo_jobs_complete_total ${worker.counters.complete}\ncs2_demo_jobs_failed_total ${worker.counters.failed}\ncs2_worker_errors_total ${worker.counters.errors}\n`,
   );
+}
+
+/** Settings → Developers session routes, /api/v1, the API docs and webhook delivery. */
+async function registerPublicSurface(
+  app: FastifyInstance,
+  publicApi: PublicApiContext,
+  guards: AuthGuards,
+  container: Container,
+): Promise<void> {
+  const coded = guards.withStyle("coded");
+  registerApiKeysRoutes(app, publicApi.apiKeysController, coded);
+  registerWebhookSessionRoutes(app, publicApi.webhooksController, coded);
+  await registerPublicApi(app, publicApi.controllers, app.publicApiRoutes);
+  registerDocsRoutes(app, publicApi.docs);
+  if (!container.config.jobs?.disableWorker) publicApi.delivery.start();
+  app.addHook("onClose", async () => publicApi.delivery.stop());
 }
 
 /**
@@ -107,6 +140,7 @@ export async function buildHttpApp(
 ): Promise<FastifyInstance> {
   const { config, live, platform, jobs, metrics, database } = container;
   const app = Fastify({ bodyLimit: 256 * 1024, logger: false });
+  app.decorate("publicApiRoutes", [] as PublicRoute[]);
   if (database && config.closeDatabaseOnClose)
     app.addHook("onClose", async () => database.close());
   installErrorHandler(app);
