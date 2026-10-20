@@ -1,7 +1,8 @@
 # Database
 
 PostgreSQL schema of the squashed baseline `0001_baseline.sql` (49 tables, of which 6 are monthly
-partitions; `schema_migrations` is created by the migrator). Large artifacts live in object
+partitions; `schema_migrations` is created by the migrator) plus `0002_public_api.sql` (5 tables
+of the public API). Large artifacts live in object
 storage, not in Postgres: each upload's `.dem` (`<uploadId>.dem`) and, once per parsed match,
 `<matchId>.analysis.json.gz` (the full analysis: players, evidence, integrity…),
 `<matchId>.events.json.gz` and `<matchId>.replay.json.gz`.
@@ -246,6 +247,18 @@ erDiagram
 `parser_runtime`, `welcome_grants`, `file_deletions` (object storage outbox), `openid_states`,
 `openid_nonces`, `schema_migrations`.
 
+## Public API (`0002_public_api.sql`)
+
+See [PUBLIC_API.md](PUBLIC_API.md). All rows hang off `users.id` with `ON DELETE CASCADE`.
+
+| Table                | What                                                                                                                                                                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api_keys`           | Personal keys: `name`, `prefix` (`fm_live_` + 4), `key_hash` (unique, HMAC-SHA256 with a pepper from `APP_ENCRYPTION_KEY`), `scopes text[]`, `last_used_at`, `last_used_ip_hash` (HMAC of the /24 or /48), `expires_at`, `revoked_at`; index `(owner_id, created_at desc)` |
+| `api_key_events`     | Audit: `key.created`, `key.revoked`, `key.denied` (scope, expired, revoked), `webhook.created`, `webhook.deleted`; `key_id` `SET NULL`                                                                                                                                     |
+| `api_idempotency`    | `Idempotency-Key` of uploads per account: `status` + `response` replayed for 24 hours; `status` null while in flight                                                                                                                                                       |
+| `webhooks`           | Endpoint `url`, `events text[]`, `secret_ciphertext` (AES-256-GCM, context `webhook:<id>:secret`), `active`, `consecutive_failures`, `disabled_reason`                                                                                                                     |
+| `webhook_deliveries` | Outbox: unique `(webhook_id, event, ref)` (ref = upload or review id), `payload`, `status` pending/delivered/failed, `attempts`, `next_attempt_at` (partial index on pending)                                                                                              |
+
 ## Retention
 
 | Data                                                                             | Kept                                                        | Where                                       |
@@ -258,6 +271,7 @@ erDiagram
 | `usage_counters`, `usage_live_matches`, `provider_usage`                         | 90 days                                                     | API daily jobs                              |
 | `file_deletions` (processed)                                                     | 7 days                                                      | API daily jobs                              |
 | Sessions, pairing/auth codes, OpenID states (expired), OpenID nonces (1 day)     | until expiry                                                | demo worker, hourly                         |
+| `webhook_deliveries` / `api_idempotency` / `api_key_events`                      | 30 days / 24 hours / 365 days                               | API webhook worker, hourly                  |
 
 The global values are admin-editable under app settings `retention` (`PUT /v1/admin/settings`
 with e.g. `{"retention": {"telemetryEventsDays": 14}}`; absent keys keep the defaults above, and

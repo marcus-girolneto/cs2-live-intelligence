@@ -11,6 +11,7 @@ The AI coach that reads every frag. FRAGMIND goes through your Counter-Strike 2 
 - AI Coach: pick a match and a player and get a verdict, deterministic scores per area (aim, positioning, utility, trading, economy, impact), key moments with 2D replay clips (exportable as video), drills and a plan split into general and map-specific items. The coach learns from your history and follows the personality you choose (aggressive, passive, tone, role, custom instructions).
 - Second screen: live HUD from CS2 Game State Integration with between-round AI IGL calls (never during a fight), a match simulator and demo replay mode.
 - Plans and credits: Free, Basic and Pro plus credit packs. Stripe checkout when configured.
+- Public API: personal API keys with scopes, demo upload, analyses, AI reviews, progress and signed webhooks under `/api/v1`, with OpenAPI 3.1 and Swagger UI at `/api/docs`. See [docs/PUBLIC_API.md](docs/PUBLIC_API.md).
 - Admin area: AI providers and models (any OpenAI-compatible API, keys encrypted at rest), model per purpose, plans, users and roles, audit log, reprocessing.
 
 ## Architecture

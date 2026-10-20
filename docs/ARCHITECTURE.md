@@ -59,6 +59,9 @@ flowchart LR
   reports -- ReportSources --> coaching
   personalcoach[personal-coach] -- PersonalCoachInputs --> coaching
   personalcoach -- AiAccess --> aiconfig
+  publicapi[public-api] -- ApiKeysService --> apikeys[api-keys]
+  publicapi -- UploadService / AnalysesService / ReviewService / ProgressService --> matches
+  publicapi -- WebhooksController --> webhooks
   analyses -- AnalysisReader --> matches
   replay -- ReplayRepository --> matches
   matches -- UploadQuota --> usage
@@ -122,6 +125,10 @@ marks routes whose errors always include `code` (see ADR-004, preserved quirks).
 | personal-coach | GET `/v1/coach/personal`, POST `/v1/coach/personal/generate` (Pro)                                                                                                                                                            | user (coded)                      |
 | ai-config      | POST `/v1/admin/ai/test` (per-purpose connectivity check)                                                                                                                                                                     | admin                             |
 | billing        | POST `/v1/billing/webhook` (raw body, Stripe signature)                                                                                                                                                                       | public                            |
+| api-keys       | GET/POST `/v1/me/api-keys`, DELETE `/v1/me/api-keys/:id`                                                                                                                                                                      | user (coded)                      |
+| webhooks       | GET/POST `/v1/me/webhooks`, GET `/v1/me/webhooks/deliveries`, DELETE `/v1/me/webhooks/:id`, POST `/v1/me/webhooks/:id/test`                                                                                                   | user (coded)                      |
+| public-api     | `/api/v1/*` (demos, analyses, players, reviews, progress, me, credits ledger, webhooks; see [PUBLIC_API.md](PUBLIC_API.md)), GET `/api/v1/openapi.json`                                                                       | API key + scope                   |
+| public-api     | GET `/api/docs` (Swagger UI, self-hosted assets)                                                                                                                                                                              | public                            |
 | feedback       | POST `/v1/feedback`, POST `/v1/events`                                                                                                                                                                                        | user                              |
 
 `usage` has no routes: it provides daily plan quotas (`QuotaService`) to matches and coaching
@@ -152,6 +159,7 @@ an existing match instead of parsing. Player and team AI reviews share `ai_revie
 | `ParserUpgradeJob`                     | worker                     | start + daily  | records the parser version, queues background re-parses of older matches                 |
 | `DailyJobsWorker` + `DataRetentionJob` | API                        | start + hourly | plan credits, reports, Personal Coach, Steam ban checks; partitions and global retention |
 | `CoachFollowUpWorker`                  | API                        | every 15 s     | match ownership classification and auto-reviews                                          |
+| `WebhookDeliveryWorker`                | API                        | every 5 s      | enqueues demo/review webhook events, signed delivery with backoff, hourly purge          |
 
 ### Credits
 
