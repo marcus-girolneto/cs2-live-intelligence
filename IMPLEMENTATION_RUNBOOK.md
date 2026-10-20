@@ -1,4 +1,4 @@
-CS2 LIVE INTELLIGENCE — IMPLEMENTATION RUNBOOK
+CS2 LIVE INTELLIGENCE: IMPLEMENTATION RUNBOOK
 
 Version 1.0 | Start: 2026-10-19 | Intended for Claude Code / Codex / coding agents
 
@@ -16,26 +16,26 @@ Day-zero decisions
 
 Tomorrow: exact execution sequence
 
-Block A — 60–90 min: foundation
+Block A, 60–90 min: foundation
 
 1. Initialize repo and workspace, lint/format/typecheck/test scripts, docker compose, .env.example, README, ADR-001.
 2. Define versioned Zod/TypeBox telemetry contracts and fixtures with missing optional fields.
 3. Acceptance: pnpm install && docker compose up -d && pnpm test succeeds.
 
-Block B — 90–120 min: ingestion
+Block B, 90–120 min: ingestion
 
 4. Go collector binds 127.0.0.1 configurable port; POST /gsi accepts capped JSON, validates, stamps receivedAt, forwards HTTPS to backend; retries with bounded queue.
 5. Fastify POST /v1/telemetry/gsi validates device identity and schema, deduplicates, reduces snapshot to session state.
 6. Build CLI mock sender simulating phase changes, kills and reconnects.
 7. Acceptance: 100 simulated updates ingested, duplicate-safe, missing fields do not crash.
 
-Block C — 90 min: live delivery
+Block C, 90 min: live delivery
 
 8. Implement authenticated WebSocket channel scoped to session owner; on connect send latest snapshot; broadcast state diffs; heartbeat and reconnect.
 9. Next.js live screen shows status, map, phase, round, score and own stats ONLY if present, plus last-updated age and source.
 10. Acceptance: browser reflects simulator updates in under 2s on local dev machine; disconnect shows stale status.
 
-Block D — 60–90 min: proof and handoff
+Block D, 60–90 min: proof and handoff
 
 11. Add end-to-end test for mock collector -> API -> WebSocket -> browser.
 12. Write runbook to configure gamestate_integration_cs2live.cfg in CS2 cfg directory, with actual verified install-path instructions and fallback.

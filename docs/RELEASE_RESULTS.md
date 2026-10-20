@@ -1,4 +1,4 @@
-# Release results — local MVP (2026-10-19)
+# Release results: local MVP, 2026-10-19
 
 Everything below was executed on the local Docker stack and developer machine. Nothing here claims a hosted release, a real Windows CS2 session, a real Steam account sign-in or a real language-model call.
 

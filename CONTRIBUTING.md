@@ -18,7 +18,7 @@ routes → controller → service → repository, DTOs, composition root) and
 
 - Branch from `main`: `feat/<topic>`, `fix/<topic>`, `chore/<topic>`.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/):
-  `type(scope): summary` — types `feat`, `fix`, `refactor`, `perf`, `test`, `docs`,
+  `type(scope): summary`. Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`,
   `build`, `ci`, `chore`; scopes such as `api`, `web`, `parser`, `analytics`, `coaching`,
   `contracts`, `collector`, `billing`, `e2e`.
 - Before pushing: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test`

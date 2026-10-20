@@ -280,7 +280,7 @@ missing and drops schemas left by interrupted runs. Each test file still applies
 inside its own schema (`search_path`), and `scripts/e2e-stack.ts` creates one schema per run in
 the test database.
 
-## Review (2026-10-19) — done
+## Review 2026-10-19 (done)
 
 What was right and is kept: one owner key with cascading deletes, the append-only credit ledger
 with a unique `(owner_id, reason, ref)` key and a wallet updated in the same transaction, daily

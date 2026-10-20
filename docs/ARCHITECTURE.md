@@ -32,8 +32,8 @@ flowchart TB
 | `*.service.ts`                | interfaces/ports, DTO types, policies, `shared/errors`, `shared/clock` | Fastify, `drizzle-orm`, `process.env`, `Pg*` |
 | `*.repository.ts`             | `drizzle-orm`, `shared/db`, `shared/crypto`, DTO types                 | Fastify, services                            |
 | `infrastructure`              | Node/HTTP/third-party libraries, `shared/*`                            | modules' services and controllers            |
-| `composition`, `container.ts` | everything (this is where concrete classes meet)                       | —                                            |
-| `config/env.ts`               | the **only** reader of `process.env`                                   | —                                            |
+| `composition`, `container.ts` | everything (this is where concrete classes meet)                       | n/a                                          |
+| `config/env.ts`               | the **only** reader of `process.env`                                   | n/a                                          |
 
 Cross-module calls go through an interface declared by the **consumer** (e.g. `AnalysisHistory`
 in `coaching/coaching.ports.ts`) and are wired in the composition root.
@@ -171,11 +171,11 @@ the HMAC cannot be reversed without the server key and identifies no account).
 
 ## Request lifecycle: `POST /v1/analyses/:id/coaching`
 
-1. **Route** (`coaching.routes.ts`) — `requireUser` preHandler resolves the Bearer token through
+1. **Route** (`coaching.routes.ts`): `requireUser` preHandler resolves the Bearer token through
    `SessionAuthenticator` (`PgAuthRepository`) and sets `request.principal`; 401 otherwise.
-2. **Controller** (`CoachingController.review`) — `parseDto(reviewRequestSchema)` → 400
+2. **Controller** (`CoachingController.review`): `parseDto(reviewRequestSchema)` → 400
    `"Invalid player"`; builds a `ViewerPolicy` from the caller's role.
-3. **Service** (`ReviewService.review`) — loads the owner's analysis (`AnalysisHistory`, 404),
+3. **Service** (`ReviewService.review`): loads the owner's analysis (`AnalysisHistory`, 404),
    checks the player exists (404), reserves one unit of the daily safety cap (`CoachingQuota`,
    402 `plan_limit`), reserves the tier's credits (`CoachingCredits`, 402
    `insufficient_credits`), acquires the purpose's model (`review_quick`/`review_deep`) within
@@ -184,7 +184,7 @@ the HMAC cannot be reversed without the server key and identifies no account).
    personalization, calls the model through `AiGateway`, saves the review
    (`CoachingRepository`), commits the credits, logs, and maps the response through
    `ViewerPolicy`. Any failure releases the credit hold and the reservation and is mapped by `aiRequestError` (504/409/502, `code: ai_*`).
-4. **Error handler** (`shared/errors/error-handler.ts`) — the single place mapping `AppError`
+4. **Error handler** (`shared/errors/error-handler.ts`): the single place mapping `AppError`
    to status + body (+ headers such as `retry-after`).
 
 ## Directory tree (`apps/api/src`)

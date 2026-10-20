@@ -21,18 +21,18 @@ app/ (routes)  →  src/composition  →  src/features/<feature>  →  src/share
 app/api/**     →  src/server (route handlers, proxy allowlist, session, origin checks)
 ```
 
-- **`app/`** — thin route files only (≤ 60 lines): a page renders one screen exported by a
+- **`app/`**: thin route files only (≤ 60 lines): a page renders one screen exported by a
   feature (`<HistoryScreen />`), a layout keeps its `metadata`, `app/api/**` delegates to
   `src/server/handlers`. Global CSS stays in `app/styles/*` (class names are the contract).
-- **`src/composition/`** — the root: `AppProviders` (language + merged dictionaries),
+- **`src/composition/`**: the root: `AppProviders` (language + merged dictionaries),
   `AppGate` (auth state → landing / public shell / app shell with `AccountProvider` and
   `UpgradeProvider`) and `i18n.ts` (merges every feature's PT dictionary, reports conflicts).
-- **`src/features/<name>/`** — `api/` (interface + HTTP implementation + DI context),
+- **`src/features/<name>/`**: `api/` (interface + HTTP implementation + DI context),
   `hooks/`, `components/`, `model/` (pure, unit-tested), `i18n/pt.ts`, `index.ts` (the only
   import surface for other features and routes). Features: `auth`, `shell`, `landing`,
   `privacy`, `dashboard`, `matches`, `analysis`, `coach`, `replay`, `maps` (per-map progress
   and plans), `progress`, `live`, `settings`, `billing`, `admin`.
-- **`src/shared/`** — framework-level building blocks with no feature knowledge: `http`
+- **`src/shared/`**: framework-level building blocks with no feature knowledge: `http`
   (`HttpClient`, `ApiError`, `FakeHttpClient`), `i18n` core/provider + shared PT strings,
   `ui` primitives, `icons`, `format`, `hooks`, `session` (account context, "this is me"),
   `di`, `brand`, `api-types` (DTOs from `@cs2/contracts`), `config`.

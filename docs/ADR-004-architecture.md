@@ -60,28 +60,28 @@ live in Postgres and are edited by admins (AI config, app settings, the `integra
 
 ## Patterns (and where)
 
-- **Repository** — every `modules/*/*.repository.ts`: `AuthRepository`/`PgAuthRepository`,
+- **Repository**: every `modules/*/*.repository.ts`: `AuthRepository`/`PgAuthRepository`,
   `UsersRepository`, `DevicesRepository`, `PrivacyRepository`, `LiveSessionStore`
   (`PgLiveSessionStore` + `InMemoryLiveSessionStore`), `MatchesRepository`,
   `JobQueueRepository`, `RetentionRepository`, `CoachingRepository`, `CoachPlansRepository`,
   `AiConfigRepository`, `AdminRepository`, `FeedbackRepository`, `PlansRepository`,
   `UsageRepository`, `BillingRepository`, `ReplayRepository`. SQL is copied verbatim from the
   old `PgRepository`.
-- **Service Layer** — `*.service.ts` in each module (`AuthService`, `UsersService`,
+- **Service Layer**: `*.service.ts` in each module (`AuthService`, `UsersService`,
   `DevicesService`, `PrivacyService`, `TelemetryService`, `LiveService`, `UploadService`,
   `SampleDemoService`, `MatchesService`, `AnalysesService`, `ReviewService`,
   `LiveCallService`, `ProgressService`, `CoachProfileService`, `PersonalizationService`,
   `AiAccessService`, `AiProviderAdminService`, `AppSettingsService`, `AdminService`,
   `FeedbackService`, `PlansService`, `QuotaService`, `BillingService`, `ReplayService`).
-- **DTO + Mapper** — `*.dto.ts` per module (zod schemas + inferred types);
+- **DTO + Mapper**: `*.dto.ts` per module (zod schemas + inferred types);
   `ai-config/ai-config.mapper.ts` (`providerView`); `matches/matches.repository.ts`
   (`matchView`); `coaching/viewer.policy.ts` (`publicCoaching`); the web-facing types are
   mirrored in `packages/contracts/src/api/*` (exported as the `api` namespace).
-- **Dependency Injection via a composition root** — `container.ts`, `composition/live.ts`,
+- **Dependency Injection via a composition root**: `container.ts`, `composition/live.ts`,
   `composition/platform.ts`, `composition/jobs.ts`. `ApiConfig` (`config/api-config.ts`) lets
   tests override any infrastructure dependency: `database`, `paymentGateway`, `clock`,
   `steamFetch`, `env`, `aiGateway`, `logger`, `overrides.jobQueue`, `overrides.demoParser`.
-- **Adapter** — `infrastructure/steam/http-steam-client.ts` (OpenID verification + profile),
+- **Adapter**: `infrastructure/steam/http-steam-client.ts` (OpenID verification + profile),
   `infrastructure/billing/stripe-payment-gateway.ts`, `infrastructure/parser/demo-parser.ts`
   (`ProcessDemoParser`), `infrastructure/storage/object-storage.ts` (`FsObjectStorage`) and
   `replay-storage.ts` (`FileReplayStorage`), `infrastructure/ai/coaching-ai-gateway.ts`
@@ -90,28 +90,28 @@ live in Postgres and are edited by admins (AI config, app settings, the `integra
   (`AesGcmSecretCipher`), `infrastructure/realtime/live-broadcaster.ts`
   (`WebSocketBroadcaster`). Cross-module adapters: `plans/plans.extras.ts`
   (`PlanAccountExtras`), `replay/replay.repository.ts` (`MatchesReplayRepository`).
-- **Strategy** — `ai-config/ai-settings.service.ts`: an ordered chain of `AiConfigSource`
+- **Strategy**: `ai-config/ai-settings.service.ts`: an ordered chain of `AiConfigSource`
   strategies (`AssignedProviderSource`, then `EnvironmentSource`); `PaymentGateway`
   implementations (Stripe, Null, test fakes); the provider wire style (chat vs responses API,
   JSON mode) selected inside `@cs2/coaching` from the `AiConfig`.
-- **Factory** — `ai-config/ai-config.factory.ts` (`AiConfigFactory`: every `AiConfig` from
+- **Factory**: `ai-config/ai-config.factory.ts` (`AiConfigFactory`: every `AiConfig` from
   DB or env goes through `loadAiConfig`); `infrastructure/billing/payment-gateway-factory.ts`
   (`ConfiguredPaymentGatewaySource`: Stripe or the Null Object chosen per call from the
   admin-managed credentials of `integrations/integration-config.provider.ts`).
-- **Null Object** — `infrastructure/billing/null-payment-gateway.ts`: billing disabled answers
+- **Null Object**: `infrastructure/billing/null-payment-gateway.ts`: billing disabled answers
   503 `billing_disabled` without `if (gateway)` checks.
-- **Unit of Work** — `shared/db/unit-of-work.ts` (`PgUnitOfWork`, `DirectUnitOfWork` for
+- **Unit of Work**: `shared/db/unit-of-work.ts` (`PgUnitOfWork`, `DirectUnitOfWork` for
   fakes). Used by `PlansService.grant` (subscription + retention clamp + audit),
   `PlansService.applyProviderState`, `PlansService.updatePlan` (plan + audit) and
   `AdminService.changeRole` (role change + audit).
-- **Guard / Middleware chain** — `shared/http/guards.ts` (`AuthGuards.requireUser`,
+- **Guard / Middleware chain**: `shared/http/guards.ts` (`AuthGuards.requireUser`,
   `requireAdmin`, `requireDevice` preHandlers that decorate `request.principal` /
   `request.device`); the per-IP auth rate-limit hook in `auth/auth.routes.ts`
   (`installAuthRateLimit`, using `shared/http/rate-limit.ts`).
-- **Policy objects** — `plans/plan.policy.ts` (`PlanPolicy`: entitlement, applicable plan,
-  admin plan, retention clamp, upgrade path — pure and unit-tested);
+- **Policy objects**: `plans/plan.policy.ts` (`PlanPolicy`: entitlement, applicable plan,
+  admin plan, retention clamp, upgrade path; pure and unit-tested);
   `coaching/viewer.policy.ts` (`ViewerPolicy`: what non-admins may see of AI provenance).
-- **Observer** — `live/owner-invalidation.ts` (`OwnerInvalidationBus`): logout, device
+- **Observer**: `live/owner-invalidation.ts` (`OwnerInvalidationBus`): logout, device
   rotation/revocation, consent withdrawal and account deletion publish; the live module closes
   the owner's sockets and pending tickets.
 
