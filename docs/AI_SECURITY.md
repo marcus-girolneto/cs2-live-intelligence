@@ -128,10 +128,10 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
 - **Language guard**: Portuguese requested but mostly English stop-words (or the reverse) adds a
   caveat (does not fail).
 - **Orthography check** (`orthography.ts`): an answer in a language with diacritics that contains
-- **No angles, readable callouts:** the model never receives degree numbers (crosshair placement is sent as on target / near / big flick counts, body height and side drift) and any sentence that still mentions an angle in any language is dropped (`degrees.ts`). Raw demo callouts are sent and shown as players say them ("Top of Mid", not "TopofMid"), and distances are in meters.
   two or more known accent-less forms ("nao", "voce", "posicao") is asked again once with a
   stronger orthography line; if it is still accent-less, a small whole-word map restores the
   common words (case kept). No caveat is shown because the text then reads correctly.
+- **No angles, readable callouts:** the model never receives degree numbers (crosshair placement is sent as on target / near / big flick counts, body height and side drift) and any sentence that still mentions an angle in any language is dropped (`degrees.ts`). Raw demo callouts are sent and shown as players say them ("Top of Mid", not "TopofMid"), and distances are in meters.
 - Schema validation stays: unknown evidence/event ids are removed, moment kinds come from the
   event, contradictory or other-round moments are dropped.
 
