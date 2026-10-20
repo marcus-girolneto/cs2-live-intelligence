@@ -13,6 +13,7 @@ describe("product settings", () => {
       personalCoachIntervalDays: "",
       personalCoachNewMatches: "",
       maxDemoMb: "",
+      verifierEnabled: false,
     });
     expect(
       productSettingsOf({
@@ -20,12 +21,14 @@ describe("product settings", () => {
         personalCoachIntervalDays: 7,
         personalCoachNewMatches: 3,
         maxDemoBytes: 524_288_000,
+        verifierEnabled: true,
       }),
     ).toEqual({
       timezone: "UTC",
       personalCoachIntervalDays: "7",
       personalCoachNewMatches: "3",
       maxDemoMb: "500",
+      verifierEnabled: true,
     });
   });
   it("only sends keys the server knows and validates ranges", () => {
@@ -40,6 +43,9 @@ describe("product settings", () => {
     });
     expect(productBody(p, { timezone: "UTC" })).toEqual({
       timezone: "America/Sao_Paulo",
+    });
+    expect(productBody(p, { verifierEnabled: true })).toEqual({
+      verifierEnabled: false,
     });
     expect(
       productProblems({

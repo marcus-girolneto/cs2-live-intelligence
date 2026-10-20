@@ -3,6 +3,7 @@ import {
   Eye,
   Headshot,
   Scope,
+  ShieldAlert,
   Skull,
   Smoke,
   WeaponIcon,
@@ -14,11 +15,16 @@ export function KillFeed({
   names,
   highlight,
   world,
+  flagged,
+  flaggedLabel,
 }: {
   rows: KillRow[];
   names: Map<string, string>;
   highlight?: string;
   world: string;
+  /** Players with integrity signals: their kills get a discreet shield marker. */
+  flagged?: Set<string>;
+  flaggedLabel?: string;
 }) {
   const side = (s?: string) => (s === "CT" ? "ct" : s === "T" ? "t" : "none");
   return (
@@ -42,6 +48,16 @@ export function KillFeed({
             <span className={`kf-name ${side(k.attackerSide)}`}>
               {k.attacker ? (names.get(k.attacker) ?? k.attacker) : world}
             </span>
+            {k.attacker && flagged?.has(k.attacker) && (
+              <span
+                className="kf-flag integrity-flag"
+                title={flaggedLabel}
+                aria-label={flaggedLabel}
+                role="img"
+              >
+                <ShieldAlert size={14} />
+              </span>
+            )}
             {k.attackerBlind && (
               <span className="kf-flag" title="blind">
                 <Eye size={14} />

@@ -5,7 +5,9 @@ import { TabPanel } from "@/shared/ui";
 import type { AnalysisVM } from "../../hooks/useAnalysisView";
 import { metricValue } from "../../model/players";
 import { overviewLines } from "../../model/plain";
+import { IntegrityPanel } from "../plain/IntegrityPanel";
 import { KeyStats } from "../plain/KeyStats";
+import { LobbyRanks } from "../plain/LobbyRanks";
 import { PlainSummary } from "../plain/PlainSummary";
 import { DamageChart } from "../sections/DamageChart";
 import { OverviewInsights } from "./OverviewInsights";
@@ -75,12 +77,14 @@ export function OverviewTab({ vm }: { vm: AnalysisVM }) {
 
       <DamageChart rows={rows} onRound={(r) => goRound([r])} />
 
+      <LobbyRanks metrics={vm.lobby} />
       <details className="all-stats">
         <summary>{t("Show all stats")}</summary>
         <OverviewStats vm={vm} />
         <OverviewInsights vm={vm} />
       </details>
 
+      <IntegrityPanel integrity={vm.integrity} names={vm.names} />
       <div className="verdict-box">
         <p>
           {t(

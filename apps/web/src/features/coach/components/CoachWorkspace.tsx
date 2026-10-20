@@ -6,6 +6,7 @@ import { useI18n } from "@/shared/i18n";
 import { ArrowRight, Refresh } from "@/shared/icons";
 import { Callout, Skeleton } from "@/shared/ui";
 import type { CoachSession } from "../hooks/useCoachSession";
+import { useTeamReview } from "../hooks/useTeamReview";
 import type { ClipRef, ReviewTier } from "../model/coaching";
 import { evidenceRounds } from "../model/session";
 import { CoachReport } from "./CoachReport";
@@ -16,6 +17,7 @@ import { DeepTeaser } from "./DeepTeaser";
 import { PlayerPicker } from "./PlayerPicker";
 import { ReelButton } from "./ReelButton";
 import { ReviewToolbar } from "./ReviewToolbar";
+import { TeamReport } from "./team/TeamReport";
 import { TierChoice } from "./TierChoice";
 
 /** Steps 2–4 for a chosen match: player → tier → running → report / compare. */
@@ -33,6 +35,12 @@ export function CoachWorkspace({
   const [compare, setCompare] = useState(false);
   const reviewId = s.review?.id;
   useEffect(() => setCompare(false), [reviewId]);
+  const team = useTeamReview(
+    s.card?.analysisId ?? null,
+    s.player?.steamId ?? null,
+  );
+  const nameOf = (id: string) =>
+    s.roster.find((r) => r.steamId === id)?.name ?? t("Teammate");
   if (!s.card) return null;
   if (s.analysisError)
     return (
@@ -41,6 +49,24 @@ export function CoachWorkspace({
       </Callout>
     );
   if (!s.analysis) return <Skeleton height={240} />;
+  if (team.running)
+    return (
+      <CoachRunning
+        since={team.running}
+        tier="team"
+        events={s.analysis.analysis.events?.length ?? 0}
+        playerName={s.player?.name ?? ""}
+      />
+    );
+  if (team.shown && team.latest)
+    return (
+      <TeamReport
+        stored={team.latest}
+        nameOf={nameOf}
+        onPlay={onPlay}
+        onBack={team.close}
+      />
+    );
   if (s.running)
     return (
       <CoachRunning
@@ -68,6 +94,7 @@ export function CoachWorkspace({
           onOpen={open}
           onCompare={() => setCompare(true)}
           onUnlockDeep={() => s.run("deep")}
+          onTeam={team.latest ? team.open : undefined}
           actions={
             <ReelButton
               analysisId={s.card.analysisId}
@@ -120,6 +147,15 @@ export function CoachWorkspace({
         selected={s.player?.steamId ?? null}
         onPick={s.pickPlayer}
       />
+      {team.error && (
+        <Callout
+          tone="error"
+          role="alert"
+          title={t("The team review could not be finished.")}
+        >
+          <p>{t(team.error)}</p>
+        </Callout>
+      )}
       {s.failure && (
         <Callout
           tone={s.failure.code === "ai_not_configured" ? "warn" : "error"}
@@ -159,6 +195,7 @@ export function CoachWorkspace({
           meter={meter}
           onRun={s.run}
           onOpen={s.open}
+          team={{ done: !!team.latest, onRun: team.run, onOpen: team.open }}
         />
       )}
     </section>

@@ -18,6 +18,7 @@ import { EmptyState, PageHeader, TabPanel, Tabs } from "@/shared/ui";
 import { useResource } from "../hooks/useResource";
 import type { AiStatus, ProvidersResponse } from "../model/types";
 import { ActiveConfig } from "./ActiveConfig";
+import { AiQualityPanel } from "./AiQualityPanel";
 import { AssignmentsPanel } from "./AssignmentsPanel";
 import { AuditPanel } from "./AuditPanel";
 import { CreditPacksEditor } from "./CreditPacksEditor";
@@ -165,6 +166,7 @@ function AiTabs({
           loading={providers.loading}
           onChanged={reload}
         />
+        <AiQualityPanel />
       </TabPanel>
     );
   return (

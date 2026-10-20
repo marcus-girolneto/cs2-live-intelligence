@@ -4,6 +4,7 @@ import { useI18n } from "@/shared/i18n";
 import { Gear, User } from "@/shared/icons";
 import { Callout, PageHeader, Panel, Skeleton } from "@/shared/ui";
 import { useSettings } from "../hooks/useSettings";
+import { AutoReviewPanel } from "./AutoReviewPanel";
 import { CoachSettings } from "./CoachSettings";
 import { DangerPanel } from "./DangerPanel";
 import { DevicesPanel } from "./DevicesPanel";
@@ -61,6 +62,7 @@ export function SettingsScreen() {
             )}
           </Panel>
           <CoachSettings />
+          <AutoReviewPanel />
           <PrivacyPanel vm={vm} />
           <DevicesPanel vm={vm} />
           <DangerPanel vm={vm} />

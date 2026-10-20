@@ -5,6 +5,8 @@ export type ProductSettings = {
   personalCoachNewMatches: string;
   /** Edited in MB; sent in bytes. */
   maxDemoMb: string;
+  /** Second AI pass that checks every claim of a review against the facts. */
+  verifierEnabled: boolean;
 };
 export const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 const MB = 1024 * 1024;
@@ -51,6 +53,7 @@ export function productSettingsOf(
       typeof bytes === "number" && Number.isFinite(bytes)
         ? String(Math.round(bytes / MB))
         : "",
+    verifierEnabled: s?.verifierEnabled === true,
   };
 }
 
@@ -87,5 +90,6 @@ export function productBody(
     body.personalCoachNewMatches = Number(p.personalCoachNewMatches);
   if (has("maxDemoBytes") && p.maxDemoMb.trim())
     body.maxDemoBytes = Number(p.maxDemoMb) * MB;
+  if (has("verifierEnabled")) body.verifierEnabled = p.verifierEnabled;
   return body;
 }

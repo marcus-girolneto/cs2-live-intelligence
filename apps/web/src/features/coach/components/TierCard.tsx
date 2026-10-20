@@ -1,9 +1,18 @@
 "use client";
 import { useI18n } from "@/shared/i18n";
-import { Bolt, Check, Coin, Compare, Layers, Refresh } from "@/shared/icons";
+import {
+  Bolt,
+  Check,
+  Coin,
+  Compare,
+  Layers,
+  Refresh,
+  Users,
+} from "@/shared/icons";
 import type { ReviewTier } from "../model/coaching";
 
-const WHAT: Record<ReviewTier, string[]> = {
+export type CardTier = ReviewTier | "team";
+const WHAT: Record<CardTier, string[]> = {
   quick: [
     "Verdict and overall score",
     "Scores vs the lobby",
@@ -18,7 +27,30 @@ const WHAT: Record<ReviewTier, string[]> = {
     "Round-by-round table",
     "Up to 10 key moments",
   ],
+  team: [
+    "Your whole team, reviewed like an IGL would",
+    "Team scores: trading, utility, openings, economy, conversion",
+    "Each player's role with strengths and fixes",
+    "Key rounds with 2D clips",
+    "A team plan with who does what",
+  ],
 };
+const NAME: Record<CardTier, string> = {
+  quick: "Quick review",
+  deep: "Deep review",
+  team: "Team review",
+};
+const RUN: Record<CardTier, string> = {
+  quick: "Run Quick review",
+  deep: "Run Deep review",
+  team: "Run Team review",
+};
+const SUB: Record<CardTier, string> = {
+  quick: "The essentials in under a minute",
+  deep: "Pro analysis with a stronger AI",
+  team: "Five players, one game plan",
+};
+const ICON = { quick: Bolt, deep: Layers, team: Users };
 
 /** One big "Choose your review" card: what you get, what it costs, run / open. */
 export function TierCard({
@@ -34,7 +66,7 @@ export function TierCard({
   onOpen,
   onBuy,
 }: {
-  tier: ReviewTier;
+  tier: CardTier;
   cost: number;
   /** Price before the plan discount (Pro pays less for Deep). */
   fullCost?: number;
@@ -51,8 +83,8 @@ export function TierCard({
 }) {
   const { t } = useI18n();
   const deep = tier === "deep";
-  const Icon = deep ? Layers : Bolt;
-  const name = deep ? t("Deep review") : t("Quick review");
+  const Icon = ICON[tier];
+  const name = t(NAME[tier]);
   const credits = cost === 1 ? t("1 credit") : t("{n} credits", { n: cost });
   return (
     <article
@@ -61,17 +93,14 @@ export function TierCard({
       data-testid={`tier-${tier}`}
     >
       {deep && <span className="tier-ribbon">{t("Pro analysis")}</span>}
+      {tier === "team" && <span className="tier-ribbon">{t("New")}</span>}
       <header className="tier-head">
         <span className="tier-icon" aria-hidden>
           <Icon size={26} />
         </span>
         <div>
           <h3 id={`tier-${tier}`}>{name}</h3>
-          <p className="muted small">
-            {deep
-              ? t("Pro analysis with a stronger AI")
-              : t("The essentials in under a minute")}
-          </p>
+          <p className="muted small">{t(SUB[tier])}</p>
         </div>
         <span
           className="tier-cost"
@@ -145,7 +174,7 @@ export function TierCard({
             onClick={onRun}
           >
             <Icon size={20} />
-            {deep ? t("Run Deep review") : t("Run Quick review")}
+            {t(RUN[tier])}
             {!admin && <span className="tier-btn-cost">· {credits}</span>}
           </button>
         ) : (

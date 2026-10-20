@@ -97,6 +97,8 @@ export const TOKEN_BUDGET: Record<Purpose, { input: number; output: number }> =
     live: { input: 2_000, output: 200 },
     report: { input: 40_000, output: 3_000 },
     personal_coach: { input: 60_000, output: 4_000 },
+    review_team: { input: 40_000, output: 4_000 },
+    verify: { input: 8_000, output: 800 },
   };
 
 /** Estimated USD per call at list price; null when the price is unknown. */

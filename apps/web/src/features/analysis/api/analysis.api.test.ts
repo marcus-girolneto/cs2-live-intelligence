@@ -21,4 +21,18 @@ describe("AnalysisApi", () => {
       { playerSteamId: null },
     ]);
   });
+  it("reads lobby ranks and integrity", async () => {
+    const http = new FakeHttpClient()
+      .on("GET", "analyses/a1/lobby", {
+        players: 10,
+        metrics: [{ key: "adr", label: "ADR", value: 90, rank: 2 }],
+      })
+      .on("GET", "analyses/a1/integrity", {
+        players: [{ steamId: "x", level: "low", reasons: [] }],
+      });
+    const api = createAnalysisApi(http);
+    expect((await api.getLobby("a1", "765"))[0]!.rank).toBe(2);
+    expect(http.calls[0]!.options.query).toEqual({ steamId: "765" });
+    expect((await api.getIntegrity("a1")).players).toHaveLength(1);
+  });
 });

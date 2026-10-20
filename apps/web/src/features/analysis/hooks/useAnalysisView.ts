@@ -12,6 +12,7 @@ import {
 import { mean } from "../model/metrics";
 import { mainSide, metricValue, nameMap } from "../model/players";
 import type { AnalysisResult } from "../model/types";
+import { useMatchExtras } from "./useMatchExtras";
 export type Tab = "overview" | "aim" | "map" | "rounds" | "coach" | "data";
 
 /** State and match-wide derived data of the analysis screen (players, references, selection). */
@@ -63,6 +64,7 @@ export function useAnalysisView(result: AnalysisResult) {
     }
   }, [result.id, players, account?.steamId]);
   const player = players.find((p) => p.steamId === selectedId) ?? players[0];
+  const extras = useMatchExtras(result.id, player?.steamId ?? null);
   const rounds = (analysis.roundOutcomes ?? []).filter(
     (r) => finite(r.round) !== null,
   );
@@ -113,6 +115,9 @@ export function useAnalysisView(result: AnalysisResult) {
   );
   const map = mapName(analysis.map);
   return {
+    lobby: extras.lobby,
+    integrity: extras.integrity,
+    flagged: extras.flagged,
     analysis,
     events,
     names,

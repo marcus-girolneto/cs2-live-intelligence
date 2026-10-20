@@ -6,7 +6,7 @@ import { finite, text } from "@/shared/format";
 import type { Currency, PlanId } from "./catalogue";
 import { obj } from "./normalize";
 
-export type ReviewTier = "quick" | "deep";
+export type ReviewTier = "quick" | "deep" | "team";
 export type CreditBucket = "plan" | "bonus" | "purchased";
 export type WelcomeReason =
   | "banned"
@@ -53,7 +53,11 @@ export type InsufficientCredits = {
 };
 
 /** Published defaults: Quick 1 credit, Deep 3 (2 on Pro). */
-export const DEFAULT_COSTS: Record<ReviewTier, number> = { quick: 1, deep: 3 };
+export const DEFAULT_COSTS: Record<ReviewTier, number> = {
+  quick: 1,
+  deep: 3,
+  team: 4,
+};
 const REASONS: WelcomeReason[] = [
   "banned",
   "account_too_new",
@@ -100,7 +104,7 @@ export function normalizeCredits(raw: unknown): Credits | null {
   const out: Credits = {
     balance,
     buckets,
-    costs: { quick: cost("quick"), deep: cost("deep") },
+    costs: { quick: cost("quick"), deep: cost("deep"), team: cost("team") },
   };
   const expires = text(o.planExpiresAt);
   if (expires && Number.isFinite(Date.parse(expires)))
@@ -176,7 +180,8 @@ export function insufficientFrom(e: unknown): InsufficientCredits | null {
   };
   const to = text(body.upgradeTo);
   if (to) out.upgradeTo = to;
-  if (body.tier === "quick" || body.tier === "deep") out.tier = body.tier;
+  if (body.tier === "quick" || body.tier === "deep" || body.tier === "team")
+    out.tier = body.tier;
   return out;
 }
 
@@ -188,6 +193,8 @@ export function tierCost(
 ) {
   if (credits) return credits.costs[tier];
   if (tier === "quick") return DEFAULT_COSTS.quick;
+  if (tier === "team")
+    return plan?.id === "pro" ? DEFAULT_COSTS.team - 1 : DEFAULT_COSTS.team;
   return (
     plan?.limits?.deepCost ?? (plan?.id === "pro" ? 2 : DEFAULT_COSTS.deep)
   );
@@ -201,6 +208,7 @@ export const REASON_LABELS: Record<string, string> = {
   purchase: "Credit pack",
   review_quick: "Quick review",
   review_deep: "Deep review",
+  review_team: "Team review",
   refund: "Refund",
   admin_adjust: "Adjustment by support",
   admin: "Adjustment by support",

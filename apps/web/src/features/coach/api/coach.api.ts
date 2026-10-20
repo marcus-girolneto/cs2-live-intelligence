@@ -1,3 +1,8 @@
+import {
+  normalizeTeamReview,
+  normalizeTeamReviews,
+  type StoredTeamReview,
+} from "../model/team";
 import type { MatchDto, MatchListDto } from "@/shared/api-types";
 import { platformHttp, seg, type HttpClient } from "@/shared/http";
 import { parseClip, type ClipRef } from "@/features/replay";
@@ -48,6 +53,17 @@ export interface CoachApi {
   /** Match reel clips (Pro). */
   getReel(analysisId: string, steamId: string): Promise<ReelClip[]>;
   rateReview(reviewId: string, rating: number): Promise<void>;
+  /** Runs a team review (IGL view of your whole team; costs credits). */
+  requestTeamReview(
+    analysisId: string,
+    steamId: string,
+    lang: string,
+  ): Promise<StoredTeamReview>;
+  /** Stored team reviews for this player's team, newest first. */
+  listTeamReviews(
+    analysisId: string,
+    steamId: string,
+  ): Promise<StoredTeamReview[]>;
 }
 
 export function createCoachApi(http: HttpClient = platformHttp): CoachApi {
@@ -78,6 +94,27 @@ export function createCoachApi(http: HttpClient = platformHttp): CoachApi {
     getReel: async (analysisId, steamId) =>
       parseReel(
         await http.get<unknown>(`analyses/${seg(analysisId)}/reel`, {
+          query: { steamId },
+        }),
+      ),
+    requestTeamReview: async (analysisId, steamId, lang) => {
+      const r = await http.post<Record<string, unknown>>(
+        `analyses/${seg(analysisId)}/team-review`,
+        { steamId, lang },
+        { timeoutMs: AI_TIMEOUT },
+      );
+      const review = normalizeTeamReview(r.teamReview);
+      if (!review) throw new Error("The coach returned an unexpected answer.");
+      return {
+        id: typeof r.reviewId === "string" ? r.reviewId : "new",
+        createdAt: new Date().toISOString(),
+        review,
+        fresh: true,
+      };
+    },
+    listTeamReviews: async (analysisId, steamId) =>
+      normalizeTeamReviews(
+        await http.get<unknown>(`analyses/${seg(analysisId)}/team-reviews`, {
           query: { steamId },
         }),
       ),

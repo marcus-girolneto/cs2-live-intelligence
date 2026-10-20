@@ -28,4 +28,34 @@ describe("AdminApi", () => {
     await createAdminApi(http).setUserPlan("u", "pro");
     expect(http.calls[0]!.options.json).toEqual({ planId: "pro" });
   });
+  it("reads reprocess status, ratings and the latest eval", async () => {
+    const http = new FakeHttpClient()
+      .on("GET", "admin/analyses/reprocess/status", {
+        pending: 2,
+        done: 5,
+        failed: 0,
+        currentVersion: "p3",
+      })
+      .on("GET", "admin/ai/ratings", {
+        ratings: [
+          {
+            purpose: "review_deep",
+            variant: "a",
+            promptVersion: "v1",
+            reviews: 3,
+            rated: 1,
+            avgRating: 5,
+          },
+        ],
+      })
+      .on("GET", "admin/ai/eval/latest", {
+        id: "e1",
+        createdAt: "2026-10-19T00:00:00Z",
+        summary: { runs: 4, failed: 0 },
+      });
+    const api = createAdminApi(http);
+    expect((await api.reprocessStatus()).pending).toBe(2);
+    expect((await api.aiRatings())[0]!.avgRating).toBe(5);
+    expect((await api.latestEval())?.runs).toBe(4);
+  });
 });

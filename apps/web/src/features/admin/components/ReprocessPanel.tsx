@@ -1,11 +1,12 @@
 "use client";
 import { useAdminApi } from "../api/context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatNumber } from "@/shared/format";
 import { ApiError } from "@/shared/http";
 import { useI18n } from "@/shared/i18n";
 import { Refresh } from "@/shared/icons";
 import { CrosshairLoader, Callout, Panel } from "@/shared/ui";
+import type { ReprocessStatus } from "../model/quality";
 import { errorText, isForbidden } from "../model/types";
 /** Re-runs the analytics on every stored demo (e.g. after a parser/metrics upgrade). */
 export function ReprocessPanel({ onForbidden }: { onForbidden: () => void }) {
@@ -15,6 +16,27 @@ export function ReprocessPanel({ onForbidden }: { onForbidden: () => void }) {
   const [queued, setQueued] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [missing, setMissing] = useState(false);
+  const [status, setStatus] = useState<ReprocessStatus | null>(null);
+  // Progress of background re-parses; polls while some are still pending.
+  useEffect(() => {
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const load = () =>
+      api
+        .reprocessStatus()
+        .then((s) => {
+          if (!alive) return;
+          setStatus(s);
+          if (s.pending > 0) timer = setTimeout(load, 10_000);
+        })
+        .catch(() => undefined);
+    void load();
+    return () => {
+      alive = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [api, queued]);
+  const total = status ? status.pending + status.done : 0;
   async function run() {
     if (
       !window.confirm(
@@ -60,6 +82,34 @@ export function ReprocessPanel({ onForbidden }: { onForbidden: () => void }) {
         </button>
       }
     >
+      {status && total > 0 && (
+        <div className="reprocess-status">
+          <div
+            className="meter"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={status.done}
+            aria-label={t("Analyses on the current parser")}
+          >
+            <i
+              style={{ width: `${Math.round((status.done / total) * 100)}%` }}
+            />
+          </div>
+          <p className="muted small">
+            {t(
+              "{done} of {total} analyses on parser {v} · {pending} pending · {failed} failed",
+              {
+                done: formatNumber(status.done, 0, locale) ?? "0",
+                total: formatNumber(total, 0, locale) ?? "0",
+                v: status.currentVersion ?? "—",
+                pending: formatNumber(status.pending, 0, locale) ?? "0",
+                failed: formatNumber(status.failed, 0, locale) ?? "0",
+              },
+            )}
+          </p>
+        </div>
+      )}
       {queued !== null && (
         <Callout tone="success" role="status">
           {t("{n} analyses queued", {

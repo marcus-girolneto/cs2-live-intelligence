@@ -13,6 +13,7 @@ export function RoundCard({
   bombs,
   names,
   steamId,
+  flagged,
 }: {
   round: number;
   winner?: "CT" | "T" | undefined;
@@ -21,6 +22,7 @@ export function RoundCard({
   bombs: Extract<DemoEvent, { type: "bomb" }>[];
   names: Map<string, string>;
   steamId: string;
+  flagged?: Set<string>;
 }) {
   const { t, locale } = useI18n();
   const buy: Record<string, string> = {
@@ -127,6 +129,14 @@ export function RoundCard({
           names={names}
           highlight={steamId}
           world={t("World")}
+          {...(flagged?.size
+            ? {
+                flagged,
+                flaggedLabel: t(
+                  "Statistically unusual player — this death isn't counted against you",
+                ),
+              }
+            : {})}
         />
       )}
       {bombs.length > 0 && (

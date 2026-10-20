@@ -6,6 +6,7 @@ export type CreditSettings = {
   quickCost: number;
   deepCost: number;
   proDeepCost: number;
+  teamCost: number;
   dailySafetyCap: number;
   minSteamAgeDays: number;
   maxGrantsPerNetwork: number;
@@ -16,6 +17,7 @@ export const CREDIT_DEFAULTS: CreditSettings = {
   quickCost: 1,
   deepCost: 3,
   proDeepCost: 2,
+  teamCost: 4,
   dailySafetyCap: 30,
   minSteamAgeDays: 30,
   maxGrantsPerNetwork: 3,
@@ -49,6 +51,12 @@ export const CREDIT_FIELDS: {
     key: "proDeepCost",
     label: "Deep review cost on Pro",
     hint: "Discounted Deep review for Pro.",
+    min: 1,
+  },
+  {
+    key: "teamCost",
+    label: "Team review cost",
+    hint: "Credits per Team review (Pro pays one less).",
     min: 1,
   },
   {

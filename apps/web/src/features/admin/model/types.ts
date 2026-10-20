@@ -1,10 +1,18 @@
 import { isApiError } from "@/shared/http";
 
 export type Purpose =
-  "review_quick" | "review_deep" | "live" | "report" | "personal_coach";
+  | "review_quick"
+  | "review_deep"
+  | "review_team"
+  | "verify"
+  | "live"
+  | "report"
+  | "personal_coach";
 export const PURPOSES: Purpose[] = [
   "review_quick",
   "review_deep",
+  "review_team",
+  "verify",
   "live",
   "report",
   "personal_coach",
@@ -12,6 +20,8 @@ export const PURPOSES: Purpose[] = [
 /** A purpose without its own assignment uses this one (then the .env default). */
 export const PURPOSE_FALLBACK: Partial<Record<Purpose, Purpose>> = {
   review_deep: "review_quick",
+  review_team: "review_deep",
+  verify: "review_quick",
   report: "review_quick",
   personal_coach: "review_deep",
 };
@@ -20,6 +30,8 @@ export const PURPOSE_LABEL: Record<string, string> = {
   review: "Post-match review",
   review_quick: "Quick review",
   review_deep: "Deep review",
+  review_team: "Team review",
+  verify: "Claim verifier",
   live: "Live IGL",
   report: "Monthly report",
   personal_coach: "Personal Coach",
@@ -28,6 +40,10 @@ export const PURPOSE_HINT: Record<Purpose, string> = {
   review_quick: "Quick review after each demo. A fast, reliable model.",
   review_deep:
     "Deep review (utility, crosshair, positioning, rounds). Prefer your strongest model.",
+  review_team:
+    "Team review: the IGL view of a whole team. A strong model with a large context.",
+  verify:
+    "Double-checks every claim of a review against the match facts. A fast, cheap model is enough.",
   live: "Short IGL calls between rounds. Prefer a fast model.",
   report:
     "Monthly performance report for Pro players. A strong model with a large context.",

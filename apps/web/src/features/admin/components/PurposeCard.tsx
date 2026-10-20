@@ -2,6 +2,8 @@
 import { formatDate, formatNumber } from "@/shared/format";
 import { useI18n } from "@/shared/i18n";
 import {
+  ShieldCheck,
+  Users,
   Alert,
   Bolt,
   Brain,
@@ -40,6 +42,8 @@ const ICON: Record<Purpose, typeof Bolt> = {
   live: Monitor,
   report: Medal,
   personal_coach: Star,
+  review_team: Users,
+  verify: ShieldCheck,
 };
 
 /** One purpose: provider + searchable model, validation, cost hint, test and save. */

@@ -6,10 +6,13 @@ export type CoachPreferences = {
   focusAreas: string[];
   instructions: string;
 };
+export type AutoReview = { enabled: boolean; tier: "quick" | "deep" };
 export type CoachProfile = {
   preferences: CoachPreferences;
   playerSteamId: string | null;
   linkedToSteam: boolean;
+  /** Review new demos automatically (absent on older APIs). */
+  autoReview?: AutoReview;
 };
 export type Device = {
   deviceId: string;

@@ -109,6 +109,22 @@ export function ProductSettingsPanel({
         1024,
         "maxDemoBytes",
       )}
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={value.verifierEnabled}
+          disabled={!has("verifierEnabled")}
+          onChange={(e) => set({ verifierEnabled: e.target.checked })}
+        />
+        {t("Verify every review's claims with a second AI pass")}
+      </label>
+      <span className="field-hint">
+        {has("verifierEnabled")
+          ? t(
+              "Claims the match facts don't support are corrected or dropped. Uses the “Claim verifier” AI assignment.",
+            )
+          : t("Not available on this server yet.")}
+      </span>
     </Panel>
   );
 }

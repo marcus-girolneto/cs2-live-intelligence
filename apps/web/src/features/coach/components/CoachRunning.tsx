@@ -12,7 +12,7 @@ export function CoachRunning({
   playerName,
 }: {
   since: number;
-  tier?: "quick" | "deep";
+  tier?: "quick" | "deep" | "team";
   events: number;
   playerName: string;
 }) {
@@ -46,7 +46,11 @@ export function CoachRunning({
         <LogoMark size={128} animated />
       </div>
       <span className={`tier-tag ${tier}`}>
-        {tier === "deep" ? t("Deep review") : t("Quick review")}
+        {tier === "deep"
+          ? t("Deep review")
+          : tier === "team"
+            ? t("Team review")
+            : t("Quick review")}
       </span>
       <h2>
         {t("{coach} is reviewing {name}", {
@@ -74,7 +78,7 @@ export function CoachRunning({
         </span>
       </div>
       <p className="muted small">
-        {tier === "deep"
+        {tier !== "quick"
           ? t(
               "A Deep review uses a stronger AI and can take a few minutes. Keep this tab open.",
             )

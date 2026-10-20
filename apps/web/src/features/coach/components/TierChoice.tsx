@@ -14,18 +14,21 @@ export function TierChoice({
   meter,
   onRun,
   onOpen,
+  team,
 }: {
   playerName: string | null;
   byTier: TierReviews | null;
   meter?: ReactNode;
   onRun: (tier: ReviewTier) => void;
   onOpen: (tier: ReviewTier) => void;
+  /** Third card: the team review (IGL view of the whole team). */
+  team?: { done: boolean; onRun: () => void; onOpen: () => void };
 }) {
   const { t } = useI18n();
   const { balance, cost, canAfford, isAdmin } = useCredits();
   const { plan } = useUsage();
   const { openCredits } = useUpgrade();
-  const buy = (tier: ReviewTier) =>
+  const buy = (tier: ReviewTier | "team") =>
     openCredits({ needed: cost(tier), balance, tier });
   const pro = plan?.id === "pro";
   return (
@@ -76,6 +79,21 @@ export function TierChoice({
             onBuy={() => buy(tier)}
           />
         ))}
+        {team && (
+          <TierCard
+            tier="team"
+            cost={cost("team")}
+            {...(pro && cost("team") < 4 ? { fullCost: 4 } : {})}
+            admin={isAdmin}
+            done={team.done}
+            otherDone={false}
+            affordable={canAfford("team")}
+            disabled={!playerName}
+            onRun={team.onRun}
+            onOpen={team.onOpen}
+            onBuy={() => buy("team")}
+          />
+        )}
       </div>
       <p className="muted small tier-note">
         {t(

@@ -84,4 +84,32 @@ describe("CoachApi", () => {
     const none = new FakeHttpClient().on("GET", "matches/ownership?ids=m2", {});
     await expect(createCoachApi(none).matchOwnership("m2")).resolves.toBeNull();
   });
+  it("runs and lists team reviews", async () => {
+    const team = {
+      verdict: "Trade more",
+      teamScores: { trading: { value: 40 } },
+    };
+    const http = new FakeHttpClient()
+      .on("POST", "analyses/a1/team-review", {
+        reviewId: "t1",
+        teamReview: team,
+      })
+      .on("GET", "analyses/a1/team-reviews", {
+        reviews: [
+          {
+            reviewId: "t1",
+            createdAt: "2026-10-01T00:00:00Z",
+            teamReview: team,
+          },
+        ],
+      });
+    const api = createCoachApi(http);
+    const run = await api.requestTeamReview("a1", "765", "en");
+    expect(run).toMatchObject({ id: "t1", fresh: true });
+    expect(http.calls[0]!.options.json).toEqual({ steamId: "765", lang: "en" });
+    expect(http.calls[0]!.options.timeoutMs).toBeGreaterThan(60_000);
+    expect((await api.listTeamReviews("a1", "765"))[0]!.review.verdict).toBe(
+      "Trade more",
+    );
+  });
 });

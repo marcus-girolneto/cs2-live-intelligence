@@ -1,4 +1,12 @@
 import {
+  normalizeEval,
+  normalizeRatings,
+  normalizeReprocess,
+  type EvalSummary,
+  type RatingRow,
+  type ReprocessStatus,
+} from "../model/quality";
+import {
   normalizeLedger,
   normalizePlans,
   planUpdateBody,
@@ -54,6 +62,9 @@ export interface AdminApi {
   }): Promise<void>;
   testIntegration(name: IntegrationName): Promise<IntegrationTest>;
   reprocess(): Promise<{ queued?: number }>;
+  reprocessStatus(): Promise<ReprocessStatus>;
+  aiRatings(): Promise<RatingRow[]>;
+  latestEval(): Promise<EvalSummary | null>;
   setRole(userId: string, role: string): Promise<AdminUser>;
   testActive(purpose: Purpose): Promise<TestResult>;
   saveProvider(id: string | null, body: Record<string, unknown>): Promise<void>;
@@ -106,6 +117,11 @@ export function createAdminApi(http: HttpClient = platformHttp): AdminApi {
       ),
     reprocess: () =>
       http.post<{ queued?: number }>("admin/analyses/reprocess", {}),
+    reprocessStatus: async () =>
+      normalizeReprocess(await http.get("admin/analyses/reprocess/status")),
+    aiRatings: async () => normalizeRatings(await http.get("admin/ai/ratings")),
+    latestEval: async () =>
+      normalizeEval(await http.get("admin/ai/eval/latest")),
     setRole: (userId, role) =>
       http.put<AdminUser>(`admin/users/${seg(userId)}/role`, { role }),
     testActive: (purpose) =>

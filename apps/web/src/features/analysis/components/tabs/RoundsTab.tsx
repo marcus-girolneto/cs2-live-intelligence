@@ -70,6 +70,7 @@ export function RoundsTab({ vm }: { vm: AnalysisVM }) {
               bombs={bombsFor(r.round)}
               names={names}
               steamId={player.steamId}
+              flagged={vm.flagged}
             />
           ))}
       </div>

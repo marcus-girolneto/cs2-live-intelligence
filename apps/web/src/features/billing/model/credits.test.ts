@@ -23,7 +23,7 @@ describe("credits", () => {
     })!;
     expect(c.balance).toBe(6);
     expect(c.buckets).toEqual({ plan: 3, bonus: 1, purchased: 2 });
-    expect(c.costs).toEqual({ quick: 1, deep: 2 });
+    expect(c.costs).toEqual({ quick: 1, deep: 2, team: 4 });
     expect(c.welcome).toEqual({
       status: "ineligible",
       reason: "profile_private",
@@ -38,7 +38,7 @@ describe("credits", () => {
       welcome: { status: "ineligible", reason: "secret_rule" },
     })!;
     expect(c.balance).toBe(2);
-    expect(c.costs).toEqual({ quick: 1, deep: 3 });
+    expect(c.costs).toEqual({ quick: 1, deep: 3, team: 4 });
     expect(c.planExpiresAt).toBeUndefined();
     expect(c.welcome).toEqual({ status: "ineligible", reason: null });
   });
