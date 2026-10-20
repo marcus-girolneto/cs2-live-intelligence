@@ -4,7 +4,10 @@ import { analyzeDemo } from "@cs2/analytics";
 import { lobbyComparisonSchema, teamReviewSchema } from "@cs2/contracts";
 import {
   aiTeamReview,
+  aliasNames,
   analyzeTeam,
+  nameTeamReview,
+  replaceAliases,
   lobbyComparison,
   loadAiConfig,
   unwrapData,
@@ -159,6 +162,17 @@ describe("team review", () => {
       owner: "b",
       targetMetric: "tradedDeathsPct",
     });
+    // Aliases never reach the user: every text carries the players' names.
+    expect(review.plan[0]!.text).toBe("Player B trades Player A's entry");
+    expect(
+      review.roles.find((x) => x.steamId === "a")!.strengths[0]!.text,
+    ).toBe("Player A wins openings.");
+    expect(
+      JSON.stringify(review).replace(
+        /"(?:id|evidenceIds)":(?:"[^"]*"|\[[^\]]*\])/g,
+        "",
+      ),
+    ).not.toMatch(/(?<![\p{L}\p{N}_])P[1-5](?![\p{L}\p{N}_])/u);
     expect(review.plan[1]).toMatchObject({
       owner: "team",
       targetMetric: "utilityDamagePerRound",
@@ -190,6 +204,53 @@ describe("team review", () => {
     const traded = r.review.facts.find((f) => f.id === "team-traded-deaths")!;
     expect(traded.n).toBe(3);
     expect(r.review.caveats.join(" ")).toMatch(/weren't counted against you/);
+  });
+});
+
+describe("team aliases", () => {
+  const players = [
+    { steamId: "a", name: "s1mple\u0000" },
+    { steamId: "b", name: "" },
+  ] as unknown as Parameters<typeof nameTeamReview>[1];
+  it("replaces whole-word aliases in Portuguese text and keeps other words", () => {
+    const names = aliasNames(["a", "b"], players, "pt");
+    expect(names.get("P1")).toBe("s1mple");
+    expect(names.get("P2")).toBe("Jogador 2");
+    expect(
+      replaceAliases(
+        "O P1 trocou pelo P2; P1 e P2 no MP9 e AP1X; P3 fica.",
+        names,
+      ),
+    ).toBe(
+      "O s1mple trocou pelo Jogador 2; s1mple e Jogador 2 no MP9 e AP1X; P3 fica.",
+    );
+  });
+  it("maps every human-readable field of a stored review", async () => {
+    const r = await aiTeamReview(analysis(), config(), {
+      steamId: "a",
+      fetch: provider(() => ({
+        verdict: "P1 carries.",
+        roles: [],
+        patterns: [
+          {
+            scope: "general",
+            text: "P2 trades.",
+            evidenceIds: ["team-traded-deaths"],
+            confidence: "low",
+          },
+        ],
+        keyRounds: [],
+        plan: [],
+        caveats: ["P2 had few rounds."],
+      })),
+    });
+    const stored = { ...r.review, verdict: "P2 and P1 win." };
+    const named = nameTeamReview(stored, analysis().players, "en");
+    expect(named.verdict).toBe("Player B and Player A win.");
+    expect(named.caveats).toContain("Player B had few rounds.");
+    expect(nameTeamReview(named, analysis().players).verdict).toBe(
+      named.verdict,
+    );
   });
 });
 

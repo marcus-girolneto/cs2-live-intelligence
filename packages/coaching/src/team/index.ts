@@ -17,3 +17,9 @@ export {
   type AiTeamResult,
   type TeamReviewOptions,
 } from "./review.js";
+export {
+  aliasNames,
+  displayNameOf,
+  nameTeamReview,
+  replaceAliases,
+} from "./names.js";

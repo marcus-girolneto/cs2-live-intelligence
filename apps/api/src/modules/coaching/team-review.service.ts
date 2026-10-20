@@ -1,5 +1,9 @@
-import { analysisSchema, type LobbyComparison } from "@cs2/contracts";
-import { integrityOf, lobbyComparison } from "@cs2/coaching";
+import {
+  analysisSchema,
+  teamReviewSchema,
+  type LobbyComparison,
+} from "@cs2/contracts";
+import { integrityOf, lobbyComparison, nameTeamReview } from "@cs2/coaching";
 import type {
   CoachLanguage,
   TeamAiGateway,
@@ -141,8 +145,9 @@ export class TeamReviewService {
     steamId: string,
     viewer: ViewerPolicy,
   ): Promise<Record<string, unknown>> {
-    if (!(await this.deps.history.analysis(ownerId, analysisId)))
-      throw new NotFoundError("Analysis not found");
+    const stored = await this.deps.history.analysis(ownerId, analysisId);
+    if (!stored) throw new NotFoundError("Analysis not found");
+    const players = analysisSchema.safeParse(stored.analysis);
     const rows = await this.deps.reviews.forMatch(ownerId, analysisId, steamId);
     return {
       analysisId,
@@ -156,7 +161,13 @@ export class TeamReviewService {
         lang: r.lang,
         rating: r.rating,
         ...(viewer.admin ? { provider: r.provider, model: r.model } : {}),
-        teamReview: viewer.coaching(r.review),
+        teamReview: viewer.coaching(
+          withNames(
+            r.review,
+            players.success ? players.data.players : [],
+            r.lang,
+          ),
+        ),
       })),
     };
   }
@@ -175,4 +186,16 @@ export class TeamReviewService {
   rate(ownerId: string, id: string, rating: number): Promise<boolean> {
     return this.deps.reviews.rate(ownerId, id, rating);
   }
+}
+
+/** Reviews saved before names were mapped back still carry P1-P5: map them on read. */
+function withNames(
+  review: unknown,
+  players: Parameters<typeof nameTeamReview>[1],
+  lang: string,
+): unknown {
+  const parsed = teamReviewSchema.safeParse(review);
+  return parsed.success
+    ? { ...(review as object), ...nameTeamReview(parsed.data, players, lang) }
+    : review;
 }

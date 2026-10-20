@@ -249,6 +249,18 @@ describe.skipIf(!databaseUrl)("coaching extras (Postgres)", () => {
     expect(team.body).not.toMatch(/\\"(?:a|b|c|d)\\"/);
     const list = await call("GET", `/v1/analyses/${id}/team-reviews?steamId=b`);
     expect(list.json().reviews).toHaveLength(1);
+    // Reviews stored with aliases (before names were mapped back) are named on read.
+    await repo.pool.query(
+      `update ai_reviews set payload=jsonb_set(payload,'{verdict}','"P2 trades P1."') where id=$1`,
+      [r.json().reviewId],
+    );
+    const named = await call(
+      "GET",
+      `/v1/analyses/${id}/team-reviews?steamId=b`,
+    );
+    expect(named.json().reviews[0].teamReview.verdict).toBe(
+      "Player B trades Player A.",
+    );
     const rated = await call(
       "POST",
       `/v1/coach/reviews/${r.json().reviewId}/rating`,

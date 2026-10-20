@@ -35,6 +35,7 @@ import {
   type RoundCandidate,
   type TeamAnalysis,
 } from "./facts.js";
+import { nameTeamReview } from "./names.js";
 import { timeOf } from "./roster.js";
 import {
   TEAM_OUTPUT_SCHEMA,
@@ -504,5 +505,7 @@ export async function aiTeamReview(
       "The model's team review cited no valid evidence.",
     );
   review.caveats = review.caveats.slice(0, 20);
+  // Names go back in only now: the model, the guard and the verifier only saw aliases.
+  review = nameTeamReview(review, analysis.players, lang);
   return { review: teamReviewSchema.parse(review), call: secured.meta };
 }

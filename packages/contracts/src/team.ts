@@ -11,7 +11,8 @@ import {
  * Team review (prompt igl-team-v2): one AI call that reviews the coached player's whole team
  * (up to 5 players) as an IGL would. Team facts and scores are computed in code; the model only
  * explains and prioritises them. Players are referred to by Steam id here; the model only ever
- * saw stable aliases (P1-P5) and never a name.
+ * saw stable aliases (P1-P5) and never a name; every human-readable field gets the players' display
+ * names back server-side before it is saved or shown (team/names.ts).
  */
 const id = z.string().min(1).max(128);
 const text = (max: number) => z.string().max(max);
