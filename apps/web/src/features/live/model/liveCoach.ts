@@ -120,7 +120,7 @@ export function liveTips(
       {
         id: "focus",
         tone: "info",
-        text: "Round in progress — tips appear between rounds.",
+        text: "Round in progress. Tips show up between rounds.",
       },
     ];
   const tips: CoachTip[] = [];
@@ -145,7 +145,7 @@ export function liveTips(
     tips.push({
       id: "hot",
       tone: "good",
-      text: "{n} kills in the last two rounds. You're in form — keep taking the same kind of fights.",
+      text: "{n} kills in the last two rounds. You're in form, keep taking the same kind of fights.",
       vars: { n: hot },
     });
   const armor = finite(state.ownStats?.armor);
@@ -177,7 +177,7 @@ export function liveTips(
       tips.push({
         id: "above-baseline",
         tone: "good",
-        text: "K/D {kd} — above your baseline of {base} ({label}).",
+        text: "K/D {kd}, above your baseline of {base} ({label}).",
         vars: {
           kd: kd.toFixed(2),
           base: baseline.kd.toFixed(2),
@@ -188,7 +188,7 @@ export function liveTips(
       tips.push({
         id: "below-baseline",
         tone: "warn",
-        text: "K/D {kd} — below your baseline of {base} ({label}). Simplify: play a known position and trade with your team.",
+        text: "K/D {kd}, below your baseline of {base} ({label}). Keep it simple: play a position you know and trade with your team.",
         vars: {
           kd: kd.toFixed(2),
           base: baseline.kd.toFixed(2),

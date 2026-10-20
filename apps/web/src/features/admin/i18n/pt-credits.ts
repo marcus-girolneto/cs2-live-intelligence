@@ -55,8 +55,8 @@ export const ptCredits: Record<string, string> = {
   "This provider doesn't list “{model}”. Pick one from the list.":
     "Este provedor não lista “{model}”. Escolha um da lista.",
   "Type the model id manually.": "Digite o id do modelo manualmente.",
-  "No model list from this provider — type the model id manually.":
-    "Este provedor não tem lista de modelos — digite o id manualmente.",
+  "This provider has no model list. Type the model id manually.":
+    "Este provedor não tem lista de modelos. Digite o id manualmente.",
   "≈ {cost} per call at list price": "≈ {cost} por chamada no preço de tabela",
   "Price not published by this provider.":
     "Preço não publicado por este provedor.",

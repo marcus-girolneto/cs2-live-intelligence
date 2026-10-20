@@ -130,7 +130,7 @@ export function MapProgressView({
             <button type="button" className="mp-lock" onClick={onUpsell}>
               <Crown size={16} />{" "}
               {t(
-                "Per-map deep learning is a Pro feature — see what the coach learns on each map.",
+                "Per-map learning is a Pro feature. See what the coach learns about you on each map.",
               )}
             </button>
           )}

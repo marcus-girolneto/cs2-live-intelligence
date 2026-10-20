@@ -41,7 +41,7 @@ export function IntegrationsPanel({
     <div className="integ-panel">
       <Callout tone="info">
         {t(
-          "Changes apply immediately and are stored encrypted in the database — no restart needed.",
+          "Changes apply immediately and are stored encrypted in the database. No restart needed.",
         )}
       </Callout>
       {error && (

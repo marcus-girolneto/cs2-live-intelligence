@@ -45,7 +45,7 @@ export function OwnershipBanner({
       <p className="own-banner ext" role="status">
         <Info size={16} />
         <span>
-          {t("External demo — insights won't count toward your progress.")}
+          {t("External demo: insights won't count toward your progress.")}
         </span>
         <button
           type="button"
@@ -60,7 +60,7 @@ export function OwnershipBanner({
     <div className="own-banner ask" role="group" aria-label={t("Is this you?")}>
       <p>
         <User size={16} />
-        {t("We couldn't find you in this match — is one of these players you?")}
+        {t("We couldn't find you in this match. Is one of these players you?")}
       </p>
       <div className="own-players">
         {players.map((p) => (

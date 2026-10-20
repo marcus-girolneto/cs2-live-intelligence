@@ -21,7 +21,7 @@ const STATUS: Record<AdherenceStatus, { label: string; icon: ReactNode }> = {
 const isMetric = (m: string | null): m is JourneyMetric =>
   !!m && (JOURNEY_METRICS as readonly string[]).includes(m);
 
-/** "Did you apply it?" — each previous plan item checked on this match. */
+/** "Did you apply it?": each previous plan item checked on this match. */
 export function AdherenceConnector({ items }: { items: Adherence[] }) {
   const { t, locale } = useI18n();
   if (!items.length) return null;

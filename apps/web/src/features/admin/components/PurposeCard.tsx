@@ -175,7 +175,7 @@ export function PurposeCard({
               {listError
                 ? `${t(listError)} ${t("Type the model id manually.")}`
                 : t(
-                    "No model list from this provider — type the model id manually.",
+                    "This provider has no model list. Type the model id manually.",
                   )}
             </p>
           )}

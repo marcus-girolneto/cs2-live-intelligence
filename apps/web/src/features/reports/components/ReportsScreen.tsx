@@ -17,7 +17,7 @@ import { ReportView } from "./ReportView";
 
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
-/** /reports — monthly performance report (Pro) or a locked preview. */
+/** /reports: monthly performance report (Pro) or a locked preview. */
 export function ReportsScreen() {
   const { t, locale } = useI18n();
   const { limits, isAdmin } = useUsage();
@@ -50,7 +50,7 @@ export function ReportsScreen() {
         icon={<Medal size={16} />}
         title={t("Your month in review")}
         lead={t(
-          "Trends, per-map form, recurring mistakes, utility and crosshair evolution, your best and worst match — and a plan for next month.",
+          "Trends, per-map form, recurring mistakes, utility and crosshair evolution, your best and worst match, and a plan for next month.",
         )}
         actions={pro ? generate : undefined}
       />
@@ -67,7 +67,7 @@ export function ReportsScreen() {
               <h2>{t("Monthly reports are a Pro feature")}</h2>
               <p className="muted">
                 {t(
-                  "Every month: trends, per-map form, recurring mistakes and a plan — in one shareable report.",
+                  "Every month: trends, per-map form, recurring mistakes and a plan, in one report you can share.",
                 )}
               </p>
               <button
@@ -77,7 +77,7 @@ export function ReportsScreen() {
                   upgrade.open({ feature: "monthly_report", limit: 0 })
                 }
               >
-                <Crown size={20} /> {t("Unlock with Pro")}
+                <Crown size={20} /> {t("Get it with Pro")}
               </button>
             </div>
           </div>

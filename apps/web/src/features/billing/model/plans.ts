@@ -144,7 +144,7 @@ export const isPaid = (plan: AccountPlan | null | undefined) =>
 export function checkoutErrorText(e: unknown) {
   const code = (e as { code?: unknown } | null)?.code;
   if (code === "billing_disabled")
-    return "Coming soon — payments are being set up.";
+    return "Coming soon. We're still setting up payments.";
   return e instanceof Error && e.message
     ? e.message
     : "Checkout is unavailable.";

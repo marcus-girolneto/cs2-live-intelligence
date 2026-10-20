@@ -66,7 +66,7 @@ export function ScoreRadar({ scores }: { scores: CoachScore[] }) {
           return (
             <g key={s.key}>
               <circle cx={x} cy={y} r={on ? 7 : 5} className="rd-dot">
-                <title>{`${label(s)}: ${Math.round(s.value)}${s.basis ? ` — ${s.basis}` : ""}`}</title>
+                <title>{`${label(s)}: ${Math.round(s.value)}${s.basis ? ` (${s.basis})` : ""}`}</title>
               </circle>
               <text
                 x={lx}

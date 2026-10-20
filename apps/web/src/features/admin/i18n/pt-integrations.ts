@@ -1,8 +1,8 @@
 /** Admin → Integrations and product settings (PT). */
 export const ptIntegrations: Record<string, string> = {
   Integrations: "Integrações",
-  "Changes apply immediately and are stored encrypted in the database — no restart needed.":
-    "As mudanças valem na hora e ficam criptografadas no banco de dados — sem reiniciar nada.",
+  "Changes apply immediately and are stored encrypted in the database. No restart needed.":
+    "As mudanças valem na hora e ficam criptografadas no banco. Não precisa reiniciar nada.",
   "Configured · Database": "Configurado · Banco de dados",
   "From .env (read-only bootstrap)": "Do .env (bootstrap somente leitura)",
   "Testing…": "Testando…",

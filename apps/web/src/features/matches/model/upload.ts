@@ -34,7 +34,7 @@ export function etaSeconds(
 export const percent = (loaded: number, total: number) =>
   total > 0 ? Math.min(100, Math.floor((loaded / total) * 100)) : 0;
 
-/** "42.0 MB" — megabytes with one decimal. */
+/** "42.0 MB": megabytes with one decimal. */
 export const megabytes = (bytes: number) => bytes / (1024 * 1024);
 
 /** {m, s} for an ETA label. */

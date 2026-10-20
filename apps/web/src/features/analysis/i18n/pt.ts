@@ -82,7 +82,7 @@ export const pt: Record<string, string> = {
   "Full aim breakdown": "Mira completa",
   "Where you win and lose": "Onde você ganha e perde",
   "Open map": "Abrir mapa",
-  "Best weapon: {w} — {k} kills": "Melhor arma: {w} — {k} abates",
+  "Best weapon: {w} ({k} kills)": "Melhor arma: {w} ({k} abates)",
   "{a}% accuracy": "{a}% de precisão",
   "Strongest spot: {p} ({k} kills, {d} deaths)":
     "Posição mais forte: {p} ({k} abates, {d} mortes)",
@@ -105,10 +105,10 @@ export const pt: Record<string, string> = {
   "Hits to the head": "Acertos na cabeça",
   "Avg. kill distance": "Distância média dos abates",
   "{m} m": "{m} m",
-  "You hit {a}% of your shots — better than the match average of {b}%.":
-    "Você acertou {a}% dos seus tiros — melhor que a média da partida de {b}%.",
-  "You hit {a}% of your shots — below the match average of {b}%. Fewer sprays, more first bullets.":
-    "Você acertou {a}% dos seus tiros — abaixo da média da partida de {b}%. Menos spray, mais primeira bala.",
+  "You hit {a}% of your shots, better than the match average of {b}%.":
+    "Você acertou {a}% dos tiros, acima da média da partida ({b}%).",
+  "You hit {a}% of your shots, below the match average of {b}%. Spray less and make the first bullet count.":
+    "Você acertou {a}% dos tiros, abaixo da média da partida ({b}%). Menos spray, mais primeira bala.",
   "Utility damage per round": "Dano de utilitários por round",
   "Enemies flashed per round": "Inimigos cegados por round",
   "Avg. opening duel time": "Tempo médio do duelo de abertura",
@@ -127,8 +127,6 @@ export const pt: Record<string, string> = {
   "Damage per round (ADR)": "Dano por round (ADR)",
   "{delta} vs match average": "{delta} vs média da partida",
   Headshots: "Headshots",
-  "{kills} kills for {deaths} deaths — a K/D of {kd}.":
-    "{kills} abates para {deaths} mortes — K/D de {kd}.",
   "{kills} kills without dying in the analyzed rounds.":
     "{kills} abates sem morrer nos rounds analisados.",
   "Kills and deaths are incomplete in this demo.":
@@ -206,26 +204,26 @@ export const pt: Record<string, string> = {
     "Você causou {adr} de dano por round, menos que a média do lobby ({avg}).",
   "You dealt {adr} damage per round, about the lobby average ({avg}).":
     "Você causou {adr} de dano por round, perto da média do lobby ({avg}).",
-  "{n} of your {d} deaths weren't traded — you were often fighting alone.":
-    "{n} das suas {d} mortes não foram trocadas — você lutou sozinho muitas vezes.",
-  "Most of your deaths were traded — good spacing with your team.":
-    "A maioria das suas mortes foi trocada — bom espaçamento com o time.",
+  "{n} of your {d} deaths weren't traded. You were often fighting alone.":
+    "{n} das suas {d} mortes não foram trocadas. Você lutou sozinho muitas vezes.",
+  "Most of your deaths were traded. Good spacing with your team.":
+    "A maioria das suas mortes foi trocada. Bom espaçamento com o time.",
   "You won {w} of {n} opening duels (the first fight of a round).":
     "Você venceu {w} de {n} duelos de abertura (a primeira luta do round).",
-  "You hit {acc}% of your shots — about twice the lobby's rate ({ref}%).":
-    "Você acertou {acc}% dos tiros — cerca do dobro do lobby ({ref}%).",
-  "You hit {acc}% of your shots — about half the lobby's rate ({ref}%).":
-    "Você acertou {acc}% dos tiros — cerca da metade do lobby ({ref}%).",
-  "You hit {acc}% of your shots — better than the lobby ({ref}%).":
-    "Você acertou {acc}% dos tiros — melhor que o lobby ({ref}%).",
-  "You hit {acc}% of your shots — worse than the lobby ({ref}%).":
-    "Você acertou {acc}% dos tiros — pior que o lobby ({ref}%).",
-  "You hit {acc}% of your shots — about the same as the lobby ({ref}%).":
-    "Você acertou {acc}% dos tiros — parecido com o lobby ({ref}%).",
+  "You hit {acc}% of your shots, about twice the lobby's rate ({ref}%).":
+    "Você acertou {acc}% dos tiros, cerca do dobro do lobby ({ref}%).",
+  "You hit {acc}% of your shots, about half the lobby's rate ({ref}%).":
+    "Você acertou {acc}% dos tiros, cerca da metade do lobby ({ref}%).",
+  "You hit {acc}% of your shots, better than the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros, melhor que o lobby ({ref}%).",
+  "You hit {acc}% of your shots, worse than the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros, pior que o lobby ({ref}%).",
+  "You hit {acc}% of your shots, about the same as the lobby ({ref}%).":
+    "Você acertou {acc}% dos tiros, parecido com o lobby ({ref}%).",
   "Only {h}% of your hits landed on the head (lobby {r}%). Most landed in the {part}: aim a little higher.":
     "Só {h}% dos seus acertos foram na cabeça (lobby {r}%). A maioria pegou no {part}: mire um pouco mais alto.",
-  "{h}% of your hits landed on the head (lobby {r}%) — your crosshair height is fine.":
-    "{h}% dos seus acertos foram na cabeça (lobby {r}%) — a altura da sua mira está boa.",
+  "{h}% of your hits landed on the head (lobby {r}%). Your crosshair height is fine.":
+    "{h}% dos seus acertos foram na cabeça (lobby {r}%). A altura da sua mira está boa.",
   head: "cabeça",
   chest: "peito",
   stomach: "estômago",
@@ -233,8 +231,8 @@ export const pt: Record<string, string> = {
   legs: "pernas",
   "You were strongest at {place} ({k} kills, {d} deaths).":
     "Você foi mais forte em {place} ({k} kills, {d} mortes).",
-  "You died most at {place} ({d} deaths, {k} kills) — try a different angle or wait for help there.":
-    "Você morreu mais em {place} ({d} mortes, {k} kills) — tente outro ângulo ou espere ajuda ali.",
+  "You died most at {place} ({d} deaths, {k} kills). Try a different angle or wait for help there.":
+    "Você morreu mais em {place} ({d} mortes, {k} kills). Tente outro ângulo ou espere ajuda ali.",
   "Your team won {w} of {n} rounds you played.":
     "Seu time venceu {w} de {n} rounds que você jogou.",
   "Your best round was round {r}: {dmg} damage and {k} kill(s).":

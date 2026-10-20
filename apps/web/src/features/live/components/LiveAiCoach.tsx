@@ -144,7 +144,7 @@ export function LiveAiCoach({
             })
           }
         >
-          <Crown size={16} /> {t("Unlock the AI IGL")}
+          <Crown size={16} /> {t("Get the AI IGL")}
         </button>
       </section>
     );

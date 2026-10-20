@@ -16,7 +16,7 @@ import { CoachWorkspace } from "./CoachWorkspace";
 import { MatchPicker } from "./MatchPicker";
 import { Stepper } from "./Stepper";
 
-/** /coach — the AI Coach screen (match → player → review type → report). */
+/** /coach: the AI Coach screen (match → player → review type → report). */
 export function CoachScreen() {
   const { t, locale } = useI18n();
   const s = useCoachSession();
@@ -43,7 +43,7 @@ export function CoachScreen() {
         icon={<Brain size={16} />}
         title={t("Your AI coach")}
         lead={t(
-          "Pick a match and a player. The coach reviews every round and shows you the moments that matter — in 2D replay.",
+          "Pick a match and a player. The coach reviews every round and shows you the moments that matter in 2D replay.",
         )}
       />
       <Stepper step={step} />
@@ -116,9 +116,7 @@ export function CoachScreen() {
             <p className="own-banner ext" role="status">
               <Info size={16} />
               <span>
-                {t(
-                  "External demo — insights won't count toward your progress.",
-                )}
+                {t("External demo: insights won't count toward your progress.")}
               </span>
             </p>
           )}

@@ -7,7 +7,7 @@ import type { ReviewTier } from "../model/coaching";
 import type { TierReviews } from "../hooks/usePlayerReviews";
 import { TierCard } from "./TierCard";
 
-/** Step 3 — "Choose your review": Quick vs Deep, with costs, balance and what you get. */
+/** Step 3, "Choose your review": Quick vs Deep, with costs, balance and what you get. */
 export function TierChoice({
   playerName,
   byTier,

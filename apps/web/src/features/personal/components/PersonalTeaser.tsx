@@ -52,7 +52,7 @@ export function PersonalTeaser({
           <h2>
             {seen > 0
               ? t(
-                  "We've seen {n} of your matches — unlock your Personal Coach",
+                  "We've seen {n} of your matches. Your Personal Coach is ready",
                   {
                     n: seen,
                   },
@@ -79,7 +79,7 @@ export function PersonalTeaser({
                 upgrade.open({ feature: "personal_coach", limit: 0 })
               }
             >
-              <Crown size={20} /> {t("Unlock Personal Coach with Pro")}
+              <Crown size={20} /> {t("Get Personal Coach with Pro")}
             </button>
             {seen === 0 && (
               <Link className="btn btn-ghost" href="/upload">

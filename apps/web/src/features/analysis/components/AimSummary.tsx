@@ -89,14 +89,14 @@ export function AimSummary({
         <p className={`verdict ${acc >= accuracyRef ? "fast" : "slow"}`}>
           {acc >= accuracyRef
             ? t(
-                "You hit {a}% of your shots — better than the match average of {b}%.",
+                "You hit {a}% of your shots, better than the match average of {b}%.",
                 {
                   a: num(acc)!,
                   b: num(accuracyRef)!,
                 },
               )
             : t(
-                "You hit {a}% of your shots — below the match average of {b}%. Fewer sprays, more first bullets.",
+                "You hit {a}% of your shots, below the match average of {b}%. Spray less and make the first bullet count.",
                 {
                   a: num(acc)!,
                   b: num(accuracyRef)!,

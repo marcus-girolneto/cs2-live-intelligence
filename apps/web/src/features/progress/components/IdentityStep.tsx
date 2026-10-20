@@ -33,7 +33,7 @@ export function IdentityStep({
       <h2 id="identity-title">{t("Which player are you in these demos?")}</h2>
       <p className="lead-text">
         {t(
-          "Progress follows one player across your matches. Pick yourself once — you can change it later in Settings.",
+          "Progress follows one player across your matches. Pick yourself once. You can change it later in Settings.",
         )}
       </p>
       {error && (

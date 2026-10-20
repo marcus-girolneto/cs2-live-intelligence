@@ -5,7 +5,7 @@ import { Info } from "../icons";
 import { Dialog } from "../ui/Dialog";
 import { GLOSSARY, GLOSSARY_IDS } from "./glossary";
 
-/** "What do these words mean?" — opens a drawer with every term explained. */
+/** "What do these words mean?": opens a drawer with every term explained. */
 export function GlossaryButton({ className = "" }: { className?: string }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);

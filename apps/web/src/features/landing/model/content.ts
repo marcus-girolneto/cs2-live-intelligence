@@ -3,7 +3,7 @@ export const STEPS = [
   {
     icon: SignInMark,
     title: "Sign in with Steam",
-    text: "One click. We only receive your public SteamID — never your password.",
+    text: "One click. We only get your public SteamID, never your password.",
   },
   {
     icon: Upload,
@@ -13,7 +13,7 @@ export const STEPS = [
   {
     icon: Brain,
     title: "Get your plan",
-    text: "Hit groups, weapons, callouts, timing — and an AI review with a plan for your next match.",
+    text: "Hit groups, weapons, callouts and timing, plus an AI review with a plan for your next match.",
   },
 ] as const;
 

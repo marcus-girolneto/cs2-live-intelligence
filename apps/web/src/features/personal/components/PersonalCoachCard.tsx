@@ -43,7 +43,7 @@ export function PersonalCoachCard({ matches }: { matches: number | null }) {
           <strong>
             {matches && matches > 0
               ? t(
-                  "We've seen {n} of your matches — unlock your Personal Coach",
+                  "We've seen {n} of your matches. Your Personal Coach is ready",
                   {
                     n: matches,
                   },

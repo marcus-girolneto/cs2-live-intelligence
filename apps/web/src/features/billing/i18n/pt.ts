@@ -37,9 +37,9 @@ export const pt: Record<string, string> = {
   "The coach learns your habits on each map separately.":
     "O coach aprende seus hábitos em cada mapa separadamente.",
   "/month": "/mês",
-  "or {price}/year — {n} months free": "ou {price}/ano — {n} meses grátis",
-  "Coming soon — payments are being set up.":
-    "Em breve — os pagamentos estão sendo configurados.",
+  "or {price}/year ({n} months free)": "ou {price}/ano ({n} meses grátis)",
+  "Coming soon. We're still setting up payments.":
+    "Em breve. Ainda estamos configurando os pagamentos.",
   "Upgrade to {plan}": "Assinar o {plan}",
   "Switch to {plan}": "Mudar para o {plan}",
   "Compare plans": "Comparar planos",
@@ -47,8 +47,8 @@ export const pt: Record<string, string> = {
   "2 months free": "2 meses grátis",
   "Most popular": "Mais popular",
   "Free forever": "Grátis para sempre",
-  "{price} billed yearly — {n} months free":
-    "{price} cobrado por ano — {n} meses grátis",
+  "{price} billed yearly ({n} months free)":
+    "{price} cobrado por ano ({n} meses grátis)",
   "Billed monthly · cancel anytime": "Cobrança mensal · cancele quando quiser",
   "Your current plan": "Seu plano atual",
   "Included with every account": "Incluído em toda conta",
@@ -118,8 +118,8 @@ export const pt: Record<string, string> = {
   "Match reels are a Pro feature": "Reels de partida são um recurso Pro",
   "History compare is a Pro feature":
     "Comparação com histórico é um recurso Pro",
-  "Every month: trends, per-map form, recurring mistakes and a plan — in one shareable report.":
-    "Todo mês: tendências, desempenho por mapa, erros recorrentes e um plano — em um relatório para compartilhar.",
+  "Every month: trends, per-map form, recurring mistakes and a plan, in one report you can share.":
+    "Todo mês: tendências, desempenho por mapa, erros recorrentes e um plano, num relatório que dá para compartilhar.",
   "All your highlights and mistakes of a match, back-to-back, exported as one video.":
     "Todos os seus destaques e erros da partida, em sequência, exportados como um só vídeo.",
   "See how each deep-review metric moved against your previous matches.":
@@ -187,11 +187,11 @@ export const pt: Record<string, string> = {
   "The welcome credit is tied to a Steam account. Local accounts can buy credits or a plan.":
     "O crédito de boas-vindas é ligado a uma conta Steam. Contas locais podem comprar créditos ou um plano.",
   "You have 1 free review": "Você tem 1 review grátis",
-  "Try the AI coach on the sample match or on your own demo — it's on us.":
-    "Teste o coach de IA na partida de exemplo ou na sua própria demo — é por nossa conta.",
+  "Try the AI coach on the sample match or on your own demo. It's on us.":
+    "Teste o coach de IA na partida de exemplo ou na sua própria demo. É por nossa conta.",
   "Your free review is on its way": "Sua review grátis está a caminho",
-  "We're checking your Steam profile. This usually takes a moment — refresh in a bit.":
-    "Estamos verificando seu perfil Steam. Costuma levar um instante — atualize daqui a pouco.",
+  "We're checking your Steam profile. It usually takes a moment, so refresh in a bit.":
+    "Estamos verificando seu perfil Steam. Costuma ser rápido, atualize daqui a pouco.",
   "Credit packs and plans work as usual.":
     "Pacotes de créditos e planos funcionam normalmente.",
   "Open Steam → your profile → Edit Profile → Privacy Settings.":

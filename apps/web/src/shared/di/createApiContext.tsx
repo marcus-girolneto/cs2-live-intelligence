@@ -4,7 +4,7 @@ import { createContext, useContext, type ReactNode } from "react";
 /**
  * Dependency-injection slot for one feature API. Hooks read the API with `useApi()`
  * and get the default (HTTP) implementation unless a Provider above them supplies
- * another one — tests and stories pass fakes this way.
+ * another one. Tests and stories pass fakes this way.
  */
 export function createApiContext<T>(name: string, fallback: T) {
   const Ctx = createContext<T>(fallback);

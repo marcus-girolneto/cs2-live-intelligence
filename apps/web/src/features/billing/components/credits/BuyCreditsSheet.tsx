@@ -86,7 +86,7 @@ export function BuyCreditsSheet({
       />
       {(soon || !live) && (
         <p className="soon-note" role="status">
-          {t("Coming soon — payments are being set up.")}
+          {t("Coming soon. We're still setting up payments.")}
         </p>
       )}
       {offers.length > 0 && (

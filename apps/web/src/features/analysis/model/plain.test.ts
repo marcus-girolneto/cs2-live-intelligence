@@ -27,7 +27,7 @@ describe("plain-language readings", () => {
     });
     expect(l.map((x) => x.text)).toEqual([
       "You dealt {adr} damage per round, more than the lobby average ({avg}).",
-      "{n} of your {d} deaths weren't traded — you were often fighting alone.",
+      "{n} of your {d} deaths weren't traded. You were often fighting alone.",
       "You won {w} of {n} opening duels (the first fight of a round).",
     ]);
     expect(l[0]!.params).toEqual({ adr: 121, avg: 69 });

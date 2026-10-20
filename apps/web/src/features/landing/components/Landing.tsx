@@ -48,7 +48,7 @@ export function Landing() {
             </h1>
             <p className="lead">
               {t(
-                "Our AI coach reads your demos and tells you exactly what is costing you rounds: where you die, where your bullets go, when you peek — and what to do about it next match.",
+                "Our AI coach reads your demos and shows you what is costing you rounds: where you die, where your bullets go, when you peek. Then it tells you what to fix next match.",
               )}
             </p>
             {failed && (

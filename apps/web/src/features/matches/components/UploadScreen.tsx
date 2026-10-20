@@ -182,7 +182,7 @@ export function UploadScreen() {
           <ShieldCheck size={20} />
           <span>
             {t(
-              "Corrupt demos show up as “Failed” — no statistics are ever invented from them.",
+              "Corrupt demos show up as “Failed”. We never make up stats from them.",
             )}
           </span>
         </div>

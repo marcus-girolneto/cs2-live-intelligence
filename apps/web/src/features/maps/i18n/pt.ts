@@ -9,8 +9,8 @@ export const pt: Record<string, string> = {
     "Seu plano geral aparece depois da sua primeira review de IA.",
   "{n} matches": "{n} partidas",
   "{n} open items": "{n} itens em aberto",
-  "Per-map deep learning is a Pro feature — see what the coach learns on each map.":
-    "Aprendizado profundo por mapa é do Pro — veja o que o coach aprende em cada mapa.",
+  "Per-map learning is a Pro feature. See what the coach learns about you on each map.":
+    "O aprendizado por mapa é do Pro. Veja o que o coach aprende sobre você em cada mapa.",
   "No open items for this map yet. Review a match on it.":
     "Nenhum item em aberto neste mapa. Revise uma partida nele.",
   "K/D": "K/D",

@@ -14,7 +14,7 @@ function siteUrl() {
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title: {
-    default: `${BRAND.name} — ${BRAND.tagline.en}`,
+    default: `${BRAND.name} · ${BRAND.tagline.en}`,
     template: `%s · ${BRAND.name}`,
   },
   description: BRAND.description.en,
@@ -23,14 +23,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: BRAND.name,
-    title: `${BRAND.name} — ${BRAND.tagline.en}`,
+    title: `${BRAND.name} · ${BRAND.tagline.en}`,
     description: BRAND.description.en,
     locale: "en_US",
     alternateLocale: ["pt_BR"],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${BRAND.name} — ${BRAND.tagline.en}`,
+    title: `${BRAND.name} · ${BRAND.tagline.en}`,
     description: BRAND.description.en,
   },
 };

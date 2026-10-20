@@ -107,7 +107,7 @@ export function PricingPlans({
                 {free
                   ? t("Free forever")
                   : interval === "year"
-                    ? t("{price} billed yearly — {n} months free", {
+                    ? t("{price} billed yearly ({n} months free)", {
                         price: formatPrice(price.year, currency, locale),
                         n: freeMonths(price),
                       })
@@ -140,7 +140,7 @@ export function PricingPlans({
                 </button>
               ) : billingEnabled === false ? (
                 <p className="soon-note">
-                  {t("Coming soon — payments are being set up.")}
+                  {t("Coming soon. We're still setting up payments.")}
                 </p>
               ) : (
                 <button

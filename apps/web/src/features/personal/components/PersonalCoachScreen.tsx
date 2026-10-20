@@ -21,7 +21,7 @@ import { PersonalTeaser } from "./PersonalTeaser";
 import { PointColumns } from "./PointColumns";
 import { WeeklyProgram } from "./WeeklyProgram";
 
-/** /coach/personal — the Personal Coach plan (Pro) or its locked teaser. */
+/** /coach/personal: the Personal Coach plan (Pro) or its locked teaser. */
 export function PersonalCoachScreen() {
   const { t, locale } = useI18n();
   const { limits, isAdmin } = useUsage();

@@ -56,7 +56,7 @@ export function UpgradeSheet({
     clip_export: t("Share your best plays as a video with your team."),
     per_map: t("The coach learns your habits on each map separately."),
     monthly_report: t(
-      "Every month: trends, per-map form, recurring mistakes and a plan — in one shareable report.",
+      "Every month: trends, per-map form, recurring mistakes and a plan, in one report you can share.",
     ),
     match_reel: t(
       "All your highlights and mistakes of a match, back-to-back, exported as one video.",
@@ -97,7 +97,7 @@ export function UpgradeSheet({
           </header>
           {freeMonths(price) > 0 && (
             <p className="muted small">
-              {t("or {price}/year — {n} months free", {
+              {t("or {price}/year ({n} months free)", {
                 price: formatPrice(price.year, currency, locale),
                 n: freeMonths(price),
               })}
@@ -112,7 +112,7 @@ export function UpgradeSheet({
           <div className="upsell-actions">
             {billingEnabled === false ? (
               <p className="soon-note" role="status">
-                {t("Coming soon — payments are being set up.")}
+                {t("Coming soon. We're still setting up payments.")}
               </p>
             ) : (
               <button

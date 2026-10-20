@@ -73,7 +73,7 @@ export function DashboardScreen() {
             : t("Welcome back, {name}", { name })
         }
         lead={t(
-          "Your matches, your form and your coach's plan — all in one place.",
+          "Your matches, your form and what the coach wants you to work on.",
         )}
         actions={
           firstTime ? undefined : (

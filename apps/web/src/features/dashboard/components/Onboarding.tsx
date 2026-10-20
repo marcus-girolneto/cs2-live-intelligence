@@ -15,7 +15,7 @@ export function Onboarding() {
         <h2>{t("Let's analyze your first match")}</h2>
         <p className="lead">
           {t(
-            "Load a real public match to see everything the coach can do — hit groups, positions, timing and an AI review — in under a minute.",
+            "Load a real public match and see what the coach does with it: hit groups, positions, timing and an AI review. Takes under a minute.",
           )}
         </p>
         <SampleImport

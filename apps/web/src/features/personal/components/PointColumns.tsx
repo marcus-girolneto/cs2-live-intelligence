@@ -35,7 +35,7 @@ function Column({
   );
 }
 
-/** "What's working" next to "What isn't" — each point with its evidence. */
+/** "What's working" next to "What isn't", each point with its evidence. */
 export function PointColumns({
   working,
   notWorking,

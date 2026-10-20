@@ -55,7 +55,7 @@ describe("useCheckout", () => {
     act(() => result.current.manage());
     await waitFor(() =>
       expect(result.current.error).toBe(
-        "Coming soon — payments are being set up.",
+        "Coming soon. We're still setting up payments.",
       ),
     );
     expect(result.current.busy).toBeNull();

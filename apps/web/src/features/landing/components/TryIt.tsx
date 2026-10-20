@@ -17,7 +17,7 @@ export function TryIt() {
         <h2 id="try-title">{t("Pick a mistake. See what the coach says.")}</h2>
         <p className="lead">
           {t(
-            "Real numbers from the public sample match — the same analysis you get for your own demos.",
+            "Real numbers from the public sample match. Your own demos get the same analysis.",
           )}
         </p>
       </div>

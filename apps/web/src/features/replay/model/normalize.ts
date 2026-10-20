@@ -1,5 +1,5 @@
 /**
- * Replay DTO normalisation (defensive — every field may be missing). Pure functions.
+ * Replay DTO normalisation. Defensive: any field may be missing. Pure functions.
  */
 import { finite, text } from "@/shared/format";
 import type {

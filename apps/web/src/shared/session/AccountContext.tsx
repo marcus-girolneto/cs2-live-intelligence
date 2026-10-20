@@ -4,7 +4,7 @@ import type { Account } from "./account";
 
 export type AccountContextValue = {
   account: Account | null;
-  /** Re-reads the account (GET me) — e.g. after a plan or profile change. */
+  /** Re-reads the account (GET me), e.g. after a plan or profile change. */
   refresh: () => Promise<void>;
 };
 const AccountContext = createContext<AccountContextValue>({

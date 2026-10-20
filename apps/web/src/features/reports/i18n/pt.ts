@@ -23,9 +23,9 @@ export const pt: Record<string, string> = {
   "Generate this month's report": "Gerar o relatório deste mês",
   Reports: "Relatórios",
   "Your month in review": "Seu mês em revista",
-  "Trends, per-map form, recurring mistakes, utility and crosshair evolution, your best and worst match — and a plan for next month.":
-    "Tendências, desempenho por mapa, erros recorrentes, evolução de utilitárias e mira, sua melhor e pior partida — e um plano para o próximo mês.",
-  "Unlock with Pro": "Desbloquear com o Pro",
+  "Trends, per-map form, recurring mistakes, utility and crosshair evolution, your best and worst match, and a plan for next month.":
+    "Tendências, desempenho por mapa, erros recorrentes, evolução de utilitárias e mira, sua melhor e pior partida, e um plano para o próximo mês.",
+  "Get it with Pro": "Assinar o Pro",
   "Writing your report…": "Escrevendo seu relatório…",
   "The coach is reading every match of the month. This can take a minute.":
     "O coach está lendo cada partida do mês. Isso pode levar um minuto.",

@@ -133,7 +133,7 @@ export function RoundCard({
             ? {
                 flagged,
                 flaggedLabel: t(
-                  "Statistically unusual player — this death isn't counted against you",
+                  "Statistically unusual player. This death doesn't count against you",
                 ),
               }
             : {})}

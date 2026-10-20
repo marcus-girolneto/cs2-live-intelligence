@@ -48,11 +48,11 @@ export function overviewLines(x: OverviewInput): Line[] {
     lines.push(
       untraded * 2 >= x.deaths
         ? {
-            text: "{n} of your {d} deaths weren't traded — you were often fighting alone.",
+            text: "{n} of your {d} deaths weren't traded. You were often fighting alone.",
             params: { n: untraded, d: x.deaths },
           }
         : {
-            text: "Most of your deaths were traded — good spacing with your team.",
+            text: "Most of your deaths were traded. Good spacing with your team.",
           },
     );
   }
@@ -90,14 +90,14 @@ export function aimLines(x: AimInput): Line[] {
     lines.push({
       text:
         r >= 1.8
-          ? "You hit {acc}% of your shots — about twice the lobby's rate ({ref}%)."
+          ? "You hit {acc}% of your shots, about twice the lobby's rate ({ref}%)."
           : r <= 0.6
-            ? "You hit {acc}% of your shots — about half the lobby's rate ({ref}%)."
+            ? "You hit {acc}% of your shots, about half the lobby's rate ({ref}%)."
             : r >= 1.1
-              ? "You hit {acc}% of your shots — better than the lobby ({ref}%)."
+              ? "You hit {acc}% of your shots, better than the lobby ({ref}%)."
               : r <= 0.9
-                ? "You hit {acc}% of your shots — worse than the lobby ({ref}%)."
-                : "You hit {acc}% of your shots — about the same as the lobby ({ref}%).",
+                ? "You hit {acc}% of your shots, worse than the lobby ({ref}%)."
+                : "You hit {acc}% of your shots, about the same as the lobby ({ref}%).",
       params: p,
     });
   }
@@ -118,7 +118,7 @@ export function aimLines(x: AimInput): Line[] {
       });
     else if (x.headRef !== null)
       lines.push({
-        text: "{h}% of your hits landed on the head (lobby {r}%) — your crosshair height is fine.",
+        text: "{h}% of your hits landed on the head (lobby {r}%). Your crosshair height is fine.",
         params: { h: r0(x.headShare), r: r0(x.headRef) },
       });
   }
@@ -138,7 +138,7 @@ export function mapLines(
     });
   if (worst && worst.deaths > worst.kills && worst.place !== best?.place)
     lines.push({
-      text: "You died most at {place} ({d} deaths, {k} kills) — try a different angle or wait for help there.",
+      text: "You died most at {place} ({d} deaths, {k} kills). Try a different angle or wait for help there.",
       params: { place: worst.place, k: worst.kills, d: worst.deaths },
     });
   return lines;

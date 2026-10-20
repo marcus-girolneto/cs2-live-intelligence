@@ -37,8 +37,8 @@ export const ptTeam: Record<string, string> = {
   "Round {n}: {title}": "Round {n}: {title}",
   Runs: "Execuções",
   "Statistically unusual aim": "Mira estatisticamente incomum",
-  "Statistically unusual player — this death isn't counted against you":
-    "Jogador estatisticamente incomum — esta morte não conta contra você",
+  "Statistically unusual player. This death doesn't count against you":
+    "Jogador estatisticamente incomum. Esta morte não conta contra você",
   "Team patterns": "Padrões do time",
   "Team plan for the next match": "Plano do time para a próxima partida",
   "Team review cost": "Custo da review do time",

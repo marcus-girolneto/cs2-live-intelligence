@@ -49,7 +49,7 @@ export function TwoModes() {
               </b>
               <span>
                 {t(
-                  "Utility lab, crosshair placement, positioning and every round — with a stronger AI.",
+                  "Utility lab, crosshair placement, positioning and every round, on a stronger AI model.",
                 )}
               </span>
             </div>
@@ -78,7 +78,7 @@ export function TwoModes() {
             </li>
             <li>
               <Check size={14} />{" "}
-              {t("Phone or second monitor — nothing runs inside the game.")}
+              {t("Phone or second monitor. Nothing runs inside the game.")}
             </li>
           </ul>
         </article>

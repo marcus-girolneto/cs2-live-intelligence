@@ -1,7 +1,7 @@
 import { platformHttp, type HttpClient } from "@/shared/http";
 import { normalizePersonal, type PersonalState } from "../model/personal";
 
-/** Writing the plan reads every match — a long AI call. */
+/** Writing the plan reads every match, so the AI call is long. */
 const AI_TIMEOUT = 10 * 60 * 1000;
 
 /** Personal Coach (Pro): a general plan built from all of the player's matches. */

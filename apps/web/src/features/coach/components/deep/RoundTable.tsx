@@ -6,7 +6,7 @@ import { SideTag } from "@/shared/ui";
 import type { ClipRef } from "../../model/coaching";
 import type { RoundRow } from "../../model/deep";
 
-/** Deep: one row per round — side, result, buy, kills, damage, tags and a clip. */
+/** Deep round table, one row per round: side, result, buy, kills, damage, tags and a clip. */
 export function RoundTable({
   rounds,
   onPlay,

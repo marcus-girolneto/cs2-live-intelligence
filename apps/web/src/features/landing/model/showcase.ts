@@ -14,7 +14,7 @@ export const MISTAKES = [
     stat: "0 of 9",
     statLabel: "deaths a teammate could trade",
     coach:
-      "You keep taking fights alone. Play within trade distance of a teammate — or wait for the flash before you swing.",
+      "You keep taking fights alone. Stay within trade distance of a teammate, or wait for the flash before you swing.",
     fix: "Trade within 2 seconds on every entry.",
   },
   {
@@ -24,7 +24,7 @@ export const MISTAKES = [
     stat: "9 vs 4",
     statLabel: "teammates blinded vs enemies blinded",
     coach:
-      "Your flashes blind your own team more than the enemy: 13.7 seconds of white screen for your teammates. Call it, then throw it over the angle — never into their backs.",
+      "Your flashes blind your own team more than the enemy: 13.7 seconds of white screen for your teammates. Call it, then throw it over the angle, never into their backs.",
     fix: "Pop-flash over the angle, called before you throw.",
   },
   {
@@ -42,7 +42,7 @@ export type MistakeId = (typeof MISTAKES)[number]["id"];
 
 /** The post-match preview: the coach's verdict on the sample key moment. */
 export const VERDICT =
-  "You took the mid fight alone at 0:38 and nobody could trade you. Wait for the flash — or a teammate — before you swing.";
+  "You took the mid fight alone at 0:38 and nobody could trade you. Wait for a flash or a teammate before you swing.";
 
 /** Live HUD demo: one round ending, then the IGL call for the next one. */
 export const LIVE_ROUND = {
@@ -53,7 +53,7 @@ export const LIVE_ROUND = {
   freezeSeconds: 14,
 };
 export const IGL_CALL =
-  "Round 7 · Buy armor and play for the trade on A — you died alone 3 rounds in a row.";
+  "Round 7 · Buy armor and play for the trade on A. You died alone 3 rounds in a row.";
 
 /** The frustration board: an illustration of losses before the plan and wins after it. */
 export const LOSS_FEED = [

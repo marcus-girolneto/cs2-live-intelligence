@@ -59,7 +59,7 @@ const obj = (v: unknown): Record<string, unknown> | null =>
     ? (v as Record<string, unknown>)
     : null;
 const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
-/** A string, or a list of strings joined — evidence/notes arrive in both shapes. */
+/** A string, or a list of strings joined. Evidence and notes arrive in both shapes. */
 function lines(v: unknown): string[] {
   if (typeof v === "string") return v.trim() ? [v.trim()] : [];
   return arr(v)

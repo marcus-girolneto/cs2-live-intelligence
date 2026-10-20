@@ -16,6 +16,6 @@ export function withoutSigninParam(href: string): string {
 
 export const SIGNIN_MESSAGE: Record<SigninStatus, string> = {
   failed:
-    "Steam sign-in didn't complete. Please try again — use a single tab and click Sign in once.",
+    "Steam sign-in didn't complete. Try again in a single tab and click Sign in once.",
   unavailable: "Steam is not responding right now. Try again in a minute.",
 };

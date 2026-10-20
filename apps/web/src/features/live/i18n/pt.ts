@@ -6,7 +6,7 @@ export const pt: Record<string, string> = {
     "Você usou as partidas com IA ao vivo de hoje. As dicas automáticas continuam.",
   "Live AI calls between rounds are part of Basic and Pro. The rule-based tips above stay free.":
     "As calls de IA entre rounds fazem parte do Basic e do Pro. As dicas automáticas acima continuam grátis.",
-  "Unlock the AI IGL": "Desbloquear o IGL de IA",
+  "Get the AI IGL": "Quero o IGL de IA",
   "The {igl} speaks between rounds, never during a fight.":
     "O {igl} fala entre rounds, nunca durante uma troca.",
   "The IGL is offline right now.": "O IGL está fora do ar agora.",
@@ -54,10 +54,10 @@ export const pt: Record<string, string> = {
   "Live service unavailable. Retrying…":
     "Serviço ao vivo indisponível. Tentando de novo…",
   "Full screen": "Tela cheia",
-  "K/D {kd} — above your baseline of {base} ({label}).":
-    "K/D {kd} — acima da sua referência de {base} ({label}).",
-  "K/D {kd} — below your baseline of {base} ({label}). Simplify: play a known position and trade with your team.":
-    "K/D {kd} — abaixo da sua referência de {base} ({label}). Simplifique: jogue uma posição conhecida e troque com o time.",
+  "K/D {kd}, above your baseline of {base} ({label}).":
+    "K/D {kd}, acima da sua referência de {base} ({label}).",
+  "K/D {kd}, below your baseline of {base} ({label}). Keep it simple: play a position you know and trade with your team.":
+    "K/D {kd}, abaixo da sua referência de {base} ({label}). Jogue simples: fique numa posição que você conhece e troque com o time.",
   "Kill feed": "Feed de abates",
   "LIVE · GSI": "AO VIVO · GSI",
   "Live coach": "Coach ao vivo",
@@ -82,8 +82,8 @@ export const pt: Record<string, string> = {
     "Reproduz a demo como se fosse ao vivo: o HUD, a linha do tempo e o coach reagem exatamente como numa partida.",
   Restart: "Recomeçar",
   Round: "Round",
-  "Round in progress — tips appear between rounds.":
-    "Round em andamento — as dicas aparecem entre os rounds.",
+  "Round in progress. Tips show up between rounds.":
+    "Round em andamento. As dicas aparecem entre os rounds.",
   "Round timeline": "Linha do tempo dos rounds",
   "Round {n}: {k} kills": "Round {n}: {k} abates",
   "Rounds appear here as they finish.":
@@ -102,8 +102,8 @@ export const pt: Record<string, string> = {
     "Você morreu em cada um dos últimos {n} rounds. No próximo, fique perto de um companheiro para sua morte poder ser trocada.",
   "Your baseline {kd} ({label})": "Sua referência {kd} ({label})",
   "Your player": "Seu jogador",
-  "{n} kills in the last two rounds. You're in form — keep taking the same kind of fights.":
-    "{n} abates nos últimos dois rounds. Você está em boa fase — continue pegando o mesmo tipo de luta.",
+  "{n} kills in the last two rounds. You're in form, keep taking the same kind of fights.":
+    "{n} abates nos últimos dois rounds. Você está em boa fase, continue pegando o mesmo tipo de luta.",
   "Ask now": "Perguntar agora",
   "Available between rounds": "Disponível entre os rounds",
   "Call every round": "Chamar a cada round",

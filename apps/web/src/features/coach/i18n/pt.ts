@@ -6,8 +6,8 @@ export const pt: Record<string, string> = {
   Strength: "Ponto forte",
   "To improve": "A melhorar",
   "Your AI coach": "Seu coach de IA",
-  "Pick a match and a player. The coach reviews every round and shows you the moments that matter — in 2D replay.":
-    "Escolha uma partida e um jogador. O coach revisa cada round e mostra os momentos que importam — em replay 2D.",
+  "Pick a match and a player. The coach reviews every round and shows you the moments that matter in 2D replay.":
+    "Escolha uma partida e um jogador. O coach revisa cada round e mostra os momentos que importam em replay 2D.",
   "Choose a match": "Escolha uma partida",
   "No analyzed matches yet": "Nenhuma partida analisada ainda",
   "Upload a demo and come back: the coach needs a match to review.":
@@ -94,12 +94,12 @@ export const pt: Record<string, string> = {
   Score: "Nota",
   Quick: "Quick",
   "What the Deep review revealed": "O que a review Deep revelou",
-  "Unlock with Deep review": "Desbloqueie com a review Deep",
+  "Get this with a Deep review": "Veja isso com uma review Deep",
   "A stronger AI goes through the same match in far more detail:":
     "Uma IA mais forte analisa a mesma partida com muito mais detalhe:",
   "Run Deep review": "Rodar review Deep",
-  "Your Quick review stays — you'll be able to compare both.":
-    "Sua review Quick continua — você poderá comparar as duas.",
+  "Your Quick review stays, so you can compare both.":
+    "Sua review Quick continua, então dá para comparar as duas.",
   "No clips for a reel in this match yet.":
     "Ainda não há clipes para um reel nesta partida.",
   "Match reel · {name}": "Reel da partida · {name}",
@@ -193,7 +193,7 @@ export const pt: Record<string, string> = {
   "Lower it a touch: most heads sit lower than you aim.":
     "Abaixe um pouco: a maioria das cabeças fica mais baixa do que você mira.",
   "Crosshair at head height": "Mira na altura da cabeça",
-  "Good vertical placement — keep it.": "Boa altura de mira — mantenha.",
+  "Good vertical placement. Keep it.": "Boa altura de mira. Mantenha.",
   "{n} grenades analyzed in the utility lab":
     "{n} granadas analisadas no laboratório de utilitárias",
   "{n} duels measured for crosshair placement":

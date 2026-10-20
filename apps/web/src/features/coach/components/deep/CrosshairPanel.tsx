@@ -16,11 +16,11 @@ const PITCH: Record<"low" | "high" | "level", { label: string; tip: string }> =
     },
     level: {
       label: "Crosshair at head height",
-      tip: "Good vertical placement — keep it.",
+      tip: "Good vertical placement. Keep it.",
     },
   };
 
-/** Deep: crosshair placement — offset gauge, % well pre-aimed, histogram, pitch, worst spots. */
+/** Deep crosshair placement: offset gauge, % well pre-aimed, histogram, pitch, worst spots. */
 export function CrosshairPanel({ c }: { c: DeepCrosshair }) {
   const { t, locale } = useI18n();
   const max = Math.max(1, ...c.histogram.map((b) => b.count));

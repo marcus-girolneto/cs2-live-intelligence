@@ -83,7 +83,7 @@ export function OverviewInsights({ vm }: { vm: AnalysisVM }) {
                       <li className="good">
                         <WeaponIcon cls={bestWeapon.cls} size={16} />
                         <span>
-                          {t("Best weapon: {w} — {k} kills", {
+                          {t("Best weapon: {w} ({k} kills)", {
                             w: bestWeapon.name,
                             k: bestWeapon.kills,
                           })}

@@ -26,8 +26,8 @@ export const ptGlossary: Record<string, string> = {
   "When a teammate kills your killer within about 5 seconds. A traded death isn't wasted: the round stays even.":
     "Quando um companheiro mata quem te matou em até uns 5 segundos. Uma morte trocada não é desperdiçada: o round continua equilibrado.",
   "Opening duel": "Duelo de abertura",
-  "The first fight of the round. Winning it gives your team a 5-vs-4 — the biggest single swing in a round.":
-    "A primeira luta do round. Vencer deixa seu time em 5 contra 4 — a maior virada isolada de um round.",
+  "The first fight of the round. Winning it puts your team up 5 vs 4, the biggest single swing in a round.":
+    "A primeira luta do round. Vencer deixa seu time em 5 contra 4, a maior virada isolada de um round.",
   Clutch: "Clutch",
   "A round where you are the last one alive on your team.":
     "Um round em que você é o último vivo do seu time.",
@@ -47,6 +47,6 @@ export const ptGlossary: Record<string, string> = {
   "Eco: you save money and buy little. Force: you spend everything though it's not enough for a full kit. Full buy: rifle, armor and grenades.":
     "Eco: você economiza e compra pouco. Force: você gasta tudo mesmo sem dinheiro para o kit completo. Full buy: rifle, colete e granadas.",
   "Isolated death": "Morte isolada",
-  "Dying where no teammate could see you or trade you — usually from taking a fight alone.":
-    "Morrer onde nenhum companheiro podia te ver ou te trocar — geralmente por pegar uma luta sozinho.",
+  "Dying where no teammate could see or trade you, usually because you took a fight alone.":
+    "Morrer onde nenhum companheiro podia te ver ou te trocar, geralmente por pegar uma luta sozinho.",
 };

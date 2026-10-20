@@ -31,7 +31,7 @@ export function DeepTeaser({ onRunDeep }: { onRunDeep: () => void }) {
           <span className="dt-lock" aria-hidden>
             <Lock size={22} />
           </span>
-          <h3 id="deep-teaser-title">{t("Unlock with Deep review")}</h3>
+          <h3 id="deep-teaser-title">{t("Get this with a Deep review")}</h3>
           <p className="muted">
             {t("A stronger AI goes through the same match in far more detail:")}
           </p>
@@ -55,7 +55,7 @@ export function DeepTeaser({ onRunDeep }: { onRunDeep: () => void }) {
             )}
           </button>
           <p className="muted small">
-            {t("Your Quick review stays — you'll be able to compare both.")}
+            {t("Your Quick review stays, so you can compare both.")}
           </p>
         </div>
       </div>

@@ -40,7 +40,7 @@ export const GLOSSARY = {
   entry: {
     term: "Opening duel",
     explain:
-      "The first fight of the round. Winning it gives your team a 5-vs-4 — the biggest single swing in a round.",
+      "The first fight of the round. Winning it puts your team up 5 vs 4, the biggest single swing in a round.",
   },
   clutch: {
     term: "Clutch",
@@ -71,7 +71,7 @@ export const GLOSSARY = {
   isolated: {
     term: "Isolated death",
     explain:
-      "Dying where no teammate could see you or trade you — usually from taking a fight alone.",
+      "Dying where no teammate could see or trade you, usually because you took a fight alone.",
   },
 } as const;
 

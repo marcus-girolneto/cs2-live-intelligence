@@ -12,7 +12,7 @@ export type WelcomeCopy = {
 
 const PENDING: WelcomeCopy = {
   title: "Your free review is on its way",
-  body: "We're checking your Steam profile. This usually takes a moment — refresh in a bit.",
+  body: "We're checking your Steam profile. It usually takes a moment, so refresh in a bit.",
   refresh: true,
 };
 const INELIGIBLE: Record<WelcomeReason, WelcomeCopy | null> = {
@@ -54,7 +54,7 @@ export function welcomeCopy(w: Welcome): WelcomeCopy | null {
   if (w.status === "granted")
     return {
       title: "You have 1 free review",
-      body: "Try the AI coach on the sample match or on your own demo — it's on us.",
+      body: "Try the AI coach on the sample match or on your own demo. It's on us.",
     };
   if (w.status === "pending")
     return w.reason === "profile_private"

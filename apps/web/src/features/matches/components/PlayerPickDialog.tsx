@@ -7,7 +7,7 @@ import { useMatchesApi } from "../api/context";
 
 export type PickedPlayer = { steamId: string; name: string };
 
-/** "Which player are you in this match?" — players read from the analysis. */
+/** "Which player are you in this match?": players read from the analysis. */
 export function PlayerPickDialog({
   analysisId,
   players: given,

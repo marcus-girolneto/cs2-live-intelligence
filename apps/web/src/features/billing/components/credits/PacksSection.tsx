@@ -5,7 +5,7 @@ import { useCreditCheckout } from "../../hooks/useCreditCheckout";
 import { usePacks } from "../../hooks/usePacks";
 import { CreditPacks } from "./CreditPacks";
 
-/** Pricing: "Credit packs" — top up without a subscription; purchased credits never expire. */
+/** Pricing: "Credit packs": top up without a subscription; purchased credits never expire. */
 export function PacksSection({
   signedIn,
   billingEnabled,
@@ -46,7 +46,7 @@ export function PacksSection({
       />
       {signedIn && soon && (
         <p className="soon-note center" role="status">
-          {t("Coming soon — payments are being set up.")}
+          {t("Coming soon. We're still setting up payments.")}
         </p>
       )}
       {error && (

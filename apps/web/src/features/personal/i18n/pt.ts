@@ -10,8 +10,8 @@ export const pt: Record<string, string> = {
   Focus: "Foco",
   "Open my plan": "Abrir meu plano",
   "Write my plan": "Escrever meu plano",
-  "We've seen {n} of your matches — unlock your Personal Coach":
-    "Já vimos {n} partidas suas — desbloqueie seu Coach Pessoal",
+  "We've seen {n} of your matches. Your Personal Coach is ready":
+    "Já vimos {n} partidas suas. Seu Coach Pessoal está pronto",
   "Your Personal Coach learns from every match you upload":
     "Seu Coach Pessoal aprende com cada partida que você envia",
   "A multi-week training program written for you.":
@@ -49,7 +49,7 @@ export const pt: Record<string, string> = {
   "on {n} maps": "em {n} mapas",
   "A second AI coach reads all of your matches together and writes one plan: your strengths, your leaks and a multi-week program to fix them.":
     "Um segundo coach de IA lê todas as suas partidas juntas e escreve um plano: seus pontos fortes, seus vazamentos e um programa de várias semanas para corrigi-los.",
-  "Unlock Personal Coach with Pro": "Desbloqueie o Coach Pessoal com o Pro",
+  "Get Personal Coach with Pro": "Tenha o Coach Pessoal com o Pro",
   "What's working": "O que está funcionando",
   "Nothing stands out yet.": "Nada se destaca ainda.",
   "What isn't": "O que não está",
@@ -58,8 +58,8 @@ export const pt: Record<string, string> = {
   "{done} of {total} drills done": "{done} de {total} exercícios feitos",
   "Week {n}": "Semana {n}",
   "{n} min/day": "{n} min/dia",
-  "You win your duels — now win them together.":
-    "Você vence seus duelos — agora vença em equipe.",
+  "You win your duels. Now win them with your team.":
+    "Você vence seus duelos. Agora vença com o time.",
   "1 new match since this plan": "1 partida nova desde este plano",
   "{n} new matches since this plan": "{n} partidas novas desde este plano",
   "Rewrites itself after {n} new matches":

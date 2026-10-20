@@ -3,7 +3,7 @@ import { useI18n } from "@/shared/i18n";
 import { ArrowRight, Skull, Target, Trophy } from "@/shared/icons";
 import { AFTER_SCORES, BEFORE_SCORES, LOSS_FEED } from "../model/showcase";
 
-/** "Lost again. No idea why." — a kill-feed of repeated mistakes turning into a plan. */
+/** "Lost again. No idea why.": a kill-feed of repeated mistakes turning into a plan. */
 export function FrustrationBoard() {
   const { t } = useI18n();
   return (
@@ -16,7 +16,7 @@ export function FrustrationBoard() {
         <h2 id="pain2-title">{t("Lost again. No idea why.")}</h2>
         <p className="lead">
           {t(
-            "Same deaths, same spots, match after match. The scoreboard tells you that you lost — not why.",
+            "Same deaths, same spots, match after match. The scoreboard tells you that you lost, not why.",
           )}
         </p>
       </div>
@@ -74,7 +74,7 @@ export function FrustrationBoard() {
       </div>
       <p className="fb-note small muted">
         {t(
-          "Illustration. Results depend on you — the coach shows you where to start.",
+          "Illustration. Results depend on you. The coach shows you where to start.",
         )}
       </p>
     </section>

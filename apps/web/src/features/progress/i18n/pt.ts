@@ -25,8 +25,8 @@ export const pt: Record<string, string> = {
   "Your progress": "Seu progresso",
   "Did you apply it?": "Você aplicou?",
   "Which player are you in these demos?": "Qual jogador é você nessas demos?",
-  "Progress follows one player across your matches. Pick yourself once — you can change it later in Settings.":
-    "A evolução acompanha um jogador em todas as suas partidas. Escolha você uma vez — dá para mudar depois nas Configurações.",
+  "Progress follows one player across your matches. Pick yourself once. You can change it later in Settings.":
+    "A evolução acompanha um jogador em todas as suas partidas. Escolha você uma vez. Dá para mudar depois nas Configurações.",
   "{n} reviews": "{n} reviews",
   Summary: "Resumo",
   "One match so far": "Só uma partida até agora",

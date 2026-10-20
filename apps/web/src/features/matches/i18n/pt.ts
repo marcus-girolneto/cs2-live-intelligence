@@ -55,15 +55,15 @@ export const pt: Record<string, string> = {
   "Tick the permission box to process the demo.":
     "Marque a autorização para processar a demo.",
   "Upload failed.": "O envio falhou.",
-  "Corrupt demos show up as “Failed” — no statistics are ever invented from them.":
-    "Demos corrompidas aparecem como “Falhou” — nenhuma estatística é inventada a partir delas.",
+  "Corrupt demos show up as “Failed”. We never make up stats from them.":
+    "Demos corrompidas aparecem como “Falhou”. Nunca inventamos estatísticas a partir delas.",
   "Pick a player, then switch between the overview, the AI Coach review and every round. Every number comes straight from the demo's events.":
     "Escolha um jogador e alterne entre o resumo, a análise do Coach de IA e cada round. Todos os números vêm direto dos eventos da demo.",
   "Load sample match": "Carregar partida de exemplo",
   "New here? Load a real public CS2 match into your account to try everything right away.":
     "Novo por aqui? Carregue uma partida pública real de CS2 na sua conta para testar tudo agora.",
-  "External demo — insights won't count toward your progress.":
-    "Demo externa — os insights não contam para a sua evolução.",
+  "External demo: insights won't count toward your progress.":
+    "Demo externa: os insights não contam para a sua evolução.",
   "Whose matches": "De quem são as partidas",
   Date: "Data",
   "No matches with these filters.": "Nenhuma partida com esses filtros.",
@@ -73,8 +73,8 @@ export const pt: Record<string, string> = {
     "Encontramos você nesta partida como {name}.",
   "This is my match": "Esta partida é minha",
   "Is this you?": "É você?",
-  "We couldn't find you in this match — is one of these players you?":
-    "Não encontramos você nesta partida — algum destes jogadores é você?",
+  "We couldn't find you in this match. Is one of these players you?":
+    "Não encontramos você nesta partida. Algum destes jogadores é você?",
   "It's someone else's demo": "É demo de outra pessoa",
   "Which player are you in this match?": "Qual jogador é você nesta partida?",
   "Only your own matches count toward your progress.":

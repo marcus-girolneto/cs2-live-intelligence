@@ -1,8 +1,8 @@
 // Portuguese (Brazil) translations of the dashboard feature, keyed by the English source string.
 export const pt: Record<string, string> = {
   "Welcome back, {name}": "Bem-vindo de volta, {name}",
-  "Your matches, your form and your coach's plan — all in one place.":
-    "Suas partidas, sua fase e o plano do seu coach — tudo em um só lugar.",
+  "Your matches, your form and what the coach wants you to work on.":
+    "Suas partidas, sua fase e o que o coach quer que você treine.",
   "Latest matches": "Últimas partidas",
   "All matches": "Todas as partidas",
   "Your form": "Sua fase",
@@ -25,8 +25,8 @@ export const pt: Record<string, string> = {
   "Get started": "Comece aqui",
   "Welcome, {name}": "Bem-vindo, {name}",
   "Let's analyze your first match": "Vamos analisar sua primeira partida",
-  "Load a real public match to see everything the coach can do — hit groups, positions, timing and an AI review — in under a minute.":
-    "Carregue uma partida pública real e veja tudo o que o coach faz — regiões de acerto, posições, timing e uma análise de IA — em menos de um minuto.",
+  "Load a real public match and see what the coach does with it: hit groups, positions, timing and an AI review. Takes under a minute.":
+    "Carregue uma partida pública real e veja o que o coach faz com ela: regiões de acerto, posições, timing e uma análise de IA. Leva menos de um minuto.",
   "Upload your first demo": "Envie sua primeira demo",
   "Prefer your own match? Upload a .dem file":
     "Prefere sua própria partida? Envie um arquivo .dem",

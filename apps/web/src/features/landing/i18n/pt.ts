@@ -5,8 +5,8 @@ export const pt: Record<string, string> = {
   "AI coach for Counter-Strike 2": "Coach de IA para Counter-Strike 2",
   "Tired of losing": "Cansado de ser ruim",
   "and not knowing why?": "e não saber como melhorar?",
-  "Our AI coach reads your demos and tells you exactly what is costing you rounds: where you die, where your bullets go, when you peek — and what to do about it next match.":
-    "Nosso coach de IA lê suas demos e diz exatamente o que está te custando rounds: onde você morre, onde suas balas vão, quando você dá peek — e o que fazer na próxima partida.",
+  "Our AI coach reads your demos and shows you what is costing you rounds: where you die, where your bullets go, when you peek. Then it tells you what to fix next match.":
+    "Nosso coach de IA lê suas demos e mostra o que está te custando rounds: onde você morre, onde suas balas vão, quando você dá peek. Depois diz o que corrigir na próxima partida.",
   "No password shared": "Nenhuma senha compartilhada",
   "How it works": "Como funciona",
   "From demo to plan in three steps": "Da demo ao plano em três passos",
@@ -27,16 +27,14 @@ export const pt: Record<string, string> = {
     "Entre, envie uma demo e descubra o que realmente está te custando rounds.",
   Opening: "Abertura",
   Middle: "Meio",
-  "“Your AWP holds mid win the round. Your A-site retakes lose it — wait for the flash.”":
-    "“Suas seguradas de AWP no meio ganham o round. Seus retakes no A perdem — espere a flash.”",
-  "One click. We only receive your public SteamID — never your password.":
-    "Um clique. Recebemos só seu SteamID público — nunca sua senha.",
+  "One click. We only get your public SteamID, never your password.":
+    "Um clique. Recebemos só seu SteamID público, nunca sua senha.",
   "Drop a demo": "Envie uma demo",
   "Upload your .dem or load a real sample match. Parsed in seconds.":
     "Envie seu .dem ou carregue uma partida de exemplo real. Processada em segundos.",
   "Get your plan": "Receba seu plano",
-  "Hit groups, weapons, callouts, timing — and an AI review with a plan for your next match.":
-    "Regiões de acerto, armas, callouts, timing — e uma análise de IA com um plano para a próxima partida.",
+  "Hit groups, weapons, callouts and timing, plus an AI review with a plan for your next match.":
+    "Regiões de acerto, armas, callouts e timing, mais uma análise de IA com um plano para a próxima partida.",
   "Is it free?": "É grátis?",
   "Yes. Sign in with Steam and analyze your demos at no cost.":
     "Sim. Entre com a Steam e analise suas demos sem custo.",

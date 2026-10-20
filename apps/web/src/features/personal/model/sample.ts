@@ -2,7 +2,7 @@ import type { PersonalPlan } from "./personal";
 
 /** Illustrative plan shown blurred behind the locked teaser (never presented as real data). */
 export const SAMPLE_PLAN: PersonalPlan = {
-  headline: "You win your duels — now win them together.",
+  headline: "You win your duels. Now win them with your team.",
   workingWell: [
     { text: "Opening duels on CT side", evidence: "58% won" },
     { text: "Smokes on executes", evidence: "86% useful" },
