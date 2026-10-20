@@ -56,7 +56,7 @@ export function Landing() {
                 {t("Steam sign-in could not be completed. Please try again.")}
               </p>
             )}
-            <SteamSignIn />
+            <SteamSignIn showStatus />
             <p className="landing-note">
               <Lock size={16} />
               {t(

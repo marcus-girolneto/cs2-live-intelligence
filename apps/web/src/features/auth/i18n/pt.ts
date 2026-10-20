@@ -40,4 +40,8 @@ export const pt: Record<string, string> = {
   "Steam profile": "Perfil Steam",
   "You are using the local demo account. Sign in with Steam to use your own identity; your demos will then highlight you automatically.":
     "Você está usando a conta local de demonstração. Entre com a Steam para usar sua própria identidade; suas demos vão destacar você automaticamente.",
+  "Steam sign-in didn't complete. Please try again — use a single tab and click Sign in once.":
+    "O login com a Steam não foi concluído. Tente de novo — use uma única aba e clique em Entrar uma vez.",
+  "Steam is not responding right now. Try again in a minute.":
+    "A Steam não está respondendo agora. Tente de novo em um minuto.",
 };

@@ -546,3 +546,10 @@
 .tier-grid:has(> .tier-card.team) .tier-btn-cost {
   display: none;
 }
+.signin-status {
+  margin-bottom: var(--s3);
+  text-align: left;
+}
+.signin-status .btn {
+  margin-top: var(--s2);
+}
