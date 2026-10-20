@@ -21,8 +21,8 @@ import {
   type DataBoundary,
 } from "./security.js";
 
-export const POST_MATCH_PROMPT_VERSION = "igl-review-v9";
-export const LIVE_PROMPT_VERSION = "igl-live-v4";
+export const POST_MATCH_PROMPT_VERSION = "igl-review-v10";
+export const LIVE_PROMPT_VERSION = "igl-live-v5";
 
 const GROUNDING = `
 GROUNDING RULES:
@@ -140,12 +140,12 @@ export const LIVE_OUTPUT_SCHEMA = {
 
 export const languageInstruction = (lang: "en" | "pt") =>
   lang === "pt"
-    ? "\n\nLANGUAGE (mandatory): write every human-readable field (headlines, verdicts, summaries, observations, calls, reasons, caveats, plans, goals, notes, titles, drill names, how-to and metric texts) in Brazilian Portuguese only. Do not mix languages: no English sentences. Keep ids, enum values, callout names, weapon names and CS2 terms (ADR, KAST, clutch, trade, IGL, eco, retake) as they are."
+    ? '\n\nLANGUAGE (mandatory): write every human-readable field (headlines, verdicts, summaries, observations, calls, reasons, caveats, plans, goals, notes, titles, drill names, how-to and metric texts) in Brazilian Portuguese only. Do not mix languages: no English sentences. Keep ids, enum values, callout names, weapon names and CS2 terms (ADR, KAST, clutch, trade, IGL, eco, retake) as they are. Use correct Brazilian Portuguese spelling with every accent and cedilla (á â ã à ç é ê í ó ô õ ú): write "não", "você", "posição", "também", never "nao", "voce", "posicao", "tambem". Example: "Você morreu sem troca na posição do bomb A; também faltou informação antes do pós-plant."'
     : "\n\nLANGUAGE (mandatory): write every human-readable field in English only. Do not mix languages. Keep ids, enum values, callout names and weapon names as they are.";
 /** Short reminder placed before the data; small models follow the first and last lines best. */
 export const languageReminder = (lang: "en" | "pt") =>
   lang === "pt"
-    ? "Responda em português do Brasil. Answer in Brazilian Portuguese."
+    ? "Responda em português do Brasil, com todos os acentos. Answer in Brazilian Portuguese with correct accents."
     : "Answer in English.";
 
 /** Viewer-chosen coaching preferences. Validated server-side before reaching a prompt. */

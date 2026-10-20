@@ -73,6 +73,7 @@ export * from "./personal-coach.js";
 export * from "./personal-coach-ai.js";
 export * from "./security.js";
 export * from "./prompt-kit.js";
+export * from "./orthography.js";
 export * from "./confidence.js";
 export * from "./claims.js";
 export * from "./verify.js";

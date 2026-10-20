@@ -1,9 +1,9 @@
 # AI security (prompt injection, prompt leakage, output handling)
 
-Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v9`), deep review
-(`igl-review-v10-deep`), team review (`igl-team-v2`), claim verifier (`verify-v2`), live IGL call
-(`igl-live-v4`), Pro monthly report (`monthly-report-v3`) and Pro Personal Coach
-(`personal-coach-v3`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
+Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v10`), deep review
+(`igl-review-v11-deep`), team review (`igl-team-v3`), claim verifier (`verify-v3`), live IGL call
+(`igl-live-v5`), Pro monthly report (`monthly-report-v4`) and Pro Personal Coach
+(`personal-coach-v4`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
 (sanitiser, injection heuristics, output guard), `prompt-kit.ts` (shared prompt sections and the
 single request pipeline), `provider.ts` (request body), `apps/api/src/modules/coaching`
 (preference pre-check) and `apps/api/src/modules/ai-config` (budgets per purpose).
@@ -127,6 +127,10 @@ Each purpose declares its human-readable fields (`COACHING_GUARD`, `LIVE_GUARD`,
   `AiError("invalid_output")` (no credits are kept for failed reviews by the existing flow).
 - **Language guard**: Portuguese requested but mostly English stop-words (or the reverse) adds a
   caveat (does not fail).
+- **Orthography check** (`orthography.ts`): an answer in a language with diacritics that contains
+  two or more known accent-less forms ("nao", "voce", "posicao") is asked again once with a
+  stronger orthography line; if it is still accent-less, a small whole-word map restores the
+  common words (case kept). No caveat is shown because the text then reads correctly.
 - Schema validation stays: unknown evidence/event ids are removed, moment kinds come from the
   event, contradictory or other-round moments are dropped.
 

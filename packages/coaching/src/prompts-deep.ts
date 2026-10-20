@@ -1,5 +1,5 @@
 /**
- * Deep-tier prompt (igl-review-v10-deep): the quick IGL review (same persona, priority order,
+ * Deep-tier prompt (igl-review-v11-deep): the quick IGL review (same persona, priority order,
  * safety, grounding, edge cases, language and identity rules) plus the deterministic deep
  * modules (utility, crosshair placement, positioning, round table) supplied as citable facts.
  */
@@ -9,7 +9,7 @@ import {
 } from "./prompts.js";
 import { canaryLine } from "./security.js";
 
-export const DEEP_PROMPT_VERSION = "igl-review-v10-deep";
+export const DEEP_PROMPT_VERSION = "igl-review-v11-deep";
 
 const DEEP_ADDENDUM = `
 

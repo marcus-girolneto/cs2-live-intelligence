@@ -1,6 +1,6 @@
 /**
  * Team review: deterministic team facts → one model call (purpose review_team, prompt
- * igl-team-v2, aliases only) → output guard → validation (fact ids, candidate rounds, aliases
+ * igl-team-v3, aliases only) → output guard → validation (fact ids, candidate rounds, aliases
  * mapped back to Steam ids server-side, confidence capped by the cited facts) → claim checks
  * and the optional verifier.
  */

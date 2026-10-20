@@ -62,7 +62,7 @@ describe("live AI coach", () => {
     expect(r.call).toMatchObject({
       focus: "trade",
       confidence: "high",
-      promptVersion: "igl-live-v4",
+      promptVersion: "igl-live-v5",
     });
     const messages = seen.body!.messages as { content: string }[];
     expect(messages[0]!.content).toContain("LIVE Counter-Strike 2 match");

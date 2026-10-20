@@ -1,7 +1,7 @@
 /**
  * Pro monthly performance report: deterministic aggregates over the period's analyses and deep
  * reviews (trends, per-map, recurring mistakes, utility/crosshair evolution, best/worst
- * matches) plus one AI narrative call (purpose "report", prompt monthly-report-v3).
+ * matches) plus one AI narrative call (purpose "report", prompt monthly-report-v4).
  */
 import {
   monthlyReportSchema,
@@ -19,7 +19,7 @@ import {
 } from "./prompt-kit.js";
 import { canaryLine, type GuardSpec } from "./security.js";
 
-export const REPORT_PROMPT_VERSION = "monthly-report-v3";
+export const REPORT_PROMPT_VERSION = "monthly-report-v4";
 type Player = Analysis["players"][number];
 type Trend = MonthlyReport["trends"][number];
 export type ReportMatch = {

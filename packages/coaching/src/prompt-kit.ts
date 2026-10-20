@@ -9,6 +9,13 @@ import {
   type ModelResult,
 } from "./provider.js";
 import {
+  lacksDiacritics,
+  mapSpecStrings,
+  orthographyReminder,
+  restoreDiacritics,
+  specText,
+} from "./orthography.js";
+import {
   boundaryNotice,
   guardOutput,
   newBoundary,
@@ -113,20 +120,60 @@ export async function secureModelCall(c: SecureCall): Promise<SecureResult> {
       `The ${c.purpose} data exceeds its size limit.`,
     );
   const system = c.system(boundary) + boundaryNotice(boundary);
-  const result = await callModel(
-    c.config,
-    { system, user, schemaName: c.schemaName, schema: c.schema },
-    c.fetch,
-  );
-  const confidential = c.customText
-    ? system.split(c.customText).join(" ")
-    : system;
-  const guarded = guardOutput(result.data, c.guard, {
-    prompt: confidential,
-    boundary,
-    lang: c.lang,
-    ...(c.knownIds ? { knownIds: c.knownIds } : {}),
-  });
+  const request = { user, schemaName: c.schemaName, schema: c.schema };
+  const run = async (sys: string) => {
+    const result = await callModel(
+      c.config,
+      { system: sys, ...request },
+      c.fetch,
+    );
+    const confidential = c.customText ? sys.split(c.customText).join(" ") : sys;
+    const guarded = guardOutput(result.data, c.guard, {
+      prompt: confidential,
+      boundary,
+      lang: c.lang,
+      ...(c.knownIds ? { knownIds: c.knownIds } : {}),
+    });
+    return { result, guarded };
+  };
+  let { result, guarded } = await run(system);
+  const accentless = (data: unknown) =>
+    lacksDiacritics(specText(data, c.guard), c.lang);
+  if (accentless(guarded.data)) {
+    // One retry with a stronger orthography line; if the answer is still accent-less (or the
+    // retry fails), the most common words are restored. No caveat: the text reads correctly.
+    const first = result;
+    const retry = await run(system + orthographyReminder(c.lang)).catch(
+      () => undefined,
+    );
+    if (retry) {
+      ({ result, guarded } = retry);
+      result = {
+        ...result,
+        latencyMs: first.latencyMs + result.latencyMs,
+        attempts: first.attempts + result.attempts,
+        ...(first.usage || result.usage
+          ? {
+              usage: {
+                inputTokens:
+                  (first.usage?.inputTokens ?? 0) +
+                  (result.usage?.inputTokens ?? 0),
+                outputTokens:
+                  (first.usage?.outputTokens ?? 0) +
+                  (result.usage?.outputTokens ?? 0),
+              },
+            }
+          : {}),
+      };
+    }
+    if (accentless(guarded.data))
+      guarded = {
+        ...guarded,
+        data: mapSpecStrings(guarded.data, c.guard, (s) =>
+          restoreDiacritics(s, c.lang),
+        ),
+      };
+  }
   const meta: Partial<ModelResult> = { ...result };
   delete meta.data;
   return {
