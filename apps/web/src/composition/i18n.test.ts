@@ -78,6 +78,26 @@ describe("i18n", () => {
   });
 });
 
+describe("copy style", () => {
+  const EM_DASH = "\u2014";
+  it("has no em dash in English source strings", () => {
+    const found = sources.flatMap(([file, text]) =>
+      text
+        .split("\n")
+        .flatMap((line, i) =>
+          line.includes(EM_DASH) ? [`${file}:${i + 1}: ${line.trim()}`] : [],
+        ),
+    );
+    expect(found).toEqual([]);
+  });
+  it("has no em dash in Portuguese keys or translations", () => {
+    const found = Object.entries(pt)
+      .filter(([en, ptText]) => `${en}${ptText}`.includes(EM_DASH))
+      .map(([en]) => en);
+    expect(found).toEqual([]);
+  });
+});
+
 describe("translation coverage", () => {
   it("has a Portuguese entry for every literal t() key", () => {
     const missing = sources.flatMap(([file, text]) =>

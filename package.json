@@ -7,6 +7,7 @@
     "build": "turbo build",
     "typecheck": "turbo typecheck && tsc --noEmit",
     "lint": "eslint .",
+    "check:copy": "node scripts/check-copy.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "turbo test && pnpm test:go",

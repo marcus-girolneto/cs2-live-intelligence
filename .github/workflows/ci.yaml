@@ -44,6 +44,7 @@ jobs:
       - run: python3 apps/demo-parser/scripts/fetch-fixture.py
       - run: go build -o /tmp/cs2live-demo-parser ./cmd/demo-parser
         working-directory: apps/demo-parser
+      - run: pnpm check:copy
       - run: pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
