@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { planLimitFrom, useUpgrade, useUsage } from "@/features/billing";
 import { BRAND } from "@/shared/brand";
-import { ApiError } from "@/shared/http";
+import { ApiError, aiErrorText } from "@/shared/http";
 import { useI18n } from "@/shared/i18n";
 import { Brain, Crown, Lock } from "@/shared/icons";
 import { CrosshairLoader } from "@/shared/ui";
@@ -83,8 +83,11 @@ export function LiveAiCoach({
           }
           setError(
             e instanceof ApiError
-              ? { message: e.message, ...(e.code ? { code: e.code } : {}) }
-              : { message: e instanceof Error ? e.message : "Request failed." },
+              ? {
+                  message: aiErrorText(e, "live"),
+                  ...(e.code ? { code: e.code } : {}),
+                }
+              : { message: aiErrorText(e, "live") },
           );
         })
         .finally(() => setBusy(false));
@@ -188,7 +191,7 @@ export function LiveAiCoach({
       ) : (
         error && (
           <p role="alert" className="form-error">
-            {error.message}
+            {t(error.message)}
           </p>
         )
       )}

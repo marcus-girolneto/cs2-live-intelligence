@@ -320,7 +320,7 @@ describe("per-purpose output budgets and assignment options", () => {
     const live = await settings.resolve("live");
     expect(live.result.ok && live.result.config.maxOutputTokens).toBe(8_000);
   });
-  it("a provider profile budget beats the purpose default; env AI_MAX_OUTPUT_TOKENS too", async () => {
+  it("the purpose default beats a provider profile budget and env AI_MAX_OUTPUT_TOKENS", async () => {
     const { repo, settings } = setup({ ...ENV, AI_MAX_OUTPUT_TOKENS: "3000" });
     repo.providerRows = [
       {
@@ -340,12 +340,17 @@ describe("per-purpose output budgets and assignment options", () => {
       },
     };
     const quick = await settings.resolve("review_quick");
-    expect(quick.result.ok && quick.result.config.maxOutputTokens).toBe(5000);
+    expect(quick.result.ok && quick.result.config.maxOutputTokens).toBe(16_000);
     expect(quick.result.ok && quick.result.config.extraBody).toEqual({
       reasoning: { exclude: true, effort: "high" },
     });
     const live = await settings.resolve("live");
-    expect(live.result.ok && live.result.config.maxOutputTokens).toBe(3000);
+    expect(live.result.ok && live.result.config.maxOutputTokens).toBe(8_000);
+    // report is unassigned: environment config, purpose budget.
+    const report = await settings.resolve("report");
+    expect(report.result.ok && report.result.config.maxOutputTokens).toBe(
+      32_000,
+    );
   });
   it("uses OpenAI's reasoning_effort dialect for OpenAI chat profiles", async () => {
     const { withReasoning } =

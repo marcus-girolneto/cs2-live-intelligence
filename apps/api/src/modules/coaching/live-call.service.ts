@@ -160,7 +160,7 @@ export class LiveCallService {
       return { id, call, meta: viewer.callMeta(meta) };
     } catch (error) {
       await reserved.release();
-      throw aiRequestError(error, viewer.admin);
+      throw aiRequestError(error, viewer.admin, this.logger);
     }
   }
 }

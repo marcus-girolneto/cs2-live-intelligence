@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useUpgrade } from "@/features/billing";
 import { useReportsApi } from "../api/context";
 import type { Report, ReportListItem } from "../model/report";
+import { aiErrorText } from "@/shared/http";
 
 const msg = (e: unknown) =>
   e instanceof Error ? e.message : "Request failed.";
@@ -65,7 +66,7 @@ export function useReports(enabled: boolean) {
           setSelected(l[0]!.id);
         }
         setError("This month's report is already ready.");
-      } else setError(msg(e));
+      } else setError(aiErrorText(e, "report"));
     } finally {
       setGenerating(false);
     }

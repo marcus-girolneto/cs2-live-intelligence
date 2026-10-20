@@ -45,6 +45,8 @@ const LABEL_RECORDS = [
   "src/features/billing/model/credits.ts",
   "src/features/coach/components/deep/nades.tsx",
 ];
+/** Files whose Record<…, string> tables of messages are translated (AI error sentences). */
+const MESSAGE_TABLES = ["src/shared/http/aiError.ts"];
 
 describe("i18n", () => {
   it("defaults to English and falls back to the source text", () => {
@@ -134,6 +136,22 @@ describe("translation coverage", () => {
     }
     for (const literal of ["Plans saved.", "Checkout is unavailable."])
       if (!(literal in pt)) missing.push(literal);
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("message tables", () => {
+  it("translates every sentence of the AI error tables", () => {
+    const missing = MESSAGE_TABLES.flatMap((file) =>
+      [
+        ...readFileSync(join(ROOT, file), "utf8").matchAll(
+          /^\s+\w+:\s*"([^"]+)",?$/gm,
+        ),
+      ]
+        .map((m) => m[1]!)
+        .filter((key) => !(key in pt))
+        .map((key) => `${file}: ${key}`),
+    );
     expect(missing).toEqual([]);
   });
 });

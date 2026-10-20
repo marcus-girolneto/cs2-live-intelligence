@@ -185,7 +185,7 @@ export const productPaths = {
       "Admin only: provider + model (+ optional maxOutputTokens, reasoningEffort) per purpose (review_quick, review_deep, live, report, personal_coach; legacy key review = both review tiers)",
     ),
     put: operation(
-      "Admin only: set or clear (null) the provider + model per purpose; each assignment may add maxOutputTokens (256..200000; default: provider profile, then the purpose budget: review_quick 16000, review_deep 24000, live 8000, report 12000, personal_coach 16000) and reasoningEffort (minimal|low|medium|high)",
+      "Admin only: set or clear (null) the provider + model per purpose; each assignment may add maxOutputTokens (256..200000; default: the purpose budget review_quick 16000, review_deep 24000, review_team 24000, verify 8000, live 8000, report 32000, personal_coach 32000, then the provider profile; a cut-off answer is retried once with twice the budget and low reasoning effort) and reasoningEffort (minimal|low|medium|high)",
     ),
   },
   "/v1/admin/settings": {

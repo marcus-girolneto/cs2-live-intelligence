@@ -20,3 +20,4 @@ export {
   type UploadOptions,
   type UploadProgress,
 } from "./Uploader";
+export { aiErrorText, type AiTask } from "./aiError";

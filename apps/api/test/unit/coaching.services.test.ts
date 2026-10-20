@@ -262,7 +262,7 @@ describe("ReviewService", () => {
       status: 504,
       body: {
         code: "ai_timeout",
-        error: "The AI coach took too long to answer. Try again.",
+        error: "The AI coach took too long to answer. Try again in a moment.",
       },
     });
     expect(failed.review.released).toBe(1);

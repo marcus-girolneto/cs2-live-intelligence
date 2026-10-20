@@ -4,6 +4,7 @@ import { useCredits, useUpgrade, useUsage } from "@/features/billing";
 import { useI18n } from "@/shared/i18n";
 import { useCoachApi } from "../api/context";
 import type { StoredTeamReview } from "../model/team";
+import { aiErrorText } from "@/shared/http";
 
 /** Team review of the chosen player's team: stored reviews, run (credits) and view state. */
 export function useTeamReview(
@@ -58,7 +59,7 @@ export function useTeamReview(
       .catch((e: unknown) => {
         if (seq.current !== id) return;
         if (upgrade.handle(e)) return;
-        setError(e instanceof Error ? e.message : "Request failed.");
+        setError(aiErrorText(e, "team"));
       })
       .finally(() => {
         if (seq.current === id) setRunning(null);

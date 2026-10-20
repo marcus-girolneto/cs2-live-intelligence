@@ -174,7 +174,7 @@ export class ReviewService {
       };
     } catch (error) {
       await release();
-      throw aiRequestError(error, viewer.admin);
+      throw aiRequestError(error, viewer.admin, logger);
     }
   }
 

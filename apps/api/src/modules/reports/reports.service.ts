@@ -126,7 +126,7 @@ export class ReportsService {
         try {
           return await this.gateway.monthlyReport(report, config, lang);
         } catch (error) {
-          throw aiRequestError(error, false);
+          throw aiRequestError(error, false, this.logger);
         }
       },
     );

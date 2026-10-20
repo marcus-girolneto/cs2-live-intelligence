@@ -71,11 +71,12 @@ export class AiConfigFactory {
   ): Record<string, string | undefined> {
     const parsed = providerOptionsSchema.safeParse(p.options);
     const o: ProviderOptions = parsed.success ? parsed.data : {};
-    // Output budget: assignment, then provider profile, then the purpose's built-in default.
+    // Output budget: the assignment, then the purpose's built-in default (so a provider-wide
+    // budget never caps a purpose that needs more), then the provider profile.
     const maxOutputTokens =
       assignment.maxOutputTokens ??
-      o.maxOutputTokens ??
-      (purpose ? PURPOSE_LIMITS[purpose].maxOutputTokens : undefined);
+      (purpose ? PURPOSE_LIMITS[purpose].maxOutputTokens : undefined) ??
+      o.maxOutputTokens;
     const extraBody = withReasoning(
       o.extraBody ?? {},
       assignment.reasoningEffort,
@@ -148,7 +149,8 @@ export class AiConfigFactory {
     const env = this.env.aiFallback();
     return loadAiConfig({
       ...env,
-      ...(purpose && !env.AI_MAX_OUTPUT_TOKENS?.trim()
+      // The purpose budget wins over a global AI_MAX_OUTPUT_TOKENS (same order as profiles).
+      ...(purpose
         ? {
             AI_MAX_OUTPUT_TOKENS: String(
               PURPOSE_LIMITS[purpose].maxOutputTokens,

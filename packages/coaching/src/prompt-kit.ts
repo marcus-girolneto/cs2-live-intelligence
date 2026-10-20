@@ -52,8 +52,8 @@ export const PURPOSE_LIMITS: Record<
   review_team: { maxInputBytes: 600_000, maxOutputTokens: 24_000 },
   verify: { maxInputBytes: 200_000, maxOutputTokens: 8_000 },
   live: { maxInputBytes: 40_000, maxOutputTokens: 8_000 },
-  report: { maxInputBytes: 150_000, maxOutputTokens: 12_000 },
-  personal_coach: { maxInputBytes: 200_000, maxOutputTokens: 16_000 },
+  report: { maxInputBytes: 150_000, maxOutputTokens: 32_000 },
+  personal_coach: { maxInputBytes: 200_000, maxOutputTokens: 32_000 },
 };
 
 export const PRIORITY_ORDER = `PRIORITY ORDER (when two rules conflict, the earlier one wins): 1. safety and integrity, 2. fair play, 3. grounding in the supplied data, 4. output format, 5. output language, 6. style and the player's preferences.`;
@@ -122,8 +122,9 @@ export async function secureModelCall(c: SecureCall): Promise<SecureResult> {
   const system = c.system(boundary) + boundaryNotice(boundary);
   const request = { user, schemaName: c.schemaName, schema: c.schema };
   const run = async (sys: string) => {
-    const result = await callModel(
+    const result = await callUntruncated(
       c.config,
+      c.purpose,
       { system: sys, ...request },
       c.fetch,
     );
@@ -148,23 +149,7 @@ export async function secureModelCall(c: SecureCall): Promise<SecureResult> {
     );
     if (retry) {
       ({ result, guarded } = retry);
-      result = {
-        ...result,
-        latencyMs: first.latencyMs + result.latencyMs,
-        attempts: first.attempts + result.attempts,
-        ...(first.usage || result.usage
-          ? {
-              usage: {
-                inputTokens:
-                  (first.usage?.inputTokens ?? 0) +
-                  (result.usage?.inputTokens ?? 0),
-                outputTokens:
-                  (first.usage?.outputTokens ?? 0) +
-                  (result.usage?.outputTokens ?? 0),
-              },
-            }
-          : {}),
-      };
+      result = combined(first, result);
     }
     if (accentless(guarded.data))
       guarded = {
@@ -183,4 +168,91 @@ export async function secureModelCall(c: SecureCall): Promise<SecureResult> {
     meta: meta as Omit<ModelResult, "data">,
     sent: { system, user },
   };
+}
+
+/** Meta of two calls of one request (latency, attempts and tokens add up). */
+function combined(first: ModelResult, second: ModelResult): ModelResult {
+  return {
+    ...second,
+    latencyMs: first.latencyMs + second.latencyMs,
+    attempts: first.attempts + second.attempts,
+    ...(first.usage || second.usage
+      ? {
+          usage: {
+            inputTokens:
+              (first.usage?.inputTokens ?? 0) +
+              (second.usage?.inputTokens ?? 0),
+            outputTokens:
+              (first.usage?.outputTokens ?? 0) +
+              (second.usage?.outputTokens ?? 0),
+          },
+        }
+      : {}),
+  };
+}
+
+/**
+ * Reasoning models can spend the whole output budget thinking. A cut-off answer is asked again
+ * once with a larger budget (twice the current one, at least the purpose default) and low
+ * reasoning effort; a second cut-off fails as before.
+ */
+export async function callUntruncated(
+  config: AiConfig,
+  purpose: AiPurposeName,
+  call: Parameters<typeof callModel>[1],
+  fetchImpl?: typeof fetch,
+): Promise<ModelResult> {
+  const started = Date.now();
+  try {
+    return await callModel(config, call, fetchImpl);
+  } catch (error) {
+    if (!(error instanceof AiError) || error.code !== "truncated") throw error;
+    const retry = await callModel(
+      retryConfig(config, purpose),
+      call,
+      fetchImpl,
+    );
+    return combined(
+      {
+        ...retry,
+        latencyMs: Date.now() - started - retry.latencyMs,
+        attempts: 1,
+      },
+      retry,
+    );
+  }
+}
+/** The config of the retry after a truncated answer. */
+export function retryConfig(
+  config: AiConfig,
+  purpose: AiPurposeName,
+): AiConfig {
+  return {
+    ...config,
+    maxOutputTokens: Math.min(
+      200_000,
+      Math.max(
+        config.maxOutputTokens * 2,
+        PURPOSE_LIMITS[purpose].maxOutputTokens,
+      ),
+    ),
+    extraBody: lowReasoning(config),
+  };
+}
+/** Asks for low reasoning effort where the provider has a known knob for it. */
+function lowReasoning(config: AiConfig): Record<string, unknown> {
+  const body = config.extraBody;
+  if (config.provider === "openai" && config.apiStyle !== "responses")
+    return { ...body, reasoning_effort: "low" };
+  const current =
+    typeof body.reasoning === "object" && body.reasoning !== null
+      ? (body.reasoning as Record<string, unknown>)
+      : undefined;
+  if (
+    current ||
+    config.provider === "openrouter" ||
+    config.apiStyle === "responses"
+  )
+    return { ...body, reasoning: { ...current, effort: "low" } };
+  return body;
 }

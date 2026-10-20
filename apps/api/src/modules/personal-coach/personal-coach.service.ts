@@ -238,7 +238,7 @@ export class PersonalCoachService {
         this.clock.now().toISOString(),
       );
     } catch (error) {
-      throw aiRequestError(error, viewer.admin);
+      throw aiRequestError(error, viewer.admin, this.logger);
     }
     const newest = analyses.reduce<string | null>(
       (m, a) =>

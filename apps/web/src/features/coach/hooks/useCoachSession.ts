@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCredits, useUpgrade, useUsage } from "@/features/billing";
 import { useMapsApi, type Progress } from "@/features/maps";
 import type { MatchDto as Match } from "@/shared/api-types";
-import { ApiError } from "@/shared/http";
+import { ApiError, aiErrorText } from "@/shared/http";
 import { useI18n } from "@/shared/i18n";
 import { loadMe, useAccount } from "@/shared/session";
 import { useCoachApi } from "../api/context";
@@ -234,18 +234,11 @@ export function useCoachSession() {
         .catch((e: unknown) => {
           if (seq.current !== id) return;
           if (upgrade.handle(e)) return;
-          setFailure(
-            e instanceof ApiError
-              ? {
-                  message: e.message,
-                  tier,
-                  ...(e.code ? { code: e.code } : {}),
-                }
-              : {
-                  message: e instanceof Error ? e.message : "Request failed.",
-                  tier,
-                },
-          );
+          setFailure({
+            message: aiErrorText(e, "review"),
+            tier,
+            ...(e instanceof ApiError && e.code ? { code: e.code } : {}),
+          });
         })
         .finally(() => {
           if (seq.current !== id) return;

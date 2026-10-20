@@ -9,6 +9,7 @@ import {
   type PersonalState,
   type PersonalTeaserCounts,
 } from "../model/personal";
+import { aiErrorText } from "@/shared/http";
 
 const msg = (e: unknown) =>
   e instanceof Error ? e.message : "Request failed.";
@@ -62,7 +63,7 @@ export function usePersonalCoach(enabled: boolean, withTeaser = false) {
       const limit = planLimitFrom(e);
       if (limit) upgrade.open({ ...limit, feature: "personal_coach" });
       else {
-        setError(generateErrorMessage(e) ?? msg(e));
+        setError(generateErrorMessage(e) ?? aiErrorText(e, "personal"));
         // Cooldown / data errors: refresh so the screen shows the real next date.
         api.get().then(setState, () => undefined);
       }
