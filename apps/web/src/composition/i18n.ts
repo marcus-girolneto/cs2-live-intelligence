@@ -5,6 +5,7 @@ import { i18nPt as auth } from "@/features/auth";
 import { i18nPt as billing } from "@/features/billing";
 import { i18nPt as coach } from "@/features/coach";
 import { i18nPt as dashboard } from "@/features/dashboard";
+import { i18nPt as developers } from "@/features/developers";
 import { i18nPt as landing } from "@/features/landing";
 import { i18nPt as live } from "@/features/live";
 import { i18nPt as maps } from "@/features/maps";
@@ -28,6 +29,7 @@ export const ptParts = {
   billing,
   coach,
   dashboard,
+  developers,
   landing,
   live,
   maps,

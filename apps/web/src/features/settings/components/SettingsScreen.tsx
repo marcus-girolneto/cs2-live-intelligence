@@ -1,5 +1,6 @@
 "use client";
 import { SteamIdentity } from "@/features/auth";
+import { DevelopersPanel } from "@/features/developers";
 import { useI18n } from "@/shared/i18n";
 import { Gear, User } from "@/shared/icons";
 import { Callout, PageHeader, Panel, Skeleton } from "@/shared/ui";
@@ -9,7 +10,7 @@ import { CoachSettings } from "./CoachSettings";
 import { DangerPanel } from "./DangerPanel";
 import { DevicesPanel } from "./DevicesPanel";
 import { PrivacyPanel } from "./PrivacyPanel";
-/** /settings: Steam account, coach personality, consent/retention, devices and deletion. */
+/** /settings: Steam account, coach personality, consent/retention, devices, API and deletion. */
 export function SettingsScreen() {
   const { t } = useI18n();
   const vm = useSettings();
@@ -19,6 +20,7 @@ export function SettingsScreen() {
     ["coach", t("AI coach personality")],
     ["privacy", t("Consent & retention")],
     ["devices", t("Collector devices")],
+    ["developers", t("Developers")],
     ["danger", t("Delete account & data")],
   ] as const;
   return (
@@ -65,6 +67,7 @@ export function SettingsScreen() {
           <AutoReviewPanel />
           <PrivacyPanel vm={vm} />
           <DevicesPanel vm={vm} />
+          <DevelopersPanel />
           <DangerPanel vm={vm} />
         </div>
       </div>

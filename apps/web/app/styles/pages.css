@@ -373,3 +373,89 @@
   text-transform: none;
   letter-spacing: 0.02em;
 }
+
+/* settings: developers (API keys, webhooks) */
+.dev-section {
+  display: grid;
+  gap: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+}
+.dev-section h3 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.dev-form {
+  display: grid;
+  gap: var(--s3);
+  justify-items: start;
+}
+.dev-form label,
+.dev-form input,
+.dev-form select {
+  width: 100%;
+  max-width: 520px;
+}
+.dev-checks {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  width: 100%;
+  max-width: 520px;
+}
+.dev-checks legend {
+  padding: 0 var(--s1);
+  color: var(--text-3);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.dev-form .dev-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  width: auto;
+  max-width: none;
+}
+.dev-form .dev-check input {
+  width: auto;
+  margin-top: 3px;
+}
+.dev-check code,
+.dev-deliveries code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent-2);
+}
+.dev-secret {
+  font-family: var(--mono);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.dev-url {
+  overflow-wrap: anywhere;
+}
+.dev-deliveries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s1);
+}
+.dev-deliveries li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: baseline;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+.dev-deliveries small {
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}

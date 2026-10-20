@@ -61,6 +61,16 @@ const routes: [string, RegExp][] = [
   ["POST", /^feedback$/],
   ["GET", /^auth\/steam\/start$/],
   ["POST", /^me\/refresh-profile$/],
+  // Settings → Developers: personal API keys and webhooks (the public /api/v1 is called on the
+  // API directly with an API key, never through this proxy).
+  ["GET", /^me\/api-keys$/],
+  ["POST", /^me\/api-keys$/],
+  ["DELETE", /^me\/api-keys\/[A-Za-z0-9_-]+$/],
+  ["GET", /^me\/webhooks$/],
+  ["POST", /^me\/webhooks$/],
+  ["GET", /^me\/webhooks\/deliveries$/],
+  ["DELETE", /^me\/webhooks\/[A-Za-z0-9_-]+$/],
+  ["POST", /^me\/webhooks\/[A-Za-z0-9_-]+\/test$/],
   // Admin area (the API answers 403 to non-admins).
   ["GET", /^admin\/ai\/providers$/],
   ["POST", /^admin\/ai\/providers$/],
@@ -100,12 +110,14 @@ const INT = /^[0-9]{1,4}$/;
 const SECONDS = /^[0-9]{1,4}(\.[0-9]{1,3})?$/;
 const PLAYER = /^[A-Za-z0-9_-]{1,32}$/;
 const MAP = /^[a-z0-9_]{1,32}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const IDS = /^[A-Za-z0-9_-]{1,64}(,[A-Za-z0-9_-]{1,64}){0,99}$/;
 const QUERY: [RegExp, Record<string, RegExp>][] = [
   [/^coach\/progress$/, { map: MAP }],
   [/^matches\/(ownership|auto-reviews)$/, { ids: IDS }],
   [/^admin\/audit$/, { limit: INT }],
   [/^credits\/ledger$/, { limit: INT }],
+  [/^me\/webhooks\/deliveries$/, { limit: INT, webhookId: UUID }],
   [/^admin\/users\/[A-Za-z0-9_-]+\/ledger$/, { limit: INT }],
   [
     /^analyses\/[A-Za-z0-9_-]+\/(reviews|reel|team-reviews|lobby)$/,
