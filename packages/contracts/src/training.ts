@@ -110,7 +110,10 @@ export const catalogEntrySchema = z.object({
   skill: trainingSkillSchema,
   title: z.string().max(120),
   kind: z.enum(["workshop", "official"]),
-  workshopId: z.string().regex(/^[0-9]{6,12}$/).optional(),
+  workshopId: z
+    .string()
+    .regex(/^[0-9]{6,12}$/)
+    .optional(),
   mapName: z.string().max(64).optional(),
   maps: z.array(z.string().max(32)).max(12).optional(),
   url: z.string().max(200),
