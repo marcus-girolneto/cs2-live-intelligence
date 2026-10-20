@@ -112,4 +112,28 @@ export const pt2: Record<string, string> = {
   "Why it matters": "Por que importa",
   "Your top fix": "Sua principal correção",
   "Your top {n} fixes": "Suas {n} principais correções",
+  "{metric} {value} (lobby {lobby})": "{metric} {value} (lobby {lobby})",
+  "{metric} {value} vs enemy {enemy}":
+    "{metric} {value} contra {enemy} do adversário",
+  "opening duels won {w} of {n}": "duelos de abertura vencidos: {w} de {n}",
+  "rounds won while bought below the enemy {a}/{b} vs enemy {c}/{d}":
+    "rounds vencidos com compra inferior ao adversário {a}/{b} contra {c}/{d} do adversário",
+  accuracy: "precisão",
+  "headshot hit rate": "acertos na cabeça",
+  "headshot kills": "kills com headshot",
+  survival: "sobrevivência",
+  "early deaths per round": "mortes cedo por round",
+  "average death time": "tempo médio de morte",
+  "utility damage per round": "dano de utilitária por round",
+  "enemies flashed per round": "inimigos cegados por round",
+  "flash assists per round": "assistências de flash por round",
+  "deaths traded": "mortes trocadas",
+  "trade kills per round": "kills de troca por round",
+  "damage per $1000 of equipment": "dano por US$ 1000 de equipamento",
+  "anti-eco rounds won": "rounds anti-eco vencidos",
+  "opening duels won": "duelos de abertura vencidos",
+  "multi-kill rounds per round": "rounds com multi-kill por round",
+  "flash-assist chains + coordinated throws per round":
+    "cadeias de flash com assistência + granadas coordenadas por round",
+  "man-advantage rounds won": "rounds com vantagem numérica vencidos",
 };

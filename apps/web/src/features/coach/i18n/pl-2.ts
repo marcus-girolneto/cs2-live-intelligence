@@ -112,4 +112,28 @@ export const pl2: Record<string, string> = {
   "Why it matters": "Dlaczego to ważne",
   "Your top fix": "Twoja najważniejsza poprawka",
   "Your top {n} fixes": "Twoje najważniejsze poprawki ({n})",
+  "{metric} {value} (lobby {lobby})": "{metric} {value} (lobby {lobby})",
+  "{metric} {value} vs enemy {enemy}":
+    "{metric} {value} wobec {enemy} u przeciwnika",
+  "opening duels won {w} of {n}": "wygrane pojedynki otwierające: {w} z {n}",
+  "rounds won while bought below the enemy {a}/{b} vs enemy {c}/{d}":
+    "rundy wygrane ze słabszym zakupem niż przeciwnik {a}/{b} wobec {c}/{d} u przeciwnika",
+  accuracy: "celność",
+  "headshot hit rate": "odsetek trafień w głowę",
+  "headshot kills": "kille headshotem",
+  survival: "przetrwanie",
+  "early deaths per round": "wczesne zgony na rundę",
+  "average death time": "średni czas zgonu",
+  "utility damage per round": "obrażenia z granatów na rundę",
+  "enemies flashed per round": "oślepieni przeciwnicy na rundę",
+  "flash assists per round": "asysty flashem na rundę",
+  "deaths traded": "zgony z tradem",
+  "trade kills per round": "kille z trade'u na rundę",
+  "damage per $1000 of equipment": "obrażenia na 1000 $ ekwipunku",
+  "anti-eco rounds won": "wygrane rundy anty-eco",
+  "opening duels won": "wygrane pojedynki otwierające",
+  "multi-kill rounds per round": "rundy z multikillem na rundę",
+  "flash-assist chains + coordinated throws per round":
+    "łańcuchy asyst flashem + skoordynowane rzuty na rundę",
+  "man-advantage rounds won": "wygrane rundy z przewagą liczebną",
 };

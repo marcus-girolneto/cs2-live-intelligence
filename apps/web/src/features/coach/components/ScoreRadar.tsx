@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useI18n } from "@/shared/i18n";
+import { scoreBasisText } from "../model/scoreBasis";
 import { formatNumber } from "@/shared/format";
 import type { CoachScore, ScoreKey } from "../model/coaching";
 
@@ -21,7 +22,7 @@ const R = 112;
  * The list beside it carries the same numbers and their basis (table view / no colour-only).
  */
 export function ScoreRadar({ scores }: { scores: CoachScore[] }) {
-  const { t, locale } = useI18n();
+  const { t, locale, fmt } = useI18n();
   const [active, setActive] = useState<ScoreKey | null>(null);
   const n = scores.length;
   if (n < 3) return null;
@@ -66,7 +67,7 @@ export function ScoreRadar({ scores }: { scores: CoachScore[] }) {
           return (
             <g key={s.key}>
               <circle cx={x} cy={y} r={on ? 7 : 5} className="rd-dot">
-                <title>{`${label(s)}: ${Math.round(s.value)}${s.basis ? ` (${s.basis})` : ""}`}</title>
+                <title>{`${label(s)}: ${Math.round(s.value)}${s.basis ? ` (${scoreBasisText(s.basis, t, fmt)})` : ""}`}</title>
               </circle>
               <text
                 x={lx}
@@ -110,7 +111,11 @@ export function ScoreRadar({ scores }: { scores: CoachScore[] }) {
                 <b style={{ left: "50%" }} />
               </span>
               <span className="sl-val">{formatNumber(s.value, 0, locale)}</span>
-              {s.basis && <small className="sl-basis">{s.basis}</small>}
+              {s.basis && (
+                <small className="sl-basis">
+                  {scoreBasisText(s.basis, t, fmt)}
+                </small>
+              )}
             </li>
           ))}
         </ul>

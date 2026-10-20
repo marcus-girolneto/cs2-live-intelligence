@@ -54,6 +54,7 @@ const LABEL_RECORDS = [
 const MESSAGE_TABLES = [
   "src/shared/http/aiError.ts",
   "src/features/coach/model/deepText.ts",
+  "src/features/coach/model/scoreBasis.ts",
 ];
 const read = (file: string) => readFileSync(join(ROOT, file), "utf8");
 

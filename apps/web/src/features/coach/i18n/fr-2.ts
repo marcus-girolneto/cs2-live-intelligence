@@ -115,4 +115,28 @@ export const fr2: Record<string, string> = {
   "Why it matters": "Pourquoi c'est important",
   "Your top fix": "Ta correction prioritaire",
   "Your top {n} fixes": "Tes {n} corrections prioritaires",
+  "{metric} {value} (lobby {lobby})": "{metric} {value} (lobby {lobby})",
+  "{metric} {value} vs enemy {enemy}":
+    "{metric} {value} contre {enemy} chez l'adversaire",
+  "opening duels won {w} of {n}": "duels d'ouverture gagnés : {w} sur {n}",
+  "rounds won while bought below the enemy {a}/{b} vs enemy {c}/{d}":
+    "rounds gagnés avec un achat inférieur à l'adversaire {a}/{b} contre {c}/{d} chez l'adversaire",
+  accuracy: "précision",
+  "headshot hit rate": "taux de touches à la tête",
+  "headshot kills": "kills en headshot",
+  survival: "survie",
+  "early deaths per round": "morts rapides par round",
+  "average death time": "temps moyen de mort",
+  "utility damage per round": "dégâts d'utilitaires par round",
+  "enemies flashed per round": "ennemis flashés par round",
+  "flash assists per round": "assists flash par round",
+  "deaths traded": "morts tradées",
+  "trade kills per round": "kills de trade par round",
+  "damage per $1000 of equipment": "dégâts pour 1000 $ d'équipement",
+  "anti-eco rounds won": "rounds anti-eco gagnés",
+  "opening duels won": "duels d'ouverture gagnés",
+  "multi-kill rounds per round": "rounds avec multi-kill par round",
+  "flash-assist chains + coordinated throws per round":
+    "enchaînements flash-assist + lancers coordonnés par round",
+  "man-advantage rounds won": "rounds en supériorité numérique gagnés",
 };

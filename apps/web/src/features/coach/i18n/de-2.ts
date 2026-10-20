@@ -116,4 +116,28 @@ export const de2: Record<string, string> = {
   "Why it matters": "Warum es wichtig ist",
   "Your top fix": "Deine wichtigste Verbesserung",
   "Your top {n} fixes": "Deine {n} wichtigsten Verbesserungen",
+  "{metric} {value} (lobby {lobby})": "{metric} {value} (Lobby {lobby})",
+  "{metric} {value} vs enemy {enemy}":
+    "{metric} {value} gegenüber {enemy} beim Gegner",
+  "opening duels won {w} of {n}": "gewonnene Opening-Duelle: {w} von {n}",
+  "rounds won while bought below the enemy {a}/{b} vs enemy {c}/{d}":
+    "Runden mit schwächerem Kauf als der Gegner gewonnen {a}/{b} gegenüber {c}/{d} beim Gegner",
+  accuracy: "Treffsicherheit",
+  "headshot hit rate": "Kopftrefferquote",
+  "headshot kills": "Headshot-Kills",
+  survival: "Überleben",
+  "early deaths per round": "frühe Tode pro Runde",
+  "average death time": "durchschnittlicher Todeszeitpunkt",
+  "utility damage per round": "Utility-Schaden pro Runde",
+  "enemies flashed per round": "geblendete Gegner pro Runde",
+  "flash assists per round": "Flash-Assists pro Runde",
+  "deaths traded": "getradete Tode",
+  "trade kills per round": "Trade-Kills pro Runde",
+  "damage per $1000 of equipment": "Schaden pro 1000 $ Ausrüstung",
+  "anti-eco rounds won": "gewonnene Anti-Eco-Runden",
+  "opening duels won": "gewonnene Opening-Duelle",
+  "multi-kill rounds per round": "Runden mit Multikill pro Runde",
+  "flash-assist chains + coordinated throws per round":
+    "Flash-Assist-Ketten + koordinierte Würfe pro Runde",
+  "man-advantage rounds won": "gewonnene Runden in Überzahl",
 };

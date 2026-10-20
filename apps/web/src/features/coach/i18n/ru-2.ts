@@ -113,4 +113,28 @@ export const ru2: Record<string, string> = {
   "Why it matters": "Почему это важно",
   "Your top fix": "Главное исправление",
   "Your top {n} fixes": "Главные исправления ({n})",
+  "{metric} {value} (lobby {lobby})": "{metric} {value} (лобби {lobby})",
+  "{metric} {value} vs enemy {enemy}":
+    "{metric} {value} против {enemy} у соперника",
+  "opening duels won {w} of {n}": "выиграно первых дуэлей: {w} из {n}",
+  "rounds won while bought below the enemy {a}/{b} vs enemy {c}/{d}":
+    "выиграно раундов с закупом хуже соперника {a}/{b} против {c}/{d} у соперника",
+  accuracy: "точность",
+  "headshot hit rate": "попадания в голову",
+  "headshot kills": "убийства в голову",
+  survival: "выживаемость",
+  "early deaths per round": "ранние смерти за раунд",
+  "average death time": "среднее время смерти",
+  "utility damage per round": "урон гранатами за раунд",
+  "enemies flashed per round": "ослеплено врагов за раунд",
+  "flash assists per round": "флеш-ассисты за раунд",
+  "deaths traded": "смерти с трейдом",
+  "trade kills per round": "убийства-трейды за раунд",
+  "damage per $1000 of equipment": "урон на $1000 снаряжения",
+  "anti-eco rounds won": "выигранные анти-эко раунды",
+  "opening duels won": "выигранные первые дуэли",
+  "multi-kill rounds per round": "раунды с мультикиллом за раунд",
+  "flash-assist chains + coordinated throws per round":
+    "цепочки флеш-ассистов + согласованные броски за раунд",
+  "man-advantage rounds won": "выигранные раунды в численном большинстве",
 };

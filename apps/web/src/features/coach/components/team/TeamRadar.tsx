@@ -1,5 +1,6 @@
 "use client";
 import { useI18n } from "@/shared/i18n";
+import { scoreBasisText } from "../../model/scoreBasis";
 import { DIMENSION_LABEL, type TeamScore } from "../../model/team";
 
 const SIZE = 260;
@@ -8,7 +9,7 @@ const R = 92;
 
 /** Five-axis radar of the team scores (0–100, team vs the enemy team). */
 export function TeamRadar({ scores }: { scores: TeamScore[] }) {
-  const { t } = useI18n();
+  const { t, fmt } = useI18n();
   const n = scores.length;
   if (n < 3) return null;
   const at = (i: number, v: number) => {
@@ -49,7 +50,7 @@ export function TeamRadar({ scores }: { scores: TeamScore[] }) {
           <li key={s.key}>
             <span>{t(DIMENSION_LABEL[s.key])}</span>
             <b className="tabular">{s.value}</b>
-            {s.basis && <small>{s.basis}</small>}
+            {s.basis && <small>{scoreBasisText(s.basis, t, fmt)}</small>}
           </li>
         ))}
       </ul>
