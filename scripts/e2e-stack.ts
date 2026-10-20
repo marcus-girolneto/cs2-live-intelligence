@@ -5,13 +5,23 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
 import { Database } from "../apps/api/src/shared/db/database.js";
+import {
+  ensureTestDatabase,
+  testDatabaseUrl,
+} from "../apps/api/test/support/database-url.js";
 const run = promisify(execFile);
 const children: ChildProcess[] = [];
 const sequenceDir = await mkdtemp(join(tmpdir(), "cs2-e2e-"));
 const schema = `e2e_${randomUUID().replaceAll("-", "")}`;
-const databaseBase =
-  process.env.DATABASE_URL ??
-  "postgres://cs2:local-development-only@127.0.0.1:55432/cs2live";
+// The E2E stack never uses the development database: TEST_DATABASE_URL, or DATABASE_URL with
+// the `_test` suffix (cs2live_test), created when missing; one schema per run inside it.
+const databaseBase = testDatabaseUrl({
+  ...process.env,
+  DATABASE_URL:
+    process.env.DATABASE_URL ??
+    "postgres://cs2:local-development-only@127.0.0.1:55432/cs2live",
+})!;
+await ensureTestDatabase(databaseBase);
 const admin = new Database(databaseBase);
 await admin.pool.query(`CREATE SCHEMA "${schema}"`);
 const scoped = new URL(databaseBase);

@@ -23,7 +23,10 @@ jobs:
           --health-cmd "pg_isready -U cs2 -d cs2live"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
+      # Development database (never written by tests) and the dedicated test database,
+      # created on the same server by the API test setup and scripts/e2e-stack.ts.
       DATABASE_URL: postgres://cs2:local-development-only@127.0.0.1:55432/cs2live
+      TEST_DATABASE_URL: postgres://cs2:local-development-only@127.0.0.1:55432/cs2live_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
