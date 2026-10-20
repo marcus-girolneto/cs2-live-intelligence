@@ -96,3 +96,24 @@ export function parseSteamAssertion(
   verification.set("openid.mode", "check_authentication");
   return { state, steamId: claimed.split("/").at(-1)!, nonce, verification };
 }
+
+/**
+ * Why `parseSteamAssertion` refused a response, for operator logs only (no ids or secrets).
+ * Mirrors its checks in order.
+ */
+export function assertionRejectionReason(
+  q: Record<string, string>,
+  stateCookie: string | undefined,
+  apiPublicUrl: string,
+  now: number,
+): string {
+  if (!stateCookie) return "state_cookie_missing";
+  if (!sameState(q.state, stateCookie)) return "state_mismatch";
+  if (q["openid.mode"] !== "id_res") return "not_id_res";
+  if (q["openid.return_to"] !== steamCallbackUrl(apiPublicUrl, q.state))
+    return "return_to_mismatch";
+  const nonceTime = Date.parse((q["openid.response_nonce"] ?? "").slice(0, 20));
+  if (!Number.isFinite(nonceTime) || Math.abs(now - nonceTime) > NONCE_SKEW_MS)
+    return "nonce_time";
+  return "malformed_response";
+}

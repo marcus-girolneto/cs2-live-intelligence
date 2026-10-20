@@ -255,7 +255,9 @@ describe.skipIf(!databaseUrl)(
         "openid.sig": "signature",
       });
       const callback = "/v1/auth/steam/callback?" + parameters;
-      expect((await app.inject({ url: callback })).statusCode).toBe(400);
+      const noCookie = await app.inject({ url: callback });
+      expect(noCookie.statusCode).toBe(302);
+      expect(noCookie.headers.location).toMatch(/\/\?signin=failed$/);
       const verified = await app.inject({
         url: callback,
         headers: { cookie: `cs2_steam_state=${state}` },
@@ -295,14 +297,13 @@ describe.skipIf(!databaseUrl)(
           })
         ).statusCode,
       ).toBe(400);
-      expect(
-        (
-          await app.inject({
-            url: callback,
-            headers: { cookie: `cs2_steam_state=${state}` },
-          })
-        ).statusCode,
-      ).toBe(400);
+      // A replayed callback is refused and the browser is sent back to the site.
+      const replayed = await app.inject({
+        url: callback,
+        headers: { cookie: `cs2_steam_state=${state}` },
+      });
+      expect(replayed.statusCode).toBe(302);
+      expect(replayed.headers.location).toMatch(/\/\?signin=failed$/);
     });
     it("rejects wrong Steam endpoint, stale nonce and changed return_to before network", async () => {
       const started = await app.inject({ url: "/v1/auth/steam/start" });
@@ -321,14 +322,12 @@ describe.skipIf(!databaseUrl)(
           "openid.mode": "id_res",
           ...query,
         });
-        expect(
-          (
-            await app.inject({
-              url: "/v1/auth/steam/callback?" + q,
-              headers: { cookie: `cs2_steam_state=${state}` },
-            })
-          ).statusCode,
-        ).toBe(400);
+        const rejected = await app.inject({
+          url: "/v1/auth/steam/callback?" + q,
+          headers: { cookie: `cs2_steam_state=${state}` },
+        });
+        expect(rejected.statusCode).toBe(302);
+        expect(rejected.headers.location).toMatch(/\/\?signin=failed$/);
       }
     });
     it("adds Web API profile data to /v1/me when a Steam Web API key is configured", async () => {

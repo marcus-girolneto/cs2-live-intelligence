@@ -1,6 +1,6 @@
 import type { ExchangeResponseDto, SteamStartResponseDto } from "./auth.dto.js";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { AppError, ValidationError } from "../../shared/errors/index.js";
+import { ValidationError } from "../../shared/errors/index.js";
 import {
   clearedCookie,
   readCookie,
@@ -60,10 +60,24 @@ export class AuthController {
       readCookie(request, STATE_COOKIE),
       request.ip,
     );
-    if (result.status === "unavailable")
-      throw new AppError(502, "Steam verification unavailable");
-    if (result.status === "rejected")
-      throw new ValidationError("Steam authentication rejected");
+    // A browser lands here from Steam: failures go back to the site with a readable message
+    // instead of a JSON error page.
+    if (result.status !== "ok") {
+      if (result.status === "rejected")
+        console.warn(
+          JSON.stringify({
+            event: "steam_login_rejected",
+            reason: result.reason,
+            detail: result.detail,
+          }),
+        );
+      const back = new URL("/", this.webOrigin);
+      back.searchParams.set(
+        "signin",
+        result.status === "unavailable" ? "unavailable" : "failed",
+      );
+      return reply.redirect(back.toString());
+    }
     const destination = new URL("/auth/callback", this.webOrigin);
     destination.searchParams.set("code", result.code);
     reply.header("set-cookie", [
