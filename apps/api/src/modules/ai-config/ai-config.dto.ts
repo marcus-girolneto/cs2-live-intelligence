@@ -110,6 +110,8 @@ export const appSettingsSchema = z
         adminAuditDays: z.number().int().min(30).max(3650),
         usageDays: z.number().int().min(7).max(3650),
         fileDeletionsDays: z.number().int().min(1).max(365),
+        /** Raw .dem files of parsed matches (analysis, events and replay are kept). */
+        rawDemosDays: z.number().int().min(1).max(365),
       })
       .partial()
       .strict()
@@ -125,6 +127,7 @@ export const DATA_RETENTION_DEFAULTS: DataRetention = {
   adminAuditDays: 365,
   usageDays: 90,
   fileDeletionsDays: 7,
+  rawDemosDays: 7,
 };
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   dailyLimit: null,

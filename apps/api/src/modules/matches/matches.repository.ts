@@ -110,7 +110,7 @@ export class PgMatchesRepository implements MatchesRepository {
       if (!account.rows[0]?.telemetry_consent)
         throw new UploadRejectedError("Consent required");
       const quota = await tx.execute(
-        sql`select count(*) filter(where u.created_at>now()-interval '24 hours') as daily,count(*) filter(where j.status in ('queued','processing') and u.match_id is null) as active,coalesce(sum(u.size),0) as bytes from uploads u left join demo_jobs j on j.upload_id=u.id where u.owner_id=${ownerId}`,
+        sql`select count(*) filter(where u.created_at>now()-interval '24 hours') as daily,count(*) filter(where j.status in ('queued','processing') and u.match_id is null) as active,coalesce(sum(u.size) filter(where u.demo_deleted_at is null),0) as bytes from uploads u left join demo_jobs j on j.upload_id=u.id where u.owner_id=${ownerId}`,
       );
       const q = quota.rows[0]!;
       if (
@@ -120,7 +120,7 @@ export class PgMatchesRepository implements MatchesRepository {
       )
         throw new UploadRejectedError("Upload quota reached");
       const global = await tx.execute(
-        sql`select coalesce(sum(size),0) as bytes,count(*) as total from uploads`,
+        sql`select coalesce(sum(size) filter(where demo_deleted_at is null),0) as bytes,count(*) as total from uploads`,
       );
       const g = global.rows[0]!;
       if (

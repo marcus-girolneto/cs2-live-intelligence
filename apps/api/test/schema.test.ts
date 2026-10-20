@@ -221,6 +221,61 @@ describe.skipIf(!databaseUrl)("database schema (Postgres)", () => {
     ]);
   });
 
+  it("deletes raw demos of parsed matches after the raw-demo retention and frees the quota", async () => {
+    const match = randomUUID();
+    await repo.pool.query(
+      "insert into matches(id,checksum,parser_version,analysis_key) values($1,'raw-retention','v','a.json.gz')",
+      [match],
+    );
+    const old = randomUUID();
+    const fresh = randomUUID();
+    const pending = randomUUID();
+    await repo.pool.query(
+      `insert into uploads(id,owner_id,match_id,checksum,filename,object_key,size,created_at) values
+        ($1::uuid,'owner',$4::uuid,'raw-retention','old.dem',$1::text||'.dem',100,now()-interval '8 days'),
+        ($2::uuid,'owner',$4::uuid,'raw-retention','fresh.dem',$2::text||'.dem',100,now()-interval '2 days'),
+        ($3::uuid,'owner',null,'raw-retention','pending.dem',$3::text||'.dem',100,now()-interval '9 days')`,
+      [old, fresh, pending, match],
+    );
+    const job = new DataRetentionJob(
+      new PgMaintenanceRepository(repo.db),
+      { retention: async () => DATA_RETENTION_DEFAULTS },
+      silentLogger,
+    );
+    await job.run();
+    const rows = (
+      await repo.pool.query(
+        "select id, demo_deleted_at is not null as gone from uploads where checksum='raw-retention' order by created_at",
+      )
+    ).rows.map((r) => [r.id, r.gone]);
+    // Parsed and older than 7 days: queued. Recent or not parsed yet: kept.
+    expect(rows).toEqual([
+      [pending, false],
+      [old, true],
+      [fresh, false],
+    ]);
+    const queued = await repo.pool.query(
+      "select object_key from file_deletions where object_key=$1 and processed_at is null",
+      [old + ".dem"],
+    );
+    expect(queued.rowCount).toBe(1);
+    // The upload and its match stay readable; only the raw file is gone.
+    expect(
+      (await repo.pool.query("select 1 from matches where id=$1", [match]))
+        .rowCount,
+    ).toBe(1);
+    // Idempotent.
+    await job.run();
+    expect(
+      (
+        await repo.pool.query(
+          "select count(*)::int as n from file_deletions where object_key=$1",
+          [old + ".dem"],
+        )
+      ).rows[0].n,
+    ).toBe(1);
+  });
+
   it("deduplicates collector events per device across partitions", async () => {
     await repo.pool.query("delete from telemetry_events");
     const ingest = () =>

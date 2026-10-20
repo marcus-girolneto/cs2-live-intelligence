@@ -23,7 +23,8 @@ export interface RetentionSettings {
  * monthly partitions of telemetry_events and product_events, drops partitions entirely past
  * their retention, and deletes remaining old rows in batches (telemetry 30 days, product events
  * 180, admin audit 365, usage counters 90, processed file deletions 7; admin-editable under
- * app settings `retention`). Account retention (users.retention_days) runs in the demo worker.
+ * app settings `retention`) and queues raw .dem files of parsed matches for deletion after
+ * `rawDemosDays` (7). Account retention (users.retention_days) runs in the demo worker.
  */
 export class DataRetentionJob {
   constructor(
@@ -71,6 +72,16 @@ export class DataRetentionJob {
       }
       if (total) deleted[table] = total;
     }
+    let rawDemos = 0;
+    for (let i = 0; i < MAX_BATCHES; i++) {
+      const n = await this.repository.expireRawDemos(
+        before(days.rawDemosDays),
+        BATCH,
+      );
+      rawDemos += n;
+      if (n < BATCH) break;
+    }
+    if (rawDemos) deleted.rawDemos = rawDemos;
     const partitions = Object.values(created).reduce((a, b) => a + b, 0);
     if (partitions || dropped.length || Object.keys(deleted).length)
       this.logger.info(

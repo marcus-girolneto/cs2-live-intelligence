@@ -49,6 +49,11 @@ export interface MaintenanceRepository {
   ): Promise<string[]>;
   /** Deletes at most `limit` rows older than `cutoff`; returns how many. */
   purgeBatch(table: PurgeTarget, cutoff: Date, limit: number): Promise<number>;
+  /**
+   * Queues for deletion at most `limit` raw .dem files of parsed uploads created before
+   * `cutoff` (the match analysis stays); returns how many.
+   */
+  expireRawDemos(cutoff: Date, limit: number): Promise<number>;
 }
 
 export class PgMaintenanceRepository implements MaintenanceRepository {
@@ -95,6 +100,20 @@ export class PgMaintenanceRepository implements MaintenanceRepository {
     const r = await this.db.execute(
       BATCH_SQL[table](cutoff.toISOString(), limit),
     );
+    return r.rowCount ?? 0;
+  }
+
+  async expireRawDemos(cutoff: Date, limit: number): Promise<number> {
+    const r = await this.db.execute(sql`
+      with expired as (
+        select id, object_key from uploads
+        where match_id is not null and demo_deleted_at is null and created_at < ${cutoff.toISOString()}
+        order by created_at limit ${limit} for update skip locked
+      ), queued as (
+        insert into file_deletions(object_key) select object_key from expired
+        on conflict (object_key) do update set processed_at = null
+      )
+      update uploads set demo_deleted_at = now() where id in (select id from expired)`);
     return r.rowCount ?? 0;
   }
 }
