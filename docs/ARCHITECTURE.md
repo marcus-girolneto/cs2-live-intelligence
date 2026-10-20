@@ -19,7 +19,7 @@ flowchart TB
   services --> ports(["interfaces (ports)"])
   repos["*.repository.ts<br/>Pg* implements interface"] -. implements .-> ports
   infra["infrastructure/*<br/>Steam, Stripe, parser, storage, AI, secrets, WebSocket"] -. implements .-> ports
-  workers["workers/*<br/>demo processing, retention"] --> ports
+  workers["workers/*<br/>demo processing, retention,<br/>data retention, parser upgrades"] --> ports
   repos --> db[("PostgreSQL")]
   shared["shared/*<br/>errors, http guards, validation, db, crypto, clock, logging"]
   routes & controllers & services & repos --> shared
@@ -127,6 +127,32 @@ marks routes whose errors always include `code` (see ADR-004, preserved quirks).
 `usage` has no routes: it provides daily plan quotas (`QuotaService`) to matches and coaching
 (AI reviews: the per-account daily safety cap from the credit settings).
 
+### Matches, uploads and analyses (data model)
+
+See [DATABASE.md](DATABASE.md). An **upload** (`uploads`, id = the analysis id of every URL) points
+at a **match** (`matches`, one per demo checksum + parser version, shared and reference counted);
+`demo_jobs` is only the queue. `PgMatchesRepository` answers upload-shaped questions (list,
+status, the upload's match row); `HydratingMatchesRepository` (the `AnalysisReader` port) builds
+the full analysis document from object storage (`FileAnalysisStore`,
+`FileAnalysisEventsStore`, LRU-cached) and the ban check; `UploadReplays` resolves an upload id
+to its match's replay. Per-player numbers live in `match_players` and are read without opening
+documents by ownership/identity (`OwnershipRepository.rosters`), progress identity candidates,
+Steam ban checks, the personal coach's counters and the report period filter. The worker
+(`DemoProcessingWorker`) writes the match's files, then `JobQueueRepository.finish` upserts the
+match, its players and the upload link in one transaction; `AnalysisDedupe` links a new upload to
+an existing match instead of parsing. Player and team AI reviews share `ai_reviews`
+(`CoachingRepository` and `TeamReviewRepository` keep their interfaces).
+
+### Background jobs
+
+| Job                                    | Runs in                    | Cadence        | Does                                                                                     |
+| -------------------------------------- | -------------------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `DemoProcessingWorker`                 | worker (or API in-process) | every second   | dedupe or parse, analytics, match files, fenced completion                               |
+| `RetentionWorker`                      | worker                     | start + hourly | account retention, unreferenced matches, file deletion outbox, orphan sweep              |
+| `ParserUpgradeJob`                     | worker                     | start + daily  | records the parser version, queues background re-parses of older matches                 |
+| `DailyJobsWorker` + `DataRetentionJob` | API                        | start + hourly | plan credits, reports, Personal Coach, Steam ban checks; partitions and global retention |
+| `CoachFollowUpWorker`                  | API                        | every 15 s     | match ownership classification and auto-reviews                                          |
+
 ### Credits
 
 `credit_ledger` is append-only and the source of truth; `credit_wallets` holds the per-bucket
@@ -187,6 +213,8 @@ infrastructure/steam/sanitize-profile.ts
 infrastructure/steam/steam-profile.ts
 infrastructure/steam/steam-profile.types.ts
 infrastructure/steam/steam-text.ts
+infrastructure/storage/analysis-storage.ts
+infrastructure/storage/events-storage.ts
 infrastructure/storage/object-storage.ts
 infrastructure/storage/replay-storage.ts
 main.ts
@@ -254,15 +282,19 @@ modules/live/live.routes.ts
 modules/live/live.service.ts
 modules/live/owner-invalidation.ts
 modules/live/ticket-store.ts
+modules/matches/analysis-dedupe.ts
 modules/matches/job-queue.repository.ts
+modules/matches/match-record.ts
 modules/matches/matches.controller.ts
 modules/matches/matches.dto.ts
 modules/matches/matches.repository.ts
 modules/matches/matches.routes.ts
 modules/matches/matches.service.ts
+modules/matches/pipeline.repository.ts
 modules/matches/retention.repository.ts
 modules/matches/sample-demo.service.ts
 modules/matches/upload.service.ts
+modules/maintenance/maintenance.repository.ts
 modules/plans/plan.policy.ts
 modules/plans/plans.controller.ts
 modules/plans/plans.dto.ts
@@ -317,7 +349,10 @@ shared/http/validation.ts
 shared/logging/logger.ts
 shared/logging/metrics.ts
 shared/ports/audit-trail.ts
+workers/daily-jobs.worker.ts
+workers/data-retention.job.ts
 workers/demo-processing.worker.ts
+workers/parser-upgrade.worker.ts
 workers/retention.worker.ts
 workers/worker-scheduler.ts
 ```
@@ -356,12 +391,17 @@ Shutdown order matters: the database close hook is registered first so Fastify (
 - **Unit tests** (`apps/api/test/unit`, plus `plans.unit.test.ts`, `coach.service.test.ts`,
   `replay.service.test.ts`): services, policies and controllers with in-memory fake
   repositories/adapters; no database, no network.
-- **Integration tests** (`apps/api/test/*.test.ts`): `buildApp` against a real PostgreSQL
-  (`DATABASE_URL`), asserting the HTTP contract end to end. `test/support/test-database.ts`
+- **Integration tests** (`apps/api/test/*.test.ts`): `buildApp` against a real PostgreSQL,
+  asserting the HTTP contract end to end. They never use the development database:
+  `TEST_DATABASE_URL`, or `DATABASE_URL` with the `_test` suffix (`cs2live_test`), created by the
+  vitest global setup (`test/support/global-setup.ts`); each file migrates its own schema in it.
+  `test/schema.test.ts` checks the schema itself (indexed foreign keys, uuid ids, partitions,
+  retention). `test/support/test-database.ts`
   (`TestDatabase`) extends `Database` with the module repositories the tests use to arrange
   and assert data; `ApiConfig` overrides inject fakes (payment gateway, clock, Steam fetch,
   job queue, demo parser).
-- **E2E** (`tests/e2e`, Playwright) exercises the web app against the real API.
+- **E2E** (`tests/e2e`, Playwright) exercises the web app against the real API
+  (`scripts/e2e-stack.ts`: one schema per run in the test database).
 
 # Web architecture (`apps/web`)
 
