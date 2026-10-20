@@ -51,6 +51,7 @@ export type CatalogEntry = {
   tags: string[];
 };
 
+const LONG_DASH = String.fromCharCode(0x2014);
 const workshopUrl = (id: string) =>
   `https://steamcommunity.com/sharedfiles/filedetails/?id=${id}`;
 const STEAM_CS2 = "steam://rungameid/730";
@@ -188,7 +189,8 @@ export const TRAINING_CATALOG: readonly CatalogEntry[] = [
     id: "fast-warmup",
     skill: "aim",
     title: "Fast Warmup: Bot Training",
-    workshopTitle: "Fast Warmup — Bot Training",
+    // The Workshop title has a long dash (built from its code point for the copy check).
+    workshopTitle: `Fast Warmup ${LONG_DASH} Bot Training`,
     workshopId: "3083320026",
     minutesPerSession: 10,
     howTo: HOW.warmup,
