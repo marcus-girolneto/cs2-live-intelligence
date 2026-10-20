@@ -129,7 +129,7 @@ test("a 402 plan_limit opens the upgrade sheet instead of an error", async ({
   await expect(sheet).toContainText("You used 1 of 1 AI reviews today");
   await expect(sheet).toContainText("Basic");
   await expect(sheet).toContainText("$4.99");
-  await expect(sheet).toContainText("3 AI Coach reviews per day");
+  await expect(sheet).toContainText("15 credits every month");
   // Payments not configured yet: no broken checkout button.
   await expect(sheet).toContainText("Coming soon");
   await expect(page.getByText("Daily AI review limit reached.")).toHaveCount(0);

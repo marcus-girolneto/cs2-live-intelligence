@@ -110,13 +110,15 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   expect(body).not.toMatch(/\bNaN\b|\bundefined\b|Infinity/);
   // AI Coach: per-player review whose evidence links to concrete rounds.
   // AI Coach: every request is a real call to the configured provider (mock server in E2E).
+  // A quick review is one review call plus one claim-verifier call (verifier on by default).
   const calls = async () =>
-    (
-      (await (await request.get("http://127.0.0.1:3120/calls")).json()) as {
-        calls: number;
-      }
-    ).calls;
+    (await (await request.get("http://127.0.0.1:3120/calls")).json()) as {
+      review: number;
+      verify: number;
+    };
   const before = await calls();
+  const reviewCalls = async () => (await calls()).review - before.review;
+  const verifyCalls = async () => (await calls()).verify - before.verify;
   // The AI Coach tab of the analysis is a compact preview that opens the /coach screen.
   await page.getByRole("tab", { name: "AI Coach" }).click();
   await page.getByTestId("open-coach").click();
@@ -135,7 +137,8 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   await expect(
     page.getByText("Mock model review for end-to-end tests."),
   ).toBeVisible();
-  expect(await calls()).toBe(before + 1);
+  expect(await reviewCalls()).toBe(1);
+  expect(await verifyCalls()).toBe(1);
   // The AI is presented as the app's own coach: no model or provider is shown.
   const coachText = await page.locator("body").innerText();
   expect(coachText).not.toContain("e2e/mock-model");
@@ -155,7 +158,8 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   await expect(page.getByTestId("coach-report")).toBeVisible({
     timeout: 30000,
   });
-  await expect.poll(calls).toBe(before + 2);
+  await expect.poll(reviewCalls).toBe(2);
+  await expect.poll(verifyCalls).toBe(2);
   await expect(page.locator(".coach-card").first()).toBeVisible();
   expect(await page.locator("body").innerText()).not.toMatch(
     /\bNaN\b|\bundefined\b|Infinity/,
@@ -188,6 +192,12 @@ test("pairing, real demo upload, cited analysis, consent and account deletion", 
   });
   // Progress: the review, its plan, the rating and the learned profile are persisted.
   await page.goto("/progress");
+  // The dev owner has no SteamID: progress asks once which player to follow.
+  const pickPlayer = page.getByRole("region", {
+    name: "Which player are you in these demos?",
+  });
+  await pickPlayer.getByRole("button").first().click();
+  await expect(pickPlayer).toBeHidden();
   // The archive (learned profile, reviews with ratings) sits in the collapsed History.
   await page.locator(".progress-history > summary").click();
   await expect(
