@@ -168,6 +168,9 @@ export function positioningModule(
         deaths: c.deaths,
         rounds: [...new Set(list.map((d) => d.round))].slice(0, 40),
         why: zoneWhy(list, c.place),
+        traded: c.traded,
+        avgIsolation: c.avgIsolation,
+        crossfire: list.filter((d) => d.crossfireEnemies >= 2).length,
         clips: clipsFor(
           analysis,
           defined(list.map((d) => killById.get(d.eventId))),

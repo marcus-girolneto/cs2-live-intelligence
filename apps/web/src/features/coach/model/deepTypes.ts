@@ -27,10 +27,18 @@ export type NadeStat = {
   efficiency: number | null;
 };
 export type Lineup = {
-  title: string;
+  /** repeat = one of your best throws; learn = what the lobby threw where you die. */
+  kind: "repeat" | "learn" | null;
   type: NadeType | null;
   place?: string;
-  why?: string;
+  fromPlace?: string;
+  round: number | null;
+  count: number | null;
+  enemiesFlashed: number | null;
+  blindSeconds: number | null;
+  damage: number | null;
+  deathsThere: number | null;
+  /** Written by the model (already in the review's language). */
   howTo?: string;
   clip?: ClipRef;
 };
@@ -41,7 +49,12 @@ export type DeepUtility = {
   perType: NadeStat[];
   lineups: Lineup[];
 };
-export type Bin = { label: string; from: number | null; count: number };
+export type Bin = {
+  label: string;
+  from: number | null;
+  to: number | null;
+  count: number;
+};
 export type DeepCrosshair = {
   summary?: string;
   medianOffset: number | null;
@@ -56,7 +69,11 @@ export type DangerZone = {
   place: string;
   deaths: number | null;
   rounds: number[];
-  why?: string;
+  traded: number | null;
+  /** Mean distance to the nearest living teammate, in world units. */
+  avgIsolation: number | null;
+  /** Deaths where 2+ enemies had damaged you in the last 5 s. */
+  crossfire: number | null;
   clip?: ClipRef;
 };
 export type DeepPositioning = {

@@ -106,7 +106,7 @@ function parseMatch(raw: unknown): MatchCard | null {
     adr: num(o, ["adr"]),
     score: num(o, ["score", "rating", "overall"]),
   };
-  const won = o.won === true ? "Won" : o.won === false ? "Lost" : null;
+  const won = o.won === true ? "Win" : o.won === false ? "Loss" : null;
   const headline =
     text(first(o, ["headline", "why", "summary"])) ??
     [won, text(o.filename)].filter(Boolean).join(" · ");

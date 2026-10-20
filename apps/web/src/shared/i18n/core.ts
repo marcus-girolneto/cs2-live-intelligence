@@ -16,12 +16,56 @@ export function parseLang(value: unknown): Lang {
 }
 export const localeOf = (lang: Lang) => (lang === "pt" ? "pt-BR" : "en-US");
 
-export function interpolate(template: string, vars?: Vars) {
-  return vars
-    ? template.replace(/\{(\w+)\}/g, (m, k: string) =>
-        k in vars ? String(vars[k]) : m,
-      )
-    : template;
+/**
+ * Replaces {name} placeholders and ICU-style plurals:
+ * "{n, plural, one {# enemy} other {# enemies}}" picks the form with Intl.PluralRules for the
+ * locale (zero/one/two/few/many/other, "=0" exact matches) and writes the number for "#".
+ */
+export function interpolate(template: string, vars?: Vars, locale = "en-US") {
+  if (!vars) return template;
+  return expandPlurals(template, vars, locale).replace(
+    /\{(\w+)\}/g,
+    (m, k: string) => (k in vars ? String(vars[k]) : m),
+  );
+}
+function expandPlurals(template: string, vars: Vars, locale: string): string {
+  const head = /\{(\w+),\s*plural,\s*/g;
+  let out = "";
+  let at = 0;
+  for (let m = head.exec(template); m; m = head.exec(template)) {
+    const forms: Record<string, string> = {};
+    let i = m.index + m[0].length;
+    // Options: selector {text} pairs until the closing brace of the plural.
+    while (i < template.length && template[i] !== "}") {
+      const sel = /^\s*(=\d+|zero|one|two|few|many|other)\s*\{/.exec(
+        template.slice(i),
+      );
+      if (!sel) break;
+      i += sel[0].length;
+      let depth = 1;
+      const start = i;
+      while (i < template.length && depth > 0) {
+        if (template[i] === "{") depth++;
+        else if (template[i] === "}") depth--;
+        i++;
+      }
+      forms[sel[1]!] = template.slice(start, i - 1);
+      while (template[i] === " ") i++;
+    }
+    const raw = vars[m[1]!];
+    const n = typeof raw === "number" ? raw : Number(raw);
+    const form =
+      forms[`=${n}`] ??
+      forms[new Intl.PluralRules(locale).select(n)] ??
+      forms.other ??
+      "";
+    const shown =
+      typeof raw === "number" ? raw.toLocaleString(locale) : String(raw);
+    out += template.slice(at, m.index) + form.replace(/#/g, shown);
+    at = i + 1;
+    head.lastIndex = at;
+  }
+  return out + template.slice(at);
 }
 export function translate(
   dictionaries: Dictionaries,
@@ -29,7 +73,7 @@ export function translate(
   text: string,
   vars?: Vars,
 ) {
-  return interpolate(dictionaries[lang][text] ?? text, vars);
+  return interpolate(dictionaries[lang][text] ?? text, vars, localeOf(lang));
 }
 
 /** Merges feature dictionaries; a key defined twice must carry the same text. */

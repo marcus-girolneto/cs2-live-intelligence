@@ -46,7 +46,10 @@ const LABEL_RECORDS = [
   "src/features/coach/components/deep/nades.tsx",
 ];
 /** Files whose Record<…, string> tables of messages are translated (AI error sentences). */
-const MESSAGE_TABLES = ["src/shared/http/aiError.ts"];
+const MESSAGE_TABLES = [
+  "src/shared/http/aiError.ts",
+  "src/features/coach/model/deepText.ts",
+];
 
 describe("i18n", () => {
   it("defaults to English and falls back to the source text", () => {
@@ -70,8 +73,19 @@ describe("i18n", () => {
   });
   it("keeps every placeholder in translations", () => {
     for (const [en, ptText] of Object.entries(pt)) {
+      // {name} and plural heads {name, plural, …}; plural option bodies are not variables.
       const vars = (s: unknown) =>
-        (String(s).match(/\{\w+\}/g) ?? []).sort().join();
+        [
+          ...new Set(
+            [
+              ...String(s).matchAll(
+                /(?<!(?:zero|one|two|few|many|other|=\d+)\s*)\{(\w+)(?=\}|,)/g,
+              ),
+            ].map((m) => m[1]),
+          ),
+        ]
+          .sort()
+          .join();
       expect(vars(ptText), en).toBe(vars(en));
     }
   });
@@ -145,12 +159,31 @@ describe("message tables", () => {
     const missing = MESSAGE_TABLES.flatMap((file) =>
       [
         ...readFileSync(join(ROOT, file), "utf8").matchAll(
-          /^\s+\w+:\s*"([^"]+)",?$/gm,
+          /^\s+(?:\w+|"[^"]+"):\s*"([^"]+)",?$/gm,
         ),
       ]
         .map((m) => m[1]!)
         .filter((key) => !(key in pt))
         .map((key) => `${file}: ${key}`),
+    );
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("fixed caveats of the analytics and coaching packages", () => {
+  it("are all translated (reports render them with t())", () => {
+    const pkgs = join(ROOT, "../../packages");
+    const files = ["analytics/src", "coaching/src"].flatMap((d) =>
+      walk(join(pkgs, d)),
+    );
+    const missing = files.flatMap((file) =>
+      [
+        ...readFileSync(file, "utf8").matchAll(
+          /caveats\.push\(\s*"((?:[^"\\]|\\.)+)"/g,
+        ),
+      ]
+        .map((m) => m[1]!)
+        .filter((c) => !(c in pt)),
     );
     expect(missing).toEqual([]);
   });

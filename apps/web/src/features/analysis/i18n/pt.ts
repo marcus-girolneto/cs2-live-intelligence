@@ -64,8 +64,6 @@ export const pt: Record<string, string> = {
   "Anti-eco kills": "Abates anti-eco",
   "Round by round": "Round a round",
   "{h}/{s} shots hit": "{h}/{s} tiros acertados",
-  Won: "Vencido",
-  Lost: "Perdido",
   "Bomb planted{site}": "Bomba plantada{site}",
   "Bomb defused": "Bomba desarmada",
   "Bomb exploded": "Bomba explodiu",

@@ -82,7 +82,13 @@ export function CrosshairPanel({ c }: { c: DeepCrosshair }) {
                 >
                   <i style={{ height: `${(b.count / max) * 100}%` }} />
                   <b className="tabular">{b.count}</b>
-                  <small>{b.label}</small>
+                  <small>
+                    {b.from === null
+                      ? b.label
+                      : b.to === null
+                        ? `${formatNumber(b.from, b.from % 1 ? 1 : 0, locale)}°+`
+                        : `${formatNumber(b.from, b.from % 1 ? 1 : 0, locale)}–${formatNumber(b.to, b.to % 1 ? 1 : 0, locale)}°`}
+                  </small>
                 </span>
               ))}
             </div>

@@ -6,6 +6,7 @@ import { useI18n } from "@/shared/i18n";
 import { Film, Lock } from "@/shared/icons";
 import { CrosshairLoader } from "@/shared/ui";
 import { useCoachApi } from "../api/context";
+import { reelLabel } from "../model/reelText";
 
 /** "Match reel" (Pro): highlights + mistakes of one player, back to back, exportable. */
 export function ReelButton({
@@ -36,7 +37,8 @@ export function ReelButton({
     setNote("");
     try {
       const list = await api.getReel(analysisId, steamId);
-      if (list.length) setClips(list);
+      if (list.length)
+        setClips(list.map((c) => ({ ...c, label: reelLabel(c, t) })));
       else setNote(t("No clips for a reel in this match yet."));
     } catch (e) {
       if (!upgrade.handle(e))

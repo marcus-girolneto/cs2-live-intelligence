@@ -1,8 +1,10 @@
 // Portuguese (Brazil) translations of the coach feature, keyed by the English source string.
+import { ptDeep } from "./pt-deep";
 import { ptTeam } from "./pt-team";
 
 export const pt: Record<string, string> = {
   ...ptTeam,
+  ...ptDeep,
   Strength: "Ponto forte",
   "To improve": "A melhorar",
   "Your AI coach": "Seu coach de IA",

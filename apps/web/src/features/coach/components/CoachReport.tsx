@@ -218,7 +218,7 @@ export function CoachReport({
           <summary>{t("Limits of this review")}</summary>
           <ul className="caveats">
             {caveats.map((x) => (
-              <li key={x}>{x}</li>
+              <li key={x}>{t(x)}</li>
             ))}
           </ul>
         </details>

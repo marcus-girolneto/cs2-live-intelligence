@@ -4,6 +4,7 @@ import { formatNumber, placeName } from "@/shared/format";
 import { Play, Skull } from "@/shared/icons";
 import type { ClipRef } from "../../model/coaching";
 import type { DeepPositioning } from "../../model/deep";
+import { zoneDetails } from "../../model/deepText";
 
 /** Deep: isolation / crossfire / traded stats and the danger zones (with clips). */
 export function PositioningPanel({
@@ -72,7 +73,11 @@ export function PositioningPanel({
                         .filter(Boolean)
                         .join(" · ")}
                     </small>
-                    {z.why && <span className="zone-why">{z.why}</span>}
+                    {zoneDetails(z, t, locale).length > 0 && (
+                      <span className="zone-why">
+                        {zoneDetails(z, t, locale).join(" · ")}
+                      </span>
+                    )}
                   </span>
                   {z.clip ? (
                     <button

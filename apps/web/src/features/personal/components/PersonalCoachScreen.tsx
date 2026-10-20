@@ -117,7 +117,7 @@ export function PersonalCoachScreen() {
           {plan.caveats.length > 0 && (
             <ul className="rd-caveats muted small">
               {plan.caveats.map((c) => (
-                <li key={c}>{c}</li>
+                <li key={c}>{t(c)}</li>
               ))}
             </ul>
           )}

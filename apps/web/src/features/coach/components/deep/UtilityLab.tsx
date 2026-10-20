@@ -4,6 +4,7 @@ import { formatNumber, placeName } from "@/shared/format";
 import { Play } from "@/shared/icons";
 import type { ClipRef } from "../../model/coaching";
 import type { DeepUtility } from "../../model/deep";
+import { lineupTitle, lineupWhy } from "../../model/deepText";
 import { NadeIcon, NADE_LABEL, clock } from "./nades";
 import { NadePlot } from "./NadePlot";
 
@@ -143,18 +144,19 @@ export function UtilityLab({
               <li key={i} className="lineup">
                 {l.type && <NadeIcon type={l.type} size={22} />}
                 <span>
-                  <strong>{l.title}</strong>
-                  {l.place && (
-                    <small className="muted">{placeName(l.place)}</small>
+                  <strong>{lineupTitle(l, t)}</strong>
+                  {lineupWhy(l, t, locale) && (
+                    <span className="lineup-why">
+                      {lineupWhy(l, t, locale)}
+                    </span>
                   )}
-                  {l.why && <span className="lineup-why">{l.why}</span>}
                   {l.howTo && <span className="lineup-how">{l.howTo}</span>}
                 </span>
                 {l.clip && (
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
-                    onClick={() => onPlay(l.clip!, l.title)}
+                    onClick={() => onPlay(l.clip!, lineupTitle(l, t))}
                   >
                     <Play size={16} /> {t("Watch")}
                   </button>

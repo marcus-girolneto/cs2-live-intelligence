@@ -208,7 +208,7 @@ export function ReportView({
       {r.caveats.length > 0 && (
         <ul className="rd-caveats muted small">
           {r.caveats.map((c) => (
-            <li key={c}>{c}</li>
+            <li key={c}>{t(c)}</li>
           ))}
         </ul>
       )}

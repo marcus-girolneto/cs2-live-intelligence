@@ -7,8 +7,16 @@ import { clipsFor, momentCandidates, type MomentCandidate } from "./review.js";
 
 export type ReelClip = Clip & {
   kind: "highlight" | "mistake";
+  /** English title (logs, exports); the web writes its own label from `moment`. */
   title: string;
   score: number;
+  moment: {
+    kills: number;
+    opening: boolean;
+    traded?: boolean;
+    weapon?: string;
+    place?: string;
+  };
 };
 export type MatchReel = {
   steamId: string;
@@ -125,7 +133,19 @@ export function matchReel(
       same.score = Math.max(same.score, s.score);
       continue;
     }
-    clips.push({ ...clip, kind, title: label, score: s.score });
+    clips.push({
+      ...clip,
+      kind,
+      title: label,
+      score: s.score,
+      moment: {
+        kills: s.c.kind === "kill" ? s.kills : 0,
+        opening: s.c.opening,
+        ...(s.c.kind === "death" ? { traded: !!s.c.traded } : {}),
+        ...(s.c.weapon ? { weapon: s.c.weapon } : {}),
+        ...(s.c.yourPlace ? { place: s.c.yourPlace } : {}),
+      },
+    });
   }
   clips.sort((a, b) => a.round - b.round || a.from - b.from);
   return {

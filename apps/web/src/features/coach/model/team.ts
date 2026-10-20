@@ -1,6 +1,6 @@
 /** View model for the team review (IGL view of the whole team). Defensive like coaching.ts. */
 import { parseClip, type ClipRef } from "@/features/replay";
-import { finite, text } from "@/shared/format";
+import { finite, prose as text } from "@/shared/format";
 
 export const TEAM_DIMENSIONS = [
   "trading",

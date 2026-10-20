@@ -5,6 +5,7 @@ import { Play, Skull } from "@/shared/icons";
 import { SideTag } from "@/shared/ui";
 import type { ClipRef } from "../../model/coaching";
 import type { RoundRow } from "../../model/deep";
+import { BUY_LABEL, tagLabel } from "../../model/deepText";
 
 /** Deep round table, one row per round: side, result, buy, kills, damage, tags and a clip. */
 export function RoundTable({
@@ -26,7 +27,7 @@ export function RoundTable({
             <th scope="col">#</th>
             <th scope="col">{t("Side")}</th>
             <th scope="col">{t("Result")}</th>
-            <th scope="col">{t("Buy")}</th>
+            <th scope="col">{t("Buy type")}</th>
             <th scope="col" className="r">
               {t("Kills")}
             </th>
@@ -54,11 +55,11 @@ export function RoundTable({
                   "–"
                 ) : (
                   <span className={`chip ${r.won ? "good" : "bad"}`}>
-                    {r.won ? t("Won") : t("Lost")}
+                    {r.won ? t("Win") : t("Loss")}
                   </span>
                 )}
               </td>
-              <td>{r.buy ?? "–"}</td>
+              <td>{r.buy ? t(BUY_LABEL[r.buy] ?? r.buy) : "–"}</td>
               <td className="r tabular">
                 {formatNumber(r.kills, 0, locale) ?? "–"}
                 {r.died && (
@@ -70,11 +71,18 @@ export function RoundTable({
               </td>
               <td>
                 <span className="rt-tags">
-                  {r.tags.map((tag) => (
-                    <span key={tag} className="chip">
-                      {tag}
-                    </span>
-                  ))}
+                  {r.tags.map((tag) => {
+                    const l = tagLabel(tag);
+                    return (
+                      <span
+                        key={tag}
+                        className="chip"
+                        title={l.tip ? t(l.tip) : undefined}
+                      >
+                        {t(l.label)}
+                      </span>
+                    );
+                  })}
                 </span>
                 {r.note && <span className="rt-note">{r.note}</span>}
               </td>

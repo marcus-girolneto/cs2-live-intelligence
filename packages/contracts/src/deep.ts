@@ -109,7 +109,15 @@ export const utilitySchema = z.object({
         from: point.optional(),
         landing: point.optional(),
         count: count,
+        /** Model-facing English sentence; the UI builds its own text from the fields below. */
         why: z.string().max(300),
+        /** repeat: the round, and what the throw did. */
+        round: z.number().int().positive().optional(),
+        enemiesFlashed: count.optional(),
+        blindSeconds: num.nonnegative().optional(),
+        damage: count.optional(),
+        /** learn: your deaths at that callout. */
+        deathsThere: count.optional(),
         eventIds: z.array(id).max(20),
         clip: deepClip.optional(),
       }),
@@ -197,7 +205,13 @@ export const positioningSchema = z.object({
         place,
         deaths: count,
         rounds: z.array(z.number().int().positive()).max(40),
+        /** Model-facing English sentence; the UI builds its own text from the fields below. */
         why: z.string().max(300),
+        traded: count.optional(),
+        /** Mean world units to the nearest living teammate (1 unit is about 2.54 cm). */
+        avgIsolation: num.nonnegative().nullable().optional(),
+        /** Deaths where 2+ enemies had damaged you in the last 5 s. */
+        crossfire: count.optional(),
         clips: z.array(deepClip).max(3),
       }),
     )

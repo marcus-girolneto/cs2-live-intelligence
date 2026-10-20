@@ -23,3 +23,4 @@ export {
   weaponName,
   type WeaponClass,
 } from "./weapons";
+export { prose } from "./prose";

@@ -1,0 +1,912 @@
+{
+  "utility": {
+    "thrown": 7,
+    "perType": [
+      {
+        "type": "flash",
+        "thrown": 1,
+        "effective": 1,
+        "damage": 0,
+        "enemiesFlashed": 3,
+        "blindSeconds": 8.15,
+        "efficiency": 100
+      },
+      {
+        "type": "he",
+        "thrown": 3,
+        "effective": 0,
+        "damage": 0,
+        "enemiesFlashed": 0,
+        "blindSeconds": 0,
+        "efficiency": 0
+      },
+      {
+        "type": "smoke",
+        "thrown": 2,
+        "effective": 2,
+        "damage": 0,
+        "enemiesFlashed": 0,
+        "blindSeconds": 0,
+        "efficiency": null
+      },
+      {
+        "type": "molotov",
+        "thrown": 1,
+        "effective": 1,
+        "damage": 64,
+        "enemiesFlashed": 0,
+        "blindSeconds": 0,
+        "efficiency": 100
+      }
+    ],
+    "stats": {
+      "flash": {
+        "thrown": 1,
+        "enemiesFlashed": 3,
+        "enemiesPerFlash": 3,
+        "blindSecondsPerFlash": 8.15,
+        "teammatesFlashed": 0,
+        "teamFlashRate": 0,
+        "effectivePct": 100
+      },
+      "he": {
+        "thrown": 3,
+        "damage": 0,
+        "damagePerNade": 0
+      },
+      "molotov": {
+        "thrown": 1,
+        "damage": 64,
+        "damagePerNade": 64,
+        "areaDenialSeconds": null
+      },
+      "smoke": {
+        "thrown": 2,
+        "byCallout": [
+          {
+            "place": "PalaceInterior",
+            "count": 2
+          }
+        ]
+      }
+    },
+    "unusedAtDeath": {
+      "deaths": 7,
+      "deathsWithUtility": 2,
+      "grenades": {
+        "smoke": 1,
+        "flash": 1
+      }
+    },
+    "grenades": [
+      {
+        "eventId": "ev_866f8337244fa2b25e612d925deb2157",
+        "type": "smoke",
+        "round": 3,
+        "time": 17.78,
+        "fromPlace": "CTSpawn",
+        "landingPlace": "PalaceInterior",
+        "landing": {
+          "x": 203.3,
+          "y": -1454.4
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "good"
+      },
+      {
+        "eventId": "ev_d21bd67d0985465999295ebab0adca9a",
+        "type": "he",
+        "round": 3,
+        "time": 32.13,
+        "fromPlace": "CTSpawn",
+        "landingPlace": "BombsiteA",
+        "landing": {
+          "x": 67,
+          "y": -1612.5
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "wasted"
+      },
+      {
+        "eventId": "ev_b254ae26b77e5b0a2e69473eeeffac59",
+        "type": "flash",
+        "round": 6,
+        "time": 56.61,
+        "fromPlace": "PalaceAlley",
+        "landingPlace": "PalaceInterior",
+        "from": {
+          "x": 794.9,
+          "y": -1113.2
+        },
+        "landing": {
+          "x": 120.4,
+          "y": -1609.6
+        },
+        "enemiesFlashed": 3,
+        "enemyBlindSeconds": 8.15,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "good"
+      },
+      {
+        "eventId": "ev_7d2ac5587b7e7a213fa26e024c13444a",
+        "type": "he",
+        "round": 7,
+        "time": 26.14,
+        "fromPlace": "CTSpawn",
+        "landingPlace": "Middle",
+        "landing": {
+          "x": -634.1,
+          "y": -773.8
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "wasted"
+      },
+      {
+        "eventId": "ev_e0916f5df980dfe245a25a1eda716c85",
+        "type": "molotov",
+        "round": 7,
+        "time": 30.3,
+        "fromPlace": "BombsiteA",
+        "landingPlace": "Middle",
+        "from": {
+          "x": -773.5,
+          "y": -2257
+        },
+        "landing": {
+          "x": -600.7,
+          "y": -576.1
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 64,
+        "teamDamage": 0,
+        "verdict": "good"
+      },
+      {
+        "eventId": "ev_3469e6fee228b2b263f776e1bf0d339d",
+        "type": "he",
+        "round": 8,
+        "time": 8.59,
+        "fromPlace": "BombsiteA",
+        "landingPlace": "PalaceInterior",
+        "landing": {
+          "x": 690.5,
+          "y": -1560.3
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "wasted"
+      },
+      {
+        "eventId": "ev_8876699188afc872d09eb9409838be5d",
+        "type": "smoke",
+        "round": 9,
+        "time": 8.8,
+        "fromPlace": "BombsiteA",
+        "landingPlace": "PalaceInterior",
+        "landing": {
+          "x": 328.2,
+          "y": -1493.5
+        },
+        "enemiesFlashed": 0,
+        "enemyBlindSeconds": 0,
+        "teammatesFlashed": 0,
+        "damage": 0,
+        "teamDamage": 0,
+        "verdict": "good"
+      }
+    ],
+    "lineups": [
+      {
+        "kind": "repeat",
+        "title": "Flash at PalaceInterior",
+        "type": "flash",
+        "place": "PalaceInterior",
+        "fromPlace": "PalaceAlley",
+        "from": {
+          "x": 794.9,
+          "y": -1113.2
+        },
+        "landing": {
+          "x": 120.4,
+          "y": -1609.6
+        },
+        "count": 1,
+        "why": "Round 6: blinded 3 enemies for 8.2 s, thrown from PalaceAlley.",
+        "eventIds": ["ev_b254ae26b77e5b0a2e69473eeeffac59"],
+        "clip": {
+          "round": 6,
+          "from": 49.61,
+          "to": 58.61,
+          "focusSteamId": "76561198073049527",
+          "eventIds": ["ev_b254ae26b77e5b0a2e69473eeeffac59"],
+          "label": "Flash at PalaceInterior"
+        }
+      },
+      {
+        "kind": "repeat",
+        "title": "Molotov at Middle",
+        "type": "molotov",
+        "place": "Middle",
+        "fromPlace": "BombsiteA",
+        "from": {
+          "x": -773.5,
+          "y": -2257
+        },
+        "landing": {
+          "x": -600.7,
+          "y": -576.1
+        },
+        "count": 1,
+        "why": "Round 7: dealt 64 damage, thrown from BombsiteA.",
+        "eventIds": ["ev_e0916f5df980dfe245a25a1eda716c85"],
+        "clip": {
+          "round": 7,
+          "from": 23.3,
+          "to": 32.3,
+          "focusSteamId": "76561198073049527",
+          "eventIds": ["ev_e0916f5df980dfe245a25a1eda716c85"],
+          "label": "Molotov at Middle"
+        }
+      },
+      {
+        "kind": "learn",
+        "title": "Smoke into BombsiteA",
+        "type": "smoke",
+        "place": "BombsiteA",
+        "fromPlace": "BombsiteA",
+        "count": 5,
+        "why": "The lobby threw 5 smokes into BombsiteA (mostly from BombsiteA), where you died 3 times.",
+        "eventIds": [
+          "ev_9139caf43df91ce1668beac7ced7115b",
+          "ev_23c09f4573d5a00ee66d11c71af0e913",
+          "ev_58f300978c0547f4d058579b2a519a5f",
+          "ev_0073b28b1dd1b0a93afa5b2cb2819a99",
+          "ev_aab888f3fa52c5b8a20e6ab5a9cf9c2b"
+        ]
+      },
+      {
+        "kind": "learn",
+        "title": "HE into CTSpawn",
+        "type": "he",
+        "place": "CTSpawn",
+        "fromPlace": "Underpass",
+        "count": 4,
+        "why": "The lobby threw 4 HE grenades into CTSpawn (mostly from Underpass), where you died 3 times.",
+        "eventIds": [
+          "ev_aea5b4e6b667b49fca0fa7113d1dba72",
+          "ev_792e1f19dc3617e2c780bc1414b21cb1",
+          "ev_f97e55bb9d7f1e9d8d4fdf12bae9f6a7",
+          "ev_5897fa80e5a7518dbf22167cf726b329"
+        ]
+      },
+      {
+        "kind": "learn",
+        "title": "Flash into CTSpawn",
+        "type": "flash",
+        "place": "CTSpawn",
+        "fromPlace": "CTSpawn",
+        "count": 3,
+        "why": "The lobby threw 3 flashs into CTSpawn (mostly from CTSpawn), where you died 3 times.",
+        "eventIds": [
+          "ev_25563886c71fb18bc6844bb1b6ddf850",
+          "ev_2b1d87cb58016a818ef6c9351a79fde7",
+          "ev_2d2f6803ceac6d1a5b5e4ca2e45ff76b"
+        ]
+      }
+    ],
+    "evidenceIds": [
+      "deep-utility-thrown",
+      "deep-flash-enemies-per-flash",
+      "deep-flash-blind-seconds",
+      "deep-flash-team-rate",
+      "deep-flash-effective",
+      "deep-he-damage-per-nade",
+      "deep-molotov-damage",
+      "deep-smokes",
+      "deep-unused-utility-deaths",
+      "deep-lineup-1",
+      "deep-lineup-2",
+      "deep-lineup-3",
+      "deep-lineup-4",
+      "deep-lineup-5"
+    ]
+  },
+  "crosshair": {
+    "duels": 15,
+    "measured": 15,
+    "medianOffset": 5.5,
+    "medianYawOffset": 4.6,
+    "medianPitchOffset": 1.4,
+    "preAimedPct": 46.7,
+    "pitchBias": -3.2,
+    "pitchTendency": "too_low",
+    "histogram": [
+      {
+        "from": 0,
+        "to": 2.5,
+        "count": 4
+      },
+      {
+        "from": 2.5,
+        "to": 5,
+        "count": 3
+      },
+      {
+        "from": 5,
+        "to": 10,
+        "count": 1
+      },
+      {
+        "from": 10,
+        "to": 20,
+        "count": 1
+      },
+      {
+        "from": 20,
+        "to": 45,
+        "count": 2
+      },
+      {
+        "from": 45,
+        "to": null,
+        "count": 4
+      }
+    ],
+    "worstCallouts": [
+      {
+        "place": "BombsiteA",
+        "medianOffset": 28.6,
+        "duels": 3
+      },
+      {
+        "place": "PalaceInterior",
+        "medianOffset": 7.4,
+        "duels": 4
+      },
+      {
+        "place": "CTSpawn",
+        "medianOffset": 2.6,
+        "duels": 5
+      }
+    ],
+    "samples": [
+      {
+        "eventId": "ev_8691c5e0a2f6ebe0b4bba5735b9698dc",
+        "round": 1,
+        "time": 20.7,
+        "enemyId": "76561197964020430",
+        "place": "CTSpawn",
+        "yawOffset": 0.3,
+        "pitchOffset": 0.1,
+        "offset": 0.3,
+        "pitchError": -0.1,
+        "distance": 1987,
+        "won": false
+      },
+      {
+        "eventId": "ev_ca0c34108c0b1b11a2ba21c11ea082dc",
+        "round": 2,
+        "time": 28.09,
+        "enemyId": "76561197964020430",
+        "place": "CTSpawn",
+        "yawOffset": 34.9,
+        "pitchOffset": 0.2,
+        "offset": 34.8,
+        "pitchError": 0.2,
+        "distance": 1377,
+        "won": false
+      },
+      {
+        "eventId": "ev_566f9940daf784dc58f74013c08dce6f",
+        "round": 3,
+        "time": 65.33,
+        "enemyId": "76561198118803912",
+        "place": "CTSpawn",
+        "yawOffset": 0.9,
+        "pitchOffset": 1.4,
+        "offset": 1.7,
+        "pitchError": -1.4,
+        "distance": 1182,
+        "won": true
+      },
+      {
+        "eventId": "ev_fc078b48556cd082f6d89a7e3d1e7ad5",
+        "round": 3,
+        "time": 66.48,
+        "enemyId": "76561197964020430",
+        "place": "CTSpawn",
+        "yawOffset": 51.1,
+        "pitchOffset": 3.4,
+        "offset": 51.2,
+        "pitchError": -3.4,
+        "distance": 1246,
+        "won": false
+      },
+      {
+        "eventId": "ev_157b273eab4079b4a490f537b8b83d43",
+        "round": 3,
+        "time": 70.19,
+        "enemyId": "76561197964020430",
+        "place": "CTSpawn",
+        "yawOffset": 2.6,
+        "pitchOffset": 0.2,
+        "offset": 2.6,
+        "pitchError": -0.2,
+        "distance": 1176,
+        "won": false
+      },
+      {
+        "eventId": "ev_d0ecaf2c224f84afdd9751e5c06542bb",
+        "round": 4,
+        "time": 11.95,
+        "enemyId": "76561198202353993",
+        "place": "PalaceInterior",
+        "yawOffset": 4.6,
+        "pitchOffset": 1,
+        "offset": 4.7,
+        "pitchError": -1,
+        "distance": 387
+      },
+      {
+        "eventId": "ev_cb8289ffdd80753e5ef049d0875792e9",
+        "round": 4,
+        "time": 44.98,
+        "enemyId": "76561198244754626",
+        "place": "Jungle",
+        "yawOffset": 3.8,
+        "pitchOffset": 1,
+        "offset": 3.9,
+        "pitchError": -1,
+        "distance": 502,
+        "won": false
+      },
+      {
+        "eventId": "ev_5a63d761a86f4c9d57e99c1ffd5d9c26",
+        "round": 5,
+        "time": 15.42,
+        "enemyId": "76561197964020430",
+        "place": "Stairs",
+        "yawOffset": 4.3,
+        "pitchOffset": 3.6,
+        "offset": 5.5,
+        "pitchError": -3.6,
+        "distance": 829
+      },
+      {
+        "eventId": "ev_0964e682e8b8e37c09b845716ac8d243",
+        "round": 5,
+        "time": 20.19,
+        "enemyId": "76561198265366770",
+        "place": "Connector",
+        "yawOffset": 48.2,
+        "pitchOffset": 1.6,
+        "offset": 47.9,
+        "pitchError": 1.6,
+        "distance": 789
+      },
+      {
+        "eventId": "ev_6f60bb39c337c62359fb5cade047bffb",
+        "round": 5,
+        "time": 25.36,
+        "enemyId": "76561198244754626",
+        "place": "BombsiteA",
+        "yawOffset": 27.5,
+        "pitchOffset": 8,
+        "offset": 28.6,
+        "pitchError": -8,
+        "distance": 217,
+        "won": false
+      },
+      {
+        "eventId": "ev_16367eb4bdac74b8e46b1c884a8cf566",
+        "round": 6,
+        "time": 51.86,
+        "enemyId": "76561198244754626",
+        "place": "PalaceInterior",
+        "yawOffset": 7,
+        "pitchOffset": 7.3,
+        "offset": 10.1,
+        "pitchError": -7.3,
+        "distance": 1144
+      },
+      {
+        "eventId": "ev_25e0ceb38bce8878eeafc6a98ecd8637",
+        "round": 7,
+        "time": 34.17,
+        "enemyId": "76561197964020430",
+        "place": "BombsiteA",
+        "yawOffset": 0.9,
+        "pitchOffset": 0.4,
+        "offset": 1,
+        "pitchError": -0.4,
+        "distance": 1317,
+        "won": false
+      },
+      {
+        "eventId": "ev_a229115ce2d69d8cfcbe0bda9dda8628",
+        "round": 8,
+        "time": 46.73,
+        "enemyId": "76561198265366770",
+        "place": "PalaceInterior",
+        "yawOffset": 0.3,
+        "pitchOffset": 0,
+        "offset": 0.3,
+        "pitchError": 0,
+        "distance": 805,
+        "won": true
+      },
+      {
+        "eventId": "ev_09b9657744a75456a06958fd7d7a77ec",
+        "round": 8,
+        "time": 51.06,
+        "enemyId": "76561198118803912",
+        "place": "PalaceInterior",
+        "yawOffset": 50.2,
+        "pitchOffset": 26,
+        "offset": 54.5,
+        "pitchError": -26,
+        "distance": 1105
+      },
+      {
+        "eventId": "ev_ced37a76cdf0a75a1d6453d6c929e014",
+        "round": 9,
+        "time": 29.48,
+        "enemyId": "76561198118803912",
+        "place": "BombsiteA",
+        "yawOffset": 54.4,
+        "pitchOffset": 2,
+        "offset": 54.4,
+        "pitchError": 2,
+        "distance": 1283,
+        "won": false
+      }
+    ],
+    "evidenceIds": [
+      "deep-crosshair-duels",
+      "deep-crosshair-median-offset",
+      "deep-crosshair-preaimed",
+      "deep-crosshair-pitch-bias",
+      "deep-crosshair-place-bombsitea",
+      "deep-crosshair-place-palaceinterior",
+      "deep-crosshair-place-ctspawn"
+    ]
+  },
+  "positioning": {
+    "deaths": 7,
+    "avgIsolation": 868,
+    "isolatedPct": 85.7,
+    "tradedPct": 14.3,
+    "crossfirePct": 28.6,
+    "avgHoldSeconds": 8.4,
+    "byCallout": [
+      {
+        "place": "BombsiteA",
+        "deaths": 3,
+        "traded": 1,
+        "avgIsolation": 665,
+        "avgCrossfire": 1.67
+      },
+      {
+        "place": "CTSpawn",
+        "deaths": 3,
+        "traded": 0,
+        "avgIsolation": 1172,
+        "avgCrossfire": 1
+      },
+      {
+        "place": "Jungle",
+        "deaths": 1,
+        "traded": 0,
+        "avgIsolation": null,
+        "avgCrossfire": 1
+      }
+    ],
+    "dangerZones": [
+      {
+        "place": "BombsiteA",
+        "deaths": 3,
+        "rounds": [5, 7, 9],
+        "why": "3 deaths at BombsiteA, 1 traded, nearest teammate 665 units away on average, 2 in a crossfire.",
+        "clips": [
+          {
+            "round": 5,
+            "from": 18.47,
+            "to": 27.47,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_80e956620b8234623da9ede245de7ce1"],
+            "label": "Death at BombsiteA"
+          },
+          {
+            "round": 7,
+            "from": 27.19,
+            "to": 36.19,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_97f77a35c89b043780103191105edce0"],
+            "label": "Death at BombsiteA"
+          },
+          {
+            "round": 9,
+            "from": 22.5,
+            "to": 31.5,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_09864b1189ffeadf7a604630876d1d6d"],
+            "label": "Death at BombsiteA"
+          }
+        ]
+      },
+      {
+        "place": "CTSpawn",
+        "deaths": 3,
+        "rounds": [1, 2, 3],
+        "why": "3 deaths at CTSpawn, 0 traded, nearest teammate 1172 units away on average.",
+        "clips": [
+          {
+            "round": 1,
+            "from": 13.7,
+            "to": 22.7,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_bd547cf8e5cacd2a7c69d4cc3b6aa9cd"],
+            "label": "Death at CTSpawn"
+          },
+          {
+            "round": 2,
+            "from": 21.28,
+            "to": 30.28,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_51bf734b39f09faf6ef94a8c95846112"],
+            "label": "Death at CTSpawn"
+          },
+          {
+            "round": 3,
+            "from": 63.27,
+            "to": 72.27,
+            "focusSteamId": "76561198073049527",
+            "eventIds": ["ev_803593976ddc594c5bc1a490dbad0116"],
+            "label": "Death at CTSpawn"
+          }
+        ]
+      }
+    ],
+    "deathsDetail": [
+      {
+        "eventId": "ev_bd547cf8e5cacd2a7c69d4cc3b6aa9cd",
+        "round": 1,
+        "time": 20.7,
+        "place": "CTSpawn",
+        "nearestTeammate": 1255,
+        "traded": false,
+        "crossfireEnemies": 1,
+        "holdSeconds": 15.32
+      },
+      {
+        "eventId": "ev_51bf734b39f09faf6ef94a8c95846112",
+        "round": 2,
+        "time": 28.28,
+        "place": "CTSpawn",
+        "nearestTeammate": 1089,
+        "traded": false,
+        "crossfireEnemies": 1,
+        "holdSeconds": 22.4
+      },
+      {
+        "eventId": "ev_803593976ddc594c5bc1a490dbad0116",
+        "round": 3,
+        "time": 70.27,
+        "place": "CTSpawn",
+        "nearestTeammate": null,
+        "traded": false,
+        "crossfireEnemies": 1,
+        "holdSeconds": 7.77
+      },
+      {
+        "eventId": "ev_7e3e73a5eb85b9c4589ef90b748428cb",
+        "round": 4,
+        "time": 44.98,
+        "place": "Jungle",
+        "nearestTeammate": null,
+        "traded": false,
+        "crossfireEnemies": 1,
+        "holdSeconds": 1.23
+      },
+      {
+        "eventId": "ev_80e956620b8234623da9ede245de7ce1",
+        "round": 5,
+        "time": 25.47,
+        "place": "BombsiteA",
+        "nearestTeammate": 974,
+        "traded": false,
+        "crossfireEnemies": 2,
+        "holdSeconds": 8.34
+      },
+      {
+        "eventId": "ev_97f77a35c89b043780103191105edce0",
+        "round": 7,
+        "time": 34.19,
+        "place": "BombsiteA",
+        "nearestTeammate": 919,
+        "traded": false,
+        "crossfireEnemies": 1,
+        "holdSeconds": 2.06
+      },
+      {
+        "eventId": "ev_09864b1189ffeadf7a604630876d1d6d",
+        "round": 9,
+        "time": 29.5,
+        "place": "BombsiteA",
+        "nearestTeammate": 101,
+        "traded": true,
+        "crossfireEnemies": 2,
+        "holdSeconds": 2
+      }
+    ],
+    "evidenceIds": [
+      "deep-pos-deaths",
+      "deep-pos-isolated",
+      "deep-pos-avg-isolation",
+      "deep-pos-traded",
+      "deep-pos-crossfire",
+      "deep-pos-hold",
+      "deep-zone-bombsitea",
+      "deep-zone-ctspawn"
+    ]
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "side": "CT",
+      "won": false,
+      "buy": "pistol",
+      "equipmentValue": 850,
+      "utilityThrown": 0,
+      "kills": 0,
+      "damage": 0,
+      "died": true,
+      "deathTime": 20.7,
+      "tag": "mistake",
+      "tags": ["opening_death", "untraded_death", "zero_damage"]
+    },
+    {
+      "round": 2,
+      "side": "CT",
+      "won": true,
+      "buy": "eco",
+      "equipmentValue": 200,
+      "utilityThrown": 0,
+      "kills": 0,
+      "damage": 0,
+      "died": true,
+      "deathTime": 28.3,
+      "tag": "mistake",
+      "tags": ["untraded_death", "zero_damage"]
+    },
+    {
+      "round": 3,
+      "side": "CT",
+      "won": false,
+      "buy": "full",
+      "equipmentValue": 5300,
+      "utilityThrown": 2,
+      "kills": 1,
+      "damage": 100,
+      "died": true,
+      "deathTime": 70.3,
+      "tag": "mistake",
+      "tags": ["untraded_death"]
+    },
+    {
+      "round": 4,
+      "side": "CT",
+      "won": false,
+      "buy": "eco",
+      "equipmentValue": 200,
+      "utilityThrown": 0,
+      "kills": 0,
+      "damage": 82,
+      "died": true,
+      "deathTime": 45,
+      "tag": "mistake",
+      "tags": ["untraded_death"]
+    },
+    {
+      "round": 5,
+      "side": "CT",
+      "won": true,
+      "buy": "force",
+      "equipmentValue": 3100,
+      "utilityThrown": 0,
+      "kills": 0,
+      "damage": 73,
+      "died": true,
+      "deathTime": 25.5,
+      "tag": "mistake",
+      "tags": ["opening_death", "untraded_death"]
+    },
+    {
+      "round": 6,
+      "side": "CT",
+      "won": false,
+      "buy": "full",
+      "equipmentValue": 5500,
+      "utilityThrown": 1,
+      "kills": 0,
+      "damage": 0,
+      "died": false,
+      "tag": null,
+      "tags": []
+    },
+    {
+      "round": 7,
+      "side": "CT",
+      "won": false,
+      "buy": "force",
+      "equipmentValue": 2900,
+      "utilityThrown": 2,
+      "kills": 0,
+      "damage": 134,
+      "died": true,
+      "deathTime": 34.2,
+      "tag": "mistake",
+      "tags": ["untraded_death"]
+    },
+    {
+      "round": 8,
+      "side": "CT",
+      "won": false,
+      "buy": "eco",
+      "equipmentValue": 200,
+      "utilityThrown": 1,
+      "kills": 1,
+      "damage": 39,
+      "died": false,
+      "tag": null,
+      "tags": []
+    },
+    {
+      "round": 9,
+      "side": "CT",
+      "won": false,
+      "buy": "full",
+      "equipmentValue": 4800,
+      "utilityThrown": 1,
+      "kills": 0,
+      "damage": 21,
+      "died": true,
+      "deathTime": 29.5,
+      "tag": null,
+      "tags": []
+    },
+    {
+      "round": 10,
+      "side": "CT",
+      "won": false,
+      "utilityThrown": 0,
+      "kills": 0,
+      "damage": 0,
+      "died": false,
+      "tag": null,
+      "tags": []
+    }
+  ],
+  "caveats": [
+    "Molotov area-denial time is not derivable from the demo; landing callouts are the nearest callout seen in this match."
+  ]
+}

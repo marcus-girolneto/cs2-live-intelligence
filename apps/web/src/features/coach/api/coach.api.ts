@@ -34,7 +34,17 @@ export type StoredReview = {
   coaching: unknown;
 };
 /** One clip of the match reel (highlights and mistakes, back to back). */
-export type ReelClip = ClipRef & { kind: "highlight" | "mistake" };
+export type ReelMoment = {
+  kills: number;
+  opening: boolean;
+  traded: boolean | null;
+  weapon?: string;
+  place?: string;
+};
+export type ReelClip = ClipRef & {
+  kind: "highlight" | "mistake";
+  moment?: ReelMoment;
+};
 
 /** Matches, analyses and AI reviews used by the /coach flow. */
 export interface CoachApi {
@@ -147,13 +157,29 @@ export function parseReel(raw: unknown): ReelClip[] {
       const o = c as Record<string, unknown> | null;
       const clip = parseClip(o);
       if (!o || !clip) return [];
-      // The reel names each clip with `title`; `label` is the optional short tag.
-      const label = clip.label ?? text(o.title);
+      // `title`/`label` are English: the reel button writes a localized label from `moment`.
+      const m =
+        o.moment && typeof o.moment === "object"
+          ? (o.moment as Record<string, unknown>)
+          : null;
+      const kills = m ? finite(m.kills) : null;
+      const { label: _english, ...rest } = clip;
+      void _english;
       return [
         {
-          ...clip,
-          ...(label ? { label } : {}),
+          ...rest,
           kind: o.kind === "highlight" ? "highlight" : "mistake",
+          ...(m
+            ? {
+                moment: {
+                  kills: kills === null ? 0 : Math.max(0, Math.round(kills)),
+                  opening: m.opening === true,
+                  traded: typeof m.traded === "boolean" ? m.traded : null,
+                  ...(text(m.weapon) ? { weapon: text(m.weapon)! } : {}),
+                  ...(text(m.place) ? { place: text(m.place)! } : {}),
+                },
+              }
+            : {}),
         },
       ];
     })

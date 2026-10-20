@@ -72,7 +72,7 @@ export function DataTab({ vm }: { vm: AnalysisVM }) {
       </p>
       {analysis.caveats.map((c, i) => (
         <p className="callout tone-warn" key={i}>
-          {c}
+          {t(c)}
         </p>
       ))}
     </TabPanel>

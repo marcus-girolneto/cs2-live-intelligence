@@ -4,6 +4,7 @@ import { useI18n } from "@/shared/i18n";
 import { formatNumber } from "@/shared/format";
 import { Lock, Trend } from "@/shared/icons";
 import { trendOf, type HistoryChip } from "../../model/deep";
+import { HISTORY_LABEL } from "../../model/deepText";
 
 /** Pro: how each deep metric moved against your previous matches (locked chip otherwise). */
 export function HistoryChips({ chips }: { chips: HistoryChip[] }) {
@@ -37,7 +38,7 @@ export function HistoryChips({ chips }: { chips: HistoryChip[] }) {
         return (
           <li key={c.key} className={`chip hc ${trend}`}>
             <Trend size={14} className={delta < 0 ? "down" : ""} />
-            <span>{c.label}</span>
+            <span>{t(HISTORY_LABEL[c.key] ?? c.label)}</span>
             <b className="tabular">{fmt(c.current)}</b>
             <small>{t("vs {v} before", { v: fmt(c.baseline) })}</small>
           </li>

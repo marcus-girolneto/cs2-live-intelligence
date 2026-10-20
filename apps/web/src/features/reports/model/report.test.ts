@@ -100,7 +100,7 @@ describe("monthly report", () => {
     expect(seriesDelta(r.crosshair!.series[0]!).good).toBe(true);
     expect(r.bestMatch).toMatchObject({
       analysisId: "a1",
-      headline: "Won · x.dem",
+      headline: "Win · x.dem",
     });
     expect(r.worstMatch).toBeNull();
     expect(r.plan).toEqual(["one", "two"]);

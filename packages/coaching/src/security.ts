@@ -12,6 +12,7 @@
  * links/markup/code, model or provider names and cheat advice. Leaking items are dropped with a
  * caveat; an answer that is mostly contaminated fails with AiError("invalid_output").
  */
+import { calloutName, prettifyCallouts } from "@cs2/contracts/callouts";
 import { createHash, randomBytes } from "node:crypto";
 import { AiError } from "./provider.js";
 
@@ -273,6 +274,17 @@ const IDENTIFIER_KEYS = new Set([
   "killerWeapon",
   "worstCallouts",
 ]);
+const PLACE_KEYS = new Set([
+  "place",
+  "places",
+  "yourPlace",
+  "enemyPlace",
+  "deathPlace",
+  "fromPlace",
+  "landingPlace",
+  "callout",
+  "worstCallouts",
+]);
 /** Keys whose values are internal ids (strict charset, never free text). */
 const ID_KEYS = new Set([
   "id",
@@ -320,8 +332,10 @@ export function sanitizePayload(value: unknown, textMax = 500): unknown {
         const t = sanitizeText(v, 128);
         return ID_RE.test(t) ? t : "unknown";
       }
+      // Callouts reach the model the way players say them ("Top of Mid", not "TopofMid").
+      if (PLACE_KEYS.has(key)) return sanitizeIdentifier(calloutName(v));
       if (IDENTIFIER_KEYS.has(key)) return sanitizeIdentifier(v);
-      return sanitizeUntrusted(v, textMax);
+      return prettifyCallouts(sanitizeUntrusted(v, textMax));
     }
     if (typeof v === "number") return Number.isFinite(v) ? v : null;
     if (typeof v === "boolean" || v === null) return v;

@@ -8,6 +8,7 @@ import {
   type AiConfig,
   type ModelResult,
 } from "./provider.js";
+import { prettifyCallouts } from "@cs2/contracts/callouts";
 import {
   lacksDiacritics,
   mapSpecStrings,
@@ -159,6 +160,11 @@ export async function secureModelCall(c: SecureCall): Promise<SecureResult> {
         ),
       };
   }
+  // Raw demo callouts the model still copied ("TopofMid") read as players say them.
+  guarded = {
+    ...guarded,
+    data: mapSpecStrings(guarded.data, c.guard, prettifyCallouts),
+  };
   const meta: Partial<ModelResult> = { ...result };
   delete meta.data;
   return {

@@ -4,7 +4,7 @@
  */
 import { parsePlan, scopeOf, type PlanItem, type Scope } from "@/features/maps";
 import { parseClip, type ClipRef } from "@/features/replay";
-import { finite, text } from "@/shared/format";
+import { finite, prose as text } from "@/shared/format";
 import { normalizeDeep, type DeepReview } from "./deep";
 
 export { parseClip, type ClipRef } from "@/features/replay";

@@ -64,15 +64,23 @@ describe("CoachApi", () => {
           kind: "mistake",
           title: "Dry peek",
           score: 3,
+          moment: { kills: 0, opening: true, traded: false, place: "TopofMid" },
         },
         { round: "x" },
       ],
     });
     const clips = await createCoachApi(http).getReel("a", "765");
+    // English titles are dropped: the reel button writes a localized label from `moment`.
     expect(clips.map((c) => [c.round, c.kind, c.label])).toEqual([
-      [2, "mistake", "Dry peek"],
-      [5, "highlight", "Ace"],
+      [2, "mistake", undefined],
+      [5, "highlight", undefined],
     ]);
+    expect(clips[0]!.moment).toEqual({
+      kills: 0,
+      opening: true,
+      traded: false,
+      place: "TopofMid",
+    });
   });
   it("reads whether a demo is yours", async () => {
     const http = new FakeHttpClient().on("GET", "matches/ownership?ids=m1", {

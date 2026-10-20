@@ -105,7 +105,7 @@ export function RoundCard({
         <span className="rc-spacer" />
         {row?.won !== undefined && (
           <span className={`rc-result ${row.won ? "won" : "lost"}`}>
-            {row.won ? t("Won") : t("Lost")}
+            {row.won ? t("Win") : t("Loss")}
           </span>
         )}
         {winner && row?.won === undefined && (

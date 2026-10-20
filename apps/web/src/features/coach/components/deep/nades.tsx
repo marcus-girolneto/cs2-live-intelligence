@@ -1,13 +1,9 @@
 import { Flashbang, HeGrenade, Molotov, Smoke } from "@/shared/icons";
 import type { NadeType } from "../../model/deep";
+import { NADE_NAME } from "../../model/deepText";
 
-export const NADE_LABEL: Record<NadeType, string> = {
-  flash: "Flashbang",
-  smoke: "Smoke",
-  he: "HE grenade",
-  molotov: "Molotov",
-  decoy: "Decoy",
-};
+/** Grenade names (English source keys, translated with t()). */
+export const NADE_LABEL = NADE_NAME;
 export function NadeIcon({
   type,
   size = 18,

@@ -177,7 +177,7 @@ export function TeamReport({
           <summary>{t("Limits of this review")}</summary>
           <ul className="caveats">
             {r.caveats.map((x) => (
-              <li key={x}>{x}</li>
+              <li key={x}>{t(x)}</li>
             ))}
           </ul>
         </details>

@@ -1,3 +1,4 @@
+import { calloutName } from "@cs2/contracts/callouts";
 /** Weapon classes used for icons and grouping. */
 export type WeaponClass =
   | "rifle"
@@ -125,14 +126,5 @@ export function weaponClass(raw: unknown): WeaponClass {
 /** In-game callout ("TopofMid", "BombsiteA") → readable label ("Top of Mid", "Bombsite A"). */
 export function placeName(raw: unknown): string | null {
   if (typeof raw !== "string" || !raw.trim()) return null;
-  return raw
-    .trim()
-    .replace(/_/g, " ")
-    .replace(/([a-z])of([A-Z])/g, "$1 of $2")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
-    .replace(/([a-z])(\d)/g, "$1 $2")
-    .replace(/Bombsite([AB])\b/g, "Bombsite $1")
-    .replace(/\s+/g, " ")
-    .trim();
+  return calloutName(raw);
 }

@@ -113,13 +113,21 @@ function parseUtility(raw: unknown): DeepUtility | undefined {
   const lineups = arr(first(o, ["lineups", "lineupsToLearn", "learn"]))
     .map((l): Lineup | null => {
       const x = obj(l);
-      const title = x && text(first(x, ["title", "name"]));
-      if (!x || !title) return null;
+      // "title"/"why" are English text for the model; the UI writes its own (deepText.ts).
+      if (!x) return null;
+      const type = nadeType(first(x, ["type", "grenade"]));
+      if (!type) return null;
       return {
-        title,
-        type: nadeType(first(x, ["type", "grenade"])),
+        kind: x.kind === "repeat" || x.kind === "learn" ? x.kind : null,
+        type,
         ...opt("place", text(first(x, ["place", "map", "target"]))),
-        ...opt("why", text(first(x, ["why", "reason"]))),
+        ...opt("fromPlace", text(x.fromPlace)),
+        round: count(x.round),
+        count: count(x.count),
+        enemiesFlashed: count(x.enemiesFlashed),
+        blindSeconds: num(x, ["blindSeconds"]),
+        damage: count(x.damage),
+        deathsThere: count(x.deathsThere),
         ...opt("howTo", text(first(x, ["howTo", "how", "instructions"]))),
         ...opt("clip", parseClip(x.clip)),
       };
@@ -164,7 +172,7 @@ function parseCrosshair(raw: unknown): DeepCrosshair | undefined {
       const label =
         text(x.label) ??
         (from !== null ? (to !== null ? `${from}–${to}°` : `${from}°+`) : null);
-      return label ? { label, from, count: c } : null;
+      return label ? { label, from, to, count: c } : null;
     })
     .filter((x): x is Bin => !!x);
   const worst = arr(first(o, ["worstCallouts", "worst", "callouts"]))
@@ -201,19 +209,29 @@ function parseCrosshair(raw: unknown): DeepCrosshair | undefined {
 function parsePositioning(raw: unknown): DeepPositioning | undefined {
   const o = obj(raw);
   if (!o) return undefined;
+  // Reviews saved before zones carried their numbers: take them from byCallout.
+  const byCallout = new Map(
+    arr(o.byCallout)
+      .map(obj)
+      .filter((c): c is Record<string, unknown> => !!c && !!text(c.place))
+      .map((c) => [text(c.place)!, c]),
+  );
   const zones = arr(first(o, ["dangerZones", "zones"]))
     .map((z): DangerZone | null => {
       const x = obj(z);
       const place = x && text(first(x, ["place", "callout", "name"]));
       if (!x || !place) return null;
+      const c = byCallout.get(place) ?? {};
       return {
         place,
         deaths: count(x.deaths),
         rounds: arr(x.rounds)
           .map(finite)
           .filter((r): r is number => r !== null),
-        ...opt("why", text(first(x, ["why", "reason", "note"]))),
-        ...opt("clip", parseClip(x.clip)),
+        traded: count(x.traded ?? c.traded),
+        avgIsolation: num({ v: x.avgIsolation ?? c.avgIsolation }, ["v"]),
+        crossfire: count(x.crossfire),
+        ...opt("clip", parseClip(x.clip ?? arr(x.clips)[0])),
       };
     })
     .filter((x): x is DangerZone => !!x);

@@ -66,6 +66,13 @@ export function lineups(
           0,
           300,
         ),
+        round: t.round,
+        ...(t.type === "flash"
+          ? {
+              enemiesFlashed: t.enemiesFlashed,
+              blindSeconds: r1(t.enemyBlindSeconds),
+            }
+          : { damage: t.damage }),
         eventIds: [t.eventId],
       };
     });
@@ -122,6 +129,7 @@ export function lineups(
           0,
           300,
         ),
+        deathsThere: died,
         eventIds: g.ids.slice(0, 20),
       };
     });
