@@ -77,6 +77,7 @@ function fakeRepository(stored?: {
             expired: !!stored.expired,
           }
         : undefined,
+    purgeEvents: async () => undefined,
     touch: async (_id, network) => {
       touched.push(network);
     },

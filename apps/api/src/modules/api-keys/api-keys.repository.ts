@@ -35,6 +35,8 @@ export interface ApiKeysRepository {
   findByHash(keyHash: string): Promise<StoredKey | undefined>;
   /** Records a use (at most once a minute per key). */
   touch(id: string, networkHash: string | null): Promise<void>;
+  /** Drops audit rows older than 365 days. */
+  purgeEvents(): Promise<void>;
   /** Appends to the key audit trail. */
   event(
     ownerId: string,
@@ -124,6 +126,12 @@ export class PgApiKeysRepository implements ApiKeysRepository {
   async touch(id: string, networkHash: string | null): Promise<void> {
     await this.db.execute(
       sql`update api_keys set last_used_at=now(),last_used_ip_hash=coalesce(${networkHash},last_used_ip_hash) where id=${id} and (last_used_at is null or last_used_at<now()-interval '1 minute')`,
+    );
+  }
+
+  async purgeEvents(): Promise<void> {
+    await this.db.execute(
+      sql`delete from api_key_events where created_at<now()-interval '365 days'`,
     );
   }
 

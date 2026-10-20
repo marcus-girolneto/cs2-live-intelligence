@@ -121,12 +121,12 @@ export function createPublicApiContext(
     apiKeysController: new ApiKeysController(keys),
     webhooksController,
     docs: new SwaggerAssets(),
-    delivery: new WebhookDeliveryWorker(
-      webhookRepository,
-      deliverer,
-      logger,
-      idempotency,
-    ),
+    delivery: new WebhookDeliveryWorker(webhookRepository, deliverer, logger, {
+      async purge() {
+        await idempotency.purge();
+        await keysRepository.purgeEvents();
+      },
+    }),
     controllers: {
       gate,
       demos: new PublicDemosController(demos, services.uploads, idempotency),
