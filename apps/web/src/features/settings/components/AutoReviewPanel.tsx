@@ -18,7 +18,7 @@ const parse = (v: unknown): AutoReview | null => {
 
 /** Settings → Coach: review my new demos automatically (uses credits). */
 export function AutoReviewPanel() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const api = useSettingsApi();
   const { cost, isAdmin } = useCredits();
   const [value, setValue] = useState<AutoReview | null>(null);
@@ -43,7 +43,7 @@ export function AutoReviewPanel() {
     setNotice("");
     setError("");
     try {
-      const p = await api.saveCoachProfile({ autoReview: next });
+      const p = await api.saveCoachProfile({ autoReview: { ...next, lang } });
       setValue(parse(p.autoReview) ?? next);
       setNotice(
         next.enabled

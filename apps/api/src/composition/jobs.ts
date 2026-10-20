@@ -196,13 +196,14 @@ export function createJobsContext(
     training: training.service,
   });
   const autoReviewRepository = new PgAutoReviewRepository(db);
+  const accountLanguage = new PgUsersRepository(db);
   const autoReviews = new AutoReviewService(
     autoReviewRepository,
     ownership,
     reviewService,
     logger,
+    (ownerId) => accountLanguage.language(ownerId),
   );
-  const accountLanguage = new PgUsersRepository(db);
   const reports = new ReportsService(
     new PgReportsRepository(db),
     mineHistory,

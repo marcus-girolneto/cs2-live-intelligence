@@ -59,6 +59,10 @@ export class AutoReviewService {
     private readonly ownership: JobOwnership,
     private readonly reviews: PlayerReviewer,
     private readonly logger: Logger,
+    /** The account language (web selector); wins over the stored auto-review language. */
+    private readonly language?: (
+      ownerId: string,
+    ) => Promise<LanguageCode | null>,
   ) {}
 
   /** One scheduler tick (concurrent calls share the same run). */
@@ -94,7 +98,7 @@ export class AutoReviewService {
         ownerId,
         jobId,
         owned.playerSteamId,
-        settings.lang,
+        (await this.language?.(ownerId)) ?? settings.lang,
         ViewerPolicy.for(false),
         settings.tier,
       );
