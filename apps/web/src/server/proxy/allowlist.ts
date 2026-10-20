@@ -65,6 +65,7 @@ const routes: [string, RegExp][] = [
   ["POST", /^feedback$/],
   ["GET", /^auth\/steam\/start$/],
   ["POST", /^me\/refresh-profile$/],
+  ["PUT", /^me\/language$/],
   // Settings → Developers: personal API keys and webhooks (the public /api/v1 is called on the
   // API directly with an API key, never through this proxy).
   ["GET", /^me\/api-keys$/],

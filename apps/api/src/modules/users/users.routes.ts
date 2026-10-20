@@ -8,6 +8,11 @@ export function registerUsersRoutes(
   guards: AuthGuards,
 ): void {
   app.get("/v1/me", { preHandler: guards.requireUser }, controller.me);
+  app.put(
+    "/v1/me/language",
+    { preHandler: guards.requireUser },
+    controller.setLanguage,
+  );
   app.post(
     "/v1/me/refresh-profile",
     { preHandler: guards.requireUser },

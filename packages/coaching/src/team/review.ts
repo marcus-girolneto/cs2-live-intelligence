@@ -1,9 +1,10 @@
 /**
  * Team review: deterministic team facts → one model call (purpose review_team, prompt
- * igl-team-v4, aliases only) → output guard → validation (fact ids, candidate rounds, aliases
+ * igl-team-v5, aliases only) → output guard → validation (fact ids, candidate rounds, aliases
  * mapped back to Steam ids server-side, confidence capped by the cited facts) → claim checks
  * and the optional verifier.
  */
+import type { CoachLang } from "../languages.js";
 import {
   analysisSchema,
   teamReviewSchema,
@@ -62,7 +63,7 @@ export const TEAM_GUARD: GuardSpec = {
 
 export type TeamReviewOptions = {
   steamId: string;
-  lang?: "en" | "pt";
+  lang?: CoachLang;
   /** analysis.integrity of the stored document (deaths to unusual opponents are excluded). */
   integrity?: unknown;
   /** Claim checks (+ verifier model when `config` is set); absent = not verified. */
@@ -178,7 +179,7 @@ export function buildTeamReview(
   data: unknown,
   analysis: Analysis,
   t: TeamAnalysis,
-  lang: "en" | "pt",
+  lang: CoachLang,
 ): TeamReview {
   const raw = obj(data);
   const facts = new Map(t.facts.map((f) => [f.id, f]));
@@ -310,7 +311,7 @@ async function verifyTeam(
   review: TeamReview,
   analysis: Analysis,
   t: TeamAnalysis,
-  lang: "en" | "pt",
+  lang: CoachLang,
   options: NonNullable<TeamReviewOptions["verify"]>,
 ): Promise<TeamReview> {
   const cited = [

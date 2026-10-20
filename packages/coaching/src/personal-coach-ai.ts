@@ -1,8 +1,9 @@
 /**
- * Personal Coach model call (prompt personal-coach-v5): turns the deterministic aggregates into
+ * Personal Coach model call (prompt personal-coach-v6): turns the deterministic aggregates into
  * a long-term plan. Every cited id is validated against the aggregates; focus-area current
  * values are copied from the cited fact (never trusted from the model).
  */
+import type { CoachLang } from "./languages.js";
 import {
   personalCoachPlanSchema,
   type PersonalCoachPlan,
@@ -17,7 +18,7 @@ import {
 import { canaryLine, type GuardSpec } from "./security.js";
 import { languageInstruction, languageReminder } from "./prompts.js";
 
-export const PERSONAL_COACH_PROMPT_VERSION = "personal-coach-v5";
+export const PERSONAL_COACH_PROMPT_VERSION = "personal-coach-v6";
 
 export const PERSONAL_COACH_SYSTEM_PROMPT = `You are this app's personal Counter-Strike 2 coach. You read a player's WHOLE history (aggregates of every analyzed match, their deep reviews, the plans they were given and how the matching metrics moved afterwards) and build a long-term improvement plan, like a coach planning the next weeks of practice.
 
@@ -258,7 +259,7 @@ export function buildPersonalPlan(
 export async function aiPersonalCoach(
   aggregates: CoachAggregates,
   config: AiConfig,
-  lang: "en" | "pt",
+  lang: CoachLang,
   generatedAt: string,
   fetchImpl?: typeof fetch,
 ): Promise<{ plan: PersonalCoachPlan; call: Omit<ModelResult, "data"> }> {

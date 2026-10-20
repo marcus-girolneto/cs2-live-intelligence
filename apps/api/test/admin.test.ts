@@ -324,6 +324,22 @@ describe.skipIf(!databaseUrl)(
         "user",
       );
       expect((await call("GET", "/v1/me")).json().role).toBe("admin");
+      // The interface and AI language is stored on the account.
+      expect((await call("GET", "/v1/me", userHeaders)).json().lang).toBe(
+        undefined,
+      );
+      expect(
+        (await call("PUT", "/v1/me/language", userHeaders, { lang: "zh" }))
+          .statusCode,
+      ).toBe(204);
+      expect((await call("GET", "/v1/me", userHeaders)).json().lang).toBe("zh");
+      expect(
+        (await call("PUT", "/v1/me/language", userHeaders, { lang: "xx" }))
+          .statusCode,
+      ).toBe(400);
+      expect(
+        (await call("PUT", "/v1/me/language", {}, { lang: "es" })).statusCode,
+      ).toBe(401);
       // Regular users still manage their own coaching approach.
       expect(
         (await call("GET", "/v1/coach/profile", userHeaders)).statusCode,

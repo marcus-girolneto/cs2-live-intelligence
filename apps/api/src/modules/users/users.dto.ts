@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { LANGUAGE_CODES, type LanguageCode } from "@cs2/contracts/languages";
 import type { SteamProfile } from "../../infrastructure/steam/steam-profile.types.js";
 import type { Role } from "../../shared/http/principal.js";
 
@@ -8,4 +10,11 @@ export type MeDto = {
   steamId?: string;
   memberSince?: string;
   profile?: SteamProfile;
+  /** Language chosen in the web selector (absent until chosen). */
+  lang?: LanguageCode;
 } & Record<string, unknown>;
+
+/** PUT /v1/me/language body. */
+export const languageBodySchema = z
+  .object({ lang: z.enum(LANGUAGE_CODES) })
+  .strict();

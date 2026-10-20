@@ -33,6 +33,14 @@ import { deepContext, type DeepResult } from "./deep/index.js";
 import { DEEP_PROMPT_VERSION, DEEP_SYSTEM_PROMPT } from "./prompts-deep.js";
 import { enforceConfidence, sampled, type SampledFact } from "./confidence.js";
 import { UNUSUAL_OPPONENT_CAVEAT } from "./integrity.js";
+export {
+  COACH_CAVEATS,
+  COACH_LANGS,
+  languageName,
+  languageShare,
+  offLanguage,
+  parseCoachLang,
+} from "./languages.js";
 import { planTarget } from "./plan-metrics.js";
 import {
   claimContext,

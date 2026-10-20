@@ -1,10 +1,11 @@
 /**
- * Second opinion on a review (purpose "verify", prompt verify-v4): a cheap model receives ONLY
+ * Second opinion on a review (purpose "verify", prompt verify-v5): a cheap model receives ONLY
  * each claim's text and the facts it cites and says per claim whether it is supported, with an
  * optional corrected text. Deterministic number/round/"consecutive" checks (claims.ts) run
  * first and always win: an unsupported or numerically wrong claim is replaced by a corrected
  * text that passes the checks, or dropped. Statistics go to the review's provenance.
  */
+import { COACH_CAVEATS, type CoachLang } from "./languages.js";
 import type { Verification } from "@cs2/contracts";
 import {
   checkClaim,
@@ -21,7 +22,7 @@ import type { AiConfig } from "./provider.js";
 import { canaryLine, type GuardSpec } from "./security.js";
 import { languageInstruction, languageReminder } from "./prompts.js";
 
-export const VERIFY_PROMPT_VERSION = "verify-v4";
+export const VERIFY_PROMPT_VERSION = "verify-v5";
 
 export const VERIFY_SYSTEM_PROMPT = `You are the fact checker of this app's Counter-Strike 2 coach. Another coach wrote short claims about one match; you check each claim strictly against the facts supplied with it and nothing else.
 
@@ -80,29 +81,16 @@ export type VerificationResult = {
 export type VerifierOptions = {
   config?: AiConfig;
   fetch?: typeof fetch;
-  lang: "en" | "pt";
+  lang: CoachLang;
   /** Fact descriptions/values the verifier may see, by id. */
   factView: Map<string, Record<string, unknown>>;
 };
 
 const CAVEATS = {
-  dropped: {
-    en: (n: number) =>
-      `${n} statement(s) were removed because the match data did not support them.`,
-    pt: (n: number) =>
-      `${n} afirmação(ões) foram removidas porque os dados da partida não as sustentam.`,
-  },
-  corrected: {
-    en: (n: number) =>
-      `${n} statement(s) were corrected to match the match data.`,
-    pt: (n: number) =>
-      `${n} afirmação(ões) foram corrigidas para bater com os dados da partida.`,
-  },
-  unverified: {
-    en: "The second check of this review was unavailable; only the automatic number checks ran.",
-    pt: "A segunda verificação desta análise não estava disponível; só as checagens automáticas de números foram feitas.",
-  },
-} as const;
+  dropped: COACH_CAVEATS.claimsDropped,
+  corrected: COACH_CAVEATS.claimsCorrected,
+  unverified: COACH_CAVEATS.unverified,
+};
 
 type ModelVerdict = { supported: boolean; correctedText: string };
 

@@ -35,6 +35,8 @@ export interface ReportInputs {
     to: string,
   ): Promise<{ analysisId: string; createdAt: string; deep: DeepReview }[]>;
   monthlyReport(ownerId: string): Promise<boolean>;
+  /** The account language (web selector) for scheduled reports; English when unset. */
+  language?(ownerId: string): Promise<CoachLanguage | null>;
   /** The own matches (ids and upload dates only: an indexed query, no documents). */
   completedMatches?(
     ownerId: string,
@@ -159,16 +161,18 @@ export class ReportsService {
     const config = await this.ai
       .acquire(ownerId, "report")
       .catch(() => undefined);
+    // Written in the language the user picked in the web selector.
+    const lang = (await this.inputs.language?.(ownerId)) ?? "en";
     return this.create(
       ownerId,
       key,
       "scheduled",
       previous,
-      "en",
+      lang,
       async (report) => {
         if (!config) return { report };
         try {
-          return await this.gateway.monthlyReport(report, config, "en");
+          return await this.gateway.monthlyReport(report, config, lang);
         } catch (error) {
           this.logger.info(
             { ownerId, err: String(error) },

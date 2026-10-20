@@ -41,7 +41,8 @@ export function matchAverages(analysis: Analysis) {
   };
 }
 
-export type CoachLang = "en" | "pt";
+import type { CoachLang } from "./languages.js";
+export type { CoachLang };
 const listPt = (rounds: number[]) =>
   rounds.length <= 1
     ? `round ${rounds[0]}`
@@ -273,7 +274,8 @@ export function playerInsights(
   /** Return every rule that fired (ordered by priority) instead of the top selection. */
   all = false,
 ): Insight[] {
-  const L = M[lang];
+  // Offline rule texts exist in English and Portuguese (they are not shown in the app).
+  const L = lang === "pt" ? M.pt : M.en;
   // Portuguese uses a decimal comma.
   const localize = (text: string) =>
     lang === "pt" ? text.replace(/(\d)\.(\d)/g, "$1,$2") : text;

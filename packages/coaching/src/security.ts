@@ -12,6 +12,7 @@
  * links/markup/code, model or provider names and cheat advice. Leaking items are dropped with a
  * caveat; an answer that is mostly contaminated fails with AiError("invalid_output").
  */
+import { COACH_CAVEATS, offLanguage, type CoachLang } from "./languages.js";
 import { calloutName, prettifyCallouts } from "@cs2/contracts/callouts";
 import { createHash, randomBytes } from "node:crypto";
 import { AiError } from "./provider.js";
@@ -457,8 +458,17 @@ const HTML_TAG = /<\/?[a-z][a-z0-9-]*(?:\s[^<>]*)?\/?>/gi;
 const CODE_FENCE = /```[\s\S]*?(?:```|$)/g;
 const PHONE_RE = /(?:\+\d[\d\s().-]{7,}\d)/g;
 
+/**
+ * Cheating accusations and cheat names in the other output languages (ES, RU, DE, FR, PL,
+ * TR); Unicode-aware boundaries because \\b does not work around Cyrillic or accents.
+ */
+const ACCUSATION_INTL =
+  /(?<!\p{L})(?:читер\p{L}*|читак\p{L}*|читы|читами|читом|вх|валл?хак\p{L}*|аимбот\p{L}*|триггербот\p{L}*|trampos[oa]s?|hac(?:ía|e) trampa|chet(?:o|os|ad[oa]s?|ear|eando)|betr[üu]ger\p{L}*|betr[üu]gt|tricheu(?:r|rs|se|ses)|trich(?:e|é|er|ent|ait)|cziter\p{L}*|oszuk(?:uje|iwał)\p{L}*|oszust\p{L}*|hileci\p{L}*|hile(?:li|ye|yle|si)?)(?!\p{L})/iu;
+/** Chinese has no word spaces: cheat terms are matched anywhere. */
+const ACCUSATION_CJK = /作弊|外挂|开挂|挂狗|开透视|透视挂|自瞄挂|锁头挂/u;
+
 export type GuardIssue = { path: string; reason: string };
-type Lang = "en" | "pt";
+type Lang = CoachLang;
 export type GuardContext = {
   /** The confidential prompt text (without the player's own custom instructions). */
   prompt: string;
@@ -516,7 +526,12 @@ export function inspectOutputText(
     return { text: "", drop: "model_name" };
   if (CHEATS.test(norm) || CHEATS.test(skel))
     return { text: "", drop: "cheat" };
-  if (ACCUSATION.test(norm) || ACCUSATION.test(skel))
+  if (
+    ACCUSATION.test(norm) ||
+    ACCUSATION.test(skel) ||
+    ACCUSATION_INTL.test(norm) ||
+    ACCUSATION_CJK.test(norm)
+  )
     return { text: "", drop: "accusation" };
   if (SELF_DISCLOSURE.test(skel)) return { text: "", drop: "self_disclosure" };
   let text = norm
@@ -554,17 +569,9 @@ export function englishShare(text: string): number | null {
 }
 
 export const OUTPUT_CAVEATS = {
-  dropped: {
-    en: (n: number) =>
-      `${n} part(s) of the AI answer were removed by the safety checks.`,
-    pt: (n: number) =>
-      `${n} parte(s) da resposta da IA foram removidas pelas verificações de segurança.`,
-  },
-  language: {
-    en: "Part of the AI answer was not written in English.",
-    pt: "Parte da resposta da IA veio em inglês em vez de português.",
-  },
-} as const;
+  dropped: COACH_CAVEATS.outputDropped,
+  language: COACH_CAVEATS.offLanguage,
+};
 
 /**
  * Applies the output checks to a purpose's raw answer (after JSON parsing, before the purpose's
@@ -652,13 +659,8 @@ export function guardOutput(
     );
   const caveats: string[] = [];
   if (dropped) caveats.push(OUTPUT_CAVEATS.dropped[context.lang](dropped));
-  const share = englishShare(kept.join(" "));
-  if (share !== null) {
-    if (context.lang === "pt" && share > 0.6)
-      caveats.push(OUTPUT_CAVEATS.language.pt);
-    if (context.lang === "en" && share < 0.4)
-      caveats.push(OUTPUT_CAVEATS.language.en);
-  }
+  if (offLanguage(kept.join(" "), context.lang))
+    caveats.push(OUTPUT_CAVEATS.language[context.lang]);
   return { data: copy, caveats, issues };
 }
 

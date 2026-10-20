@@ -2,6 +2,7 @@
  * Shared prompt sections and the single request pipeline every AI purpose goes through:
  * sanitise payload → seal it in a random DATA boundary → call the model → output guard.
  */
+import type { CoachLang } from "./languages.js";
 import {
   callModel,
   AiError,
@@ -96,7 +97,7 @@ export type SecureCall = {
   schemaName: string;
   schema: Record<string, unknown>;
   guard: GuardSpec;
-  lang: "en" | "pt";
+  lang: CoachLang;
   knownIds?: Iterable<string>;
   fetch?: typeof fetch;
 };

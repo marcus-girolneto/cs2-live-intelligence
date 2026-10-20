@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { SteamProfile } from "../../infrastructure/steam/steam-profile.types.js";
+import { isLanguageCode, type LanguageCode } from "@cs2/contracts/languages";
 import type { Db } from "../../shared/db/database.js";
 import { isoDate } from "../../shared/db/rows.js";
 import type { RoleLookup } from "../../shared/http/guards.js";
@@ -13,15 +14,22 @@ export interface AccountRecord {
   memberSince?: string;
   steamProfile: unknown;
   steamProfileFetchedAt: Date | null;
+  /** Language chosen in the web selector (null until the user picks or syncs one). */
+  lang: LanguageCode | null;
 }
 
 export interface UsersRepository extends RoleLookup {
   account(ownerId: string): Promise<AccountRecord>;
   /** Caches the public Steam profile on a Steam-linked account (display only). */
   saveSteamProfile(ownerId: string, profile: SteamProfile): Promise<void>;
+  setLanguage(ownerId: string, lang: LanguageCode): Promise<void>;
+}
+/** Port (reports, personal coach): the account language for AI output nobody requested live. */
+export interface AccountLanguage {
+  language(ownerId: string): Promise<LanguageCode | null>;
 }
 
-export class PgUsersRepository implements UsersRepository {
+export class PgUsersRepository implements UsersRepository, AccountLanguage {
   constructor(private readonly db: Db) {}
 
   async role(ownerId: string): Promise<Role | undefined> {
@@ -34,7 +42,7 @@ export class PgUsersRepository implements UsersRepository {
 
   async account(ownerId: string): Promise<AccountRecord> {
     const r = await this.db.execute(
-      sql`select steam_id,role,steam_profile,steam_profile_fetched_at,created_at from users where id=${ownerId}`,
+      sql`select steam_id,role,steam_profile,steam_profile_fetched_at,created_at,lang from users where id=${ownerId}`,
     );
     const row = r.rows[0] ?? {};
     return {
@@ -46,7 +54,22 @@ export class PgUsersRepository implements UsersRepository {
       steamProfileFetchedAt: row.steam_profile_fetched_at
         ? new Date(row.steam_profile_fetched_at as string)
         : null,
+      lang: isLanguageCode(row.lang) ? row.lang : null,
     };
+  }
+
+  async setLanguage(ownerId: string, lang: LanguageCode): Promise<void> {
+    await this.db.execute(
+      sql`update users set lang=${lang} where id=${ownerId}`,
+    );
+  }
+
+  async language(ownerId: string): Promise<LanguageCode | null> {
+    const r = await this.db.execute(
+      sql`select lang from users where id=${ownerId}`,
+    );
+    const lang = r.rows[0]?.lang;
+    return isLanguageCode(lang) ? lang : null;
   }
 
   async saveSteamProfile(

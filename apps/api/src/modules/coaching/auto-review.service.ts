@@ -1,3 +1,4 @@
+import type { LanguageCode } from "@cs2/contracts/languages";
 import { AppError } from "../../shared/errors/index.js";
 import type { Logger } from "../../shared/logging/logger.js";
 import type {
@@ -21,7 +22,7 @@ export interface PlayerReviewer {
     ownerId: string,
     analysisId: string,
     steamId: string,
-    lang: "en" | "pt",
+    lang: LanguageCode,
     viewer: ViewerPolicy,
     tier: "quick" | "deep",
   ): Promise<Record<string, unknown>>;

@@ -4,6 +4,7 @@
  * observation or key moment removes the item; a dropped verdict/summary/plan item removes that
  * text. Verification statistics are recorded in the review's provenance.
  */
+import type { CoachLang } from "./languages.js";
 import type { Analysis, Coaching } from "@cs2/contracts";
 import type { ClaimContext } from "./claims.js";
 import type { MomentCandidate } from "./review.js";
@@ -76,7 +77,7 @@ export async function verifyCoaching(
   ctx: ClaimContext,
   facts: SampledFact[],
   candidates: MomentCandidate[],
-  lang: "en" | "pt",
+  lang: CoachLang,
   options: VerifyOptions,
 ): Promise<{ coaching: Coaching; result: VerificationResult }> {
   const cited = [...new Set(coaching.insights.flatMap((i) => i.evidenceIds))];

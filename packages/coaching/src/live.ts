@@ -1,3 +1,4 @@
+import type { CoachLang } from "./languages.js";
 import { z } from "zod";
 import { AiError, type AiConfig, type ModelResult } from "./provider.js";
 import { secureModelCall } from "./prompt-kit.js";
@@ -97,7 +98,7 @@ export async function aiLiveCall(
   input: unknown,
   config: AiConfig,
   options: {
-    lang?: "en" | "pt";
+    lang?: CoachLang;
     fetch?: typeof fetch;
     personal?: Personalization;
   } = {},

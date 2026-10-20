@@ -6,6 +6,7 @@
  * one neutral caveat is added. The model never learns who, why or which signals: it only gets
  * a boolean per round (`opponentFlagged`) and a count.
  */
+import { COACH_CAVEATS } from "./languages.js";
 import { z } from "zod";
 import type { Analysis, Evidence } from "@cs2/contracts";
 
@@ -53,10 +54,8 @@ export const integrityOf = (raw: unknown): unknown =>
     ? (raw as { integrity?: unknown }).integrity
     : undefined;
 
-export const UNUSUAL_OPPONENT_CAVEAT = {
-  en: "Some deaths came from an opponent with statistically unusual aim / later banned; they weren't counted against you.",
-  pt: "Algumas mortes vieram de um oponente com mira estatisticamente incomum / banido depois; elas não foram contadas contra você.",
-} as const;
+/** The neutral caveat about excluded deaths, in every output language. */
+export const UNUSUAL_OPPONENT_CAVEAT = COACH_CAVEATS.unusualOpponent;
 
 export type FairResult = {
   analysis: Analysis;

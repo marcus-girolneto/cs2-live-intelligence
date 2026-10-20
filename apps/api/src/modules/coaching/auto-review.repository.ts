@@ -1,3 +1,4 @@
+import { parseLanguage, type LanguageCode } from "@cs2/contracts/languages";
 import { sql } from "drizzle-orm";
 import type { Db } from "../../shared/db/database.js";
 import { isoDate, uuidsOnly } from "../../shared/db/rows.js";
@@ -5,7 +6,7 @@ import { isoDate, uuidsOnly } from "../../shared/db/rows.js";
 export type AutoReviewSettings = {
   enabled: boolean;
   tier: "quick" | "deep";
-  lang: "en" | "pt";
+  lang: LanguageCode;
 };
 export const DEFAULT_AUTO_REVIEW: AutoReviewSettings = {
   enabled: false,
@@ -38,7 +39,7 @@ export function parseAutoReview(value: unknown): AutoReviewSettings {
   return {
     enabled: v.enabled === true,
     tier: v.tier === "deep" ? "deep" : "quick",
-    lang: v.lang === "pt" ? "pt" : "en",
+    lang: parseLanguage(v.lang),
   };
 }
 

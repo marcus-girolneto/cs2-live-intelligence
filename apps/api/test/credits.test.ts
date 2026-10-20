@@ -450,7 +450,7 @@ describe.skipIf(!databaseUrl)(
       });
       expect(deep.json().coaching).toMatchObject({
         tier: "deep",
-        provenance: { promptVersion: "igl-review-v12-deep" },
+        provenance: { promptVersion: "igl-review-v13-deep" },
       });
       expect(deep.json().coaching.deep.utility).toBeDefined();
       expect(deep.json().coaching.insights[0].evidenceIds[0]).toMatch(/^deep-/);
@@ -1111,7 +1111,7 @@ describe.skipIf(!databaseUrl)(
       const view = made.json();
       expect(view.latest.plan).toMatchObject({
         headline: "Trade more, peek less",
-        promptVersion: "personal-coach-v5",
+        promptVersion: "personal-coach-v6",
         basedOnMatches: 1,
       });
       expect(view.latest.plan.workingWell).toHaveLength(1);

@@ -1,3 +1,4 @@
+import type { LanguageCode } from "@cs2/contracts/languages";
 import type { SteamProfileProvider } from "../../infrastructure/steam/http-steam-client.js";
 import type { SteamProfile } from "../../infrastructure/steam/steam-profile.types.js";
 import { sanitizeStoredProfile } from "../../infrastructure/steam/sanitize-profile.js";
@@ -66,6 +67,11 @@ export class UsersService implements ProfileRefresher {
     return this.view(ownerId, "auto");
   }
 
+  /** PUT /v1/me/language: the interface and AI language the user picked. */
+  async setLanguage(ownerId: string, lang: LanguageCode): Promise<void> {
+    await this.users.setLanguage(ownerId, lang);
+  }
+
   /** Forced refresh, rate limited per account (429 with retry-after). */
   async refresh(ownerId: string): Promise<MeDto> {
     const last = this.forcedAt.get(ownerId);
@@ -113,6 +119,7 @@ export class UsersService implements ProfileRefresher {
       role: account.role,
       ...(account.steamId ? { steamId: account.steamId } : {}),
       ...(account.memberSince ? { memberSince: account.memberSince } : {}),
+      ...(account.lang ? { lang: account.lang } : {}),
       ...(profile ? { profile } : {}),
       ...(this.extras
         ? await this.extras.extras(ownerId, { steamLinked: !!account.steamId })

@@ -3,6 +3,7 @@ import {
   pairingRequestSchema,
   pairingClaimSchema,
 } from "@cs2/contracts";
+import { languageBodySchema } from "../../users/users.dto.js";
 import { json, body, schema, operation, id } from "./helpers.js";
 
 /** Readiness, metrics, auth, account, settings and devices. */
@@ -25,6 +26,19 @@ export const accountPaths = {
   "/v1/me": {
     get: operation(
       "Current owner: role, Steam id, cached public Steam profile (refreshed when older than 6 h), plan, usage {aiReviews (daily safety cap), liveAiMatches, uploads} and credits {balance, buckets:{plan,bonus,purchased}, planExpiresAt?, welcome:{status: granted|ineligible|pending, reason?}, costs:{quick,deep}}",
+    ),
+  },
+  "/v1/me/language": {
+    put: operation(
+      "Save the interface and AI language chosen in the web selector (en, pt, es, ru, zh, de, fr, pl, tr); GET /v1/me returns it as lang. Scheduled reports are written in it.",
+      {
+        requestBody: body(schema(languageBodySchema)),
+        responses: {
+          204: { description: "Saved" },
+          400: { description: "Unknown language" },
+          401: { description: "Unauthorized" },
+        },
+      },
     ),
   },
   "/v1/me/refresh-profile": {

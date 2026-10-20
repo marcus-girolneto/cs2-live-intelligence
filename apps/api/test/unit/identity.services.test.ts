@@ -33,6 +33,7 @@ class FakeUsers implements UsersRepository {
   fetchedAt: Date | null = null;
   profile: unknown = null;
   saves = 0;
+  lang: AccountRecord["lang"] = null;
   async role() {
     return "user" as const;
   }
@@ -43,7 +44,11 @@ class FakeUsers implements UsersRepository {
       steamId: STEAM,
       steamProfile: this.profile,
       steamProfileFetchedAt: this.fetchedAt,
+      lang: this.lang,
     };
+  }
+  async setLanguage(_o: string, lang: NonNullable<AccountRecord["lang"]>) {
+    this.lang = lang;
   }
   async saveSteamProfile(_o: string, p: SteamProfile) {
     this.saves++;

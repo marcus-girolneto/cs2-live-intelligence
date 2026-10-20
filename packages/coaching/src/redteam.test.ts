@@ -535,16 +535,16 @@ describe("red team: model answers are guarded", () => {
  * bumping its version fails here; after bumping, add the new version's hash.
  */
 const PINNED: Record<string, string> = {
-  [POST_MATCH_PROMPT_VERSION]: "3a0fd64ad7a85fa6",
-  [DEEP_PROMPT_VERSION]: "58f250a021cc66cb",
-  [LIVE_PROMPT_VERSION]: "da30ec65f8c449c5",
-  [REPORT_PROMPT_VERSION]: "1b7628053ac3cf76",
-  [PERSONAL_COACH_PROMPT_VERSION]: "f3d6b85f8bc2542a",
-  [TEAM_PROMPT_VERSION]: "9c3890daa7c1e692",
-  [VERIFY_PROMPT_VERSION]: "fd9b99fe7bdd01a5",
-  [variantVersion(POST_MATCH_PROMPT_VERSION, "b")]: "b3154ea8e1522f96",
-  [variantVersion(DEEP_PROMPT_VERSION, "b")]: "d2d15c5fc71563ef",
-  [variantVersion(TEAM_PROMPT_VERSION, "b")]: "9f5a2bbfa5200fad",
+  [POST_MATCH_PROMPT_VERSION]: "3a835345ad7aa09e",
+  [DEEP_PROMPT_VERSION]: "68476734fd9a77da",
+  [LIVE_PROMPT_VERSION]: "7f407e4db760f39c",
+  [REPORT_PROMPT_VERSION]: "02cf4364a08ad0c5",
+  [PERSONAL_COACH_PROMPT_VERSION]: "db1b2386c961e581",
+  [TEAM_PROMPT_VERSION]: "74651662be0fe6bf",
+  [VERIFY_PROMPT_VERSION]: "dc56f1838efd64ac",
+  [variantVersion(POST_MATCH_PROMPT_VERSION, "b")]: "36e5710f5657f597",
+  [variantVersion(DEEP_PROMPT_VERSION, "b")]: "8e77ceef4651691e",
+  [variantVersion(TEAM_PROMPT_VERSION, "b")]: "2abddf16439d7192",
 };
 describe("prompt integrity", () => {
   const prompts: [string, string][] = [

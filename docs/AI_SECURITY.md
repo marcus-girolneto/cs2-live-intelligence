@@ -1,9 +1,9 @@
 # AI security (prompt injection, prompt leakage, output handling)
 
-Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v11`), deep review
-(`igl-review-v12-deep`), team review (`igl-team-v4`), claim verifier (`verify-v4`), live IGL call
-(`igl-live-v6`), Pro monthly report (`monthly-report-v5`) and Pro Personal Coach
-(`personal-coach-v5`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
+Scope: every model call of FRAGMIND's AI coach: quick review (`igl-review-v12`), deep review
+(`igl-review-v13-deep`), team review (`igl-team-v5`), claim verifier (`verify-v5`), live IGL call
+(`igl-live-v7`), Pro monthly report (`monthly-report-v6`) and Pro Personal Coach
+(`personal-coach-v6`). Prompt A/B variants (`<version>-b`) are defined in code and pinned too. Code: `packages/coaching/src/security.ts`
 (sanitiser, injection heuristics, output guard), `prompt-kit.ts` (shared prompt sections and the
 single request pipeline), `provider.ts` (request body), `apps/api/src/modules/coaching`
 (preference pre-check) and `apps/api/src/modules/ai-config` (budgets per purpose).

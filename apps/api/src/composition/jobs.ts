@@ -65,6 +65,7 @@ import { ReplayController } from "../modules/replay/replay.controller.js";
 import { MatchesReplayRepository } from "../modules/replay/replay.repository.js";
 import { ReplayService } from "../modules/replay/replay.service.js";
 import type { Db } from "../shared/db/database.js";
+import { PgUsersRepository } from "../modules/users/users.repository.js";
 import type { Logger } from "../shared/logging/logger.js";
 import { createWorkers } from "./demo-pipeline.js";
 import type { LiveContext } from "./live.js";
@@ -201,6 +202,7 @@ export function createJobsContext(
     reviewService,
     logger,
   );
+  const accountLanguage = new PgUsersRepository(db);
   const reports = new ReportsService(
     new PgReportsRepository(db),
     mineHistory,
@@ -211,6 +213,7 @@ export function createJobsContext(
         coaching.deepReviewsBetween(ownerId, steamId, from, to),
       monthlyReport: (ownerId) => plans.feature(ownerId, "monthlyReport"),
       completedMatches: mineMatches,
+      language: (ownerId) => accountLanguage.language(ownerId),
     },
     aiAccess,
     aiGateway,

@@ -1,11 +1,17 @@
 import { z } from "zod";
 import type { CoachPreferences } from "@cs2/coaching";
+import {
+  LANGUAGE_CODES,
+  parseLanguage,
+  type LanguageCode,
+} from "@cs2/contracts/languages";
 
 /** In-demo player identity: SteamID64 for real players; demos may also carry other ids. */
 export const playerIdSchema = z.string().regex(/^[0-9A-Za-z_-]{1,64}$/);
+/** AI output language: one of the 9 interface languages; anything else means English. */
 export const langSchema = z
   .unknown()
-  .transform((v): "en" | "pt" => (v === "pt" ? "pt" : "en"));
+  .transform((v): LanguageCode => parseLanguage(v));
 
 /** PUT /v1/coach/profile: `playerSteamId` null clears it; undefined keeps it. */
 export const coachPlayerIdSchema = playerIdSchema.nullable().optional();
@@ -19,7 +25,7 @@ export const autoReviewPatchSchema = z
   .object({
     enabled: z.boolean().optional(),
     tier: z.enum(["quick", "deep"]).optional(),
-    lang: z.enum(["en", "pt"]).optional(),
+    lang: z.enum(LANGUAGE_CODES).optional(),
   })
   .strict()
   .optional();
@@ -96,7 +102,7 @@ export type CoachProfileDto = {
   playerSteamId: string | null;
   linkedToSteam: boolean;
   /** Review my demos automatically after processing (default off). */
-  autoReview: { enabled: boolean; tier: "quick" | "deep"; lang: "en" | "pt" };
+  autoReview: { enabled: boolean; tier: "quick" | "deep"; lang: LanguageCode };
 };
 export type NewReview = {
   ownerId: string;

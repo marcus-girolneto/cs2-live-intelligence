@@ -790,7 +790,7 @@ describe.skipIf(!databaseUrl)(
         ]);
         expect(ok.json().call).toMatchObject({
           focus: "trade",
-          promptVersion: "igl-live-v6",
+          promptVersion: "igl-live-v7",
         });
         expect(JSON.stringify(hits.at(-1)!.body)).toContain(
           "LIVE Counter-Strike 2 match",

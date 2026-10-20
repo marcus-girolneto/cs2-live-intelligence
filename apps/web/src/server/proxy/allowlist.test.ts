@@ -106,6 +106,8 @@ describe("authenticated proxy boundary", () => {
     expect(allowedProxy("GET", "me")).toBe(true);
     expect(allowedProxy("POST", "me/refresh-profile")).toBe(true);
     expect(allowedProxy("GET", "me/refresh-profile")).toBe(false);
+    expect(allowedProxy("PUT", "me/language")).toBe(true);
+    expect(allowedProxy("DELETE", "me/language")).toBe(false);
     const ok: [string, string][] = [
       ["GET", "admin/ai/providers"],
       ["POST", "admin/ai/providers"],

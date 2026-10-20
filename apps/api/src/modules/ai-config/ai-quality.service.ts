@@ -1,3 +1,4 @@
+import type { LanguageCode } from "@cs2/contracts/languages";
 import { analysisSchema } from "@cs2/contracts";
 import {
   runEval,
@@ -27,7 +28,7 @@ export interface EvalAnalyses {
   ): Promise<{ analysis: unknown } | undefined>;
 }
 export type EvalRunRequest = {
-  langs?: ("en" | "pt")[];
+  langs?: LanguageCode[];
   cases?: { name: string; analysis?: unknown; steamId?: string }[];
   analyses?: { analysisId: string; steamId?: string }[];
 };

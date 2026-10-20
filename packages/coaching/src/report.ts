@@ -1,8 +1,9 @@
 /**
  * Pro monthly performance report: deterministic aggregates over the period's analyses and deep
  * reviews (trends, per-map, recurring mistakes, utility/crosshair evolution, best/worst
- * matches) plus one AI narrative call (purpose "report", prompt monthly-report-v5).
+ * matches) plus one AI narrative call (purpose "report", prompt monthly-report-v6).
  */
+import type { CoachLang } from "./languages.js";
 import {
   monthlyReportSchema,
   type Analysis,
@@ -19,7 +20,7 @@ import {
 } from "./prompt-kit.js";
 import { canaryLine, type GuardSpec } from "./security.js";
 
-export const REPORT_PROMPT_VERSION = "monthly-report-v5";
+export const REPORT_PROMPT_VERSION = "monthly-report-v6";
 type Player = Analysis["players"][number];
 type Trend = MonthlyReport["trends"][number];
 export type ReportMatch = {
@@ -363,7 +364,7 @@ const texts = (v: unknown, n: number, max: number) =>
 export async function aiMonthlyReport(
   report: MonthlyReport,
   config: AiConfig,
-  lang: "en" | "pt" = "en",
+  lang: CoachLang = "en",
   fetchImpl?: typeof fetch,
 ): Promise<{ report: MonthlyReport; call: Omit<ModelResult, "data"> }> {
   const match = (m: MonthlyReport["best"]) =>

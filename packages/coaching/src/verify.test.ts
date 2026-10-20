@@ -340,7 +340,7 @@ describe("unusual opponents", () => {
     expect(r.coaching.excludedDeaths).toMatchObject({ count: 2 });
     expect(r.coaching.caveats).toContain(UNUSUAL_OPPONENT_CAVEAT.en);
   });
-  it("blocks accusations in model text (EN/PT)", () => {
+  it("blocks accusations in model text (all output languages)", () => {
     const b = newBoundary();
     for (const text of [
       "Your killer was a cheater.",
@@ -348,6 +348,16 @@ describe("unusual opponents", () => {
       "O oponente era trapaceiro.",
       "He used an aimbot.",
       "Esse cara é hacker.",
+      "El rival era un tramposo.",
+      "Ese tipo estaba chetado.",
+      "Этот соперник явно читер.",
+      "Он играл с вх.",
+      "这个对手开挂了。",
+      "对面是挂狗，没办法。",
+      "Der Gegner ist ein Betrüger.",
+      "L'adversaire est un tricheur.",
+      "Przeciwnik to cziter.",
+      "Rakip hileci, yapacak bir şey yok.",
     ]) {
       const r = guardOutput(
         {

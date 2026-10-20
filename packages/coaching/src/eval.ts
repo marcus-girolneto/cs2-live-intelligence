@@ -4,6 +4,7 @@
  * every answer is scored for grounding (numbers matched against the cited facts, claims
  * dropped or corrected, verifier rejections), language purity, latency and cost.
  */
+import { languageShare, type CoachLang } from "./languages.js";
 import type { Analysis, Coaching, TeamReview } from "@cs2/contracts";
 import { analysisSchema } from "@cs2/contracts";
 import { checkClaim, type ClaimContext } from "./claims.js";
@@ -11,7 +12,6 @@ import { sampled } from "./confidence.js";
 import { computeDeep, type DeepReplay } from "./deep/index.js";
 import { aiCoaching } from "./index.js";
 import type { AiConfig } from "./provider.js";
-import { englishShare } from "./security.js";
 import { aiTeamReview } from "./team/index.js";
 
 export type EvalCase = {
@@ -25,7 +25,7 @@ export type EvalPurpose = "review_quick" | "review_deep" | "review_team";
 export type EvalRun = {
   case: string;
   purpose: EvalPurpose;
-  lang: "en" | "pt";
+  lang: CoachLang;
   ok: boolean;
   error?: string;
   model?: string;
@@ -42,7 +42,8 @@ export type EvalRun = {
   corrected: number;
   verifierRan: boolean;
   /** Share of English stop-words in the answer (0 = all Portuguese). */
-  englishShare: number | null;
+  /** Share of the answer written in the requested language (0 to 1). */
+  languageShare: number | null;
   languagePure: boolean | null;
   items: number;
 };
@@ -137,19 +138,18 @@ function teamTexts(t: TeamReview) {
     ),
   ];
 }
-function language(texts: string[], lang: "en" | "pt") {
-  const share = englishShare(texts.join(" "));
+function language(texts: string[], lang: CoachLang) {
+  const share = languageShare(texts.join(" "), lang);
   return {
-    englishShare: share === null ? null : r2(share),
-    languagePure:
-      share === null ? null : lang === "pt" ? share <= 0.2 : share >= 0.8,
+    languageShare: share === null ? null : r2(share),
+    languagePure: share === null ? null : share >= 0.8,
   };
 }
 
 export type EvalOptions = {
   configs: Partial<Record<EvalPurpose, AiConfig>>;
   verifier?: AiConfig;
-  langs?: ("en" | "pt")[];
+  langs?: CoachLang[];
   prices?: Prices;
   fetch?: typeof fetch;
   now?: () => Date;
@@ -201,7 +201,7 @@ async function runOne(
   steamId: string,
   replay: DeepReplay | undefined,
   purpose: EvalPurpose,
-  lang: "en" | "pt",
+  lang: CoachLang,
   config: AiConfig,
   options: EvalOptions,
 ): Promise<EvalRun> {
@@ -215,7 +215,7 @@ async function runOne(
     dropped: 0,
     corrected: 0,
     verifierRan: false,
-    englishShare: null,
+    languageShare: null,
     languagePure: null,
     items: 0,
   };
@@ -392,7 +392,7 @@ export function evalMarkdown(report: EvalReport): string {
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...report.runs.map(
       (r) =>
-        `| ${r.case} | ${r.purpose} | ${r.lang} | ${r.ok ? "yes" : `no: ${(r.error ?? "").replace(/\|/g, "/").slice(0, 80)}`} | ${r.model ?? ""} | ${r.promptVersion ?? ""} | ${r.latencyMs ?? ""} | ${r.numbersMatched}/${r.numbers} | ${r.dropped} | ${r.corrected} | ${r.englishShare ?? ""} |`,
+        `| ${r.case} | ${r.purpose} | ${r.lang} | ${r.ok ? "yes" : `no: ${(r.error ?? "").replace(/\|/g, "/").slice(0, 80)}`} | ${r.model ?? ""} | ${r.promptVersion ?? ""} | ${r.latencyMs ?? ""} | ${r.numbersMatched}/${r.numbers} | ${r.dropped} | ${r.corrected} | ${r.languageShare ?? ""} |`,
     ),
   ];
   return lines.join("\n") + "\n";

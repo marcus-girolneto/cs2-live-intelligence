@@ -147,13 +147,11 @@ export function deepContext(deep: DeepReview) {
               rounds: z.rounds,
               why: z.why,
             })),
-            deathsDetail: p.deathsDetail.map(
-              ({ nearestTeammate, eventId: _id, ...d }) => ({
-                ...d,
-                nearestTeammateMeters:
-                  nearestTeammate === null ? null : meters(nearestTeammate),
-              }),
-            ),
+            deathsDetail: p.deathsDetail.map(({ nearestTeammate, ...d }) => ({
+              ...d,
+              nearestTeammateMeters:
+                nearestTeammate === null ? null : meters(nearestTeammate),
+            })),
           },
         }
       : {}),

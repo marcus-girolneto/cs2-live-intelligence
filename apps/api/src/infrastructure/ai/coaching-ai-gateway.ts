@@ -1,3 +1,4 @@
+import type { LanguageCode } from "@cs2/contracts/languages";
 import {
   aiCoaching,
   aiLiveCall,
@@ -25,7 +26,7 @@ import type {
   PersonalCoachPlan,
 } from "@cs2/contracts";
 
-export type CoachLanguage = "en" | "pt";
+export type CoachLanguage = LanguageCode;
 export type ModelMeta = Omit<ModelResult, "data">;
 export interface ConnectivityResult {
   ok: true;

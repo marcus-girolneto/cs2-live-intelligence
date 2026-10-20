@@ -53,7 +53,7 @@ export class CoachingController {
     const autoReview = parseDto(
       autoReviewPatchSchema,
       request.body?.autoReview ?? undefined,
-      "autoReview must be {enabled?: boolean, tier?: quick|deep, lang?: en|pt}.",
+      "autoReview must be {enabled?: boolean, tier?: quick|deep, lang?: en|pt|es|ru|zh|de|fr|pl|tr}.",
     );
     return this.profiles.update(
       ownerId,

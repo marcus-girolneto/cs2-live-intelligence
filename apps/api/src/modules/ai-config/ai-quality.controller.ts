@@ -1,3 +1,4 @@
+import { LANGUAGE_CODES } from "@cs2/contracts/languages";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { AuthGuards } from "../../shared/http/guards.js";
@@ -8,10 +9,7 @@ import type { AiQualityService } from "./ai-quality.service.js";
 /** POST /v1/admin/ai/eval/run body (inline golden analyses and/or the admin's analyses). */
 export const evalRunSchema = z
   .object({
-    langs: z
-      .array(z.enum(["en", "pt"]))
-      .max(2)
-      .optional(),
+    langs: z.array(z.enum(LANGUAGE_CODES)).max(2).optional(),
     cases: z
       .array(
         z

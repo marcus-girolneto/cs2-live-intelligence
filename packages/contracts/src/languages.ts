@@ -5,10 +5,20 @@
  */
 export const LANGUAGES = [
   { code: "en", tag: "en", native: "English", english: "English" },
-  { code: "pt", tag: "pt-BR", native: "Português (Brasil)", english: "Brazilian Portuguese" },
+  {
+    code: "pt",
+    tag: "pt-BR",
+    native: "Português (Brasil)",
+    english: "Brazilian Portuguese",
+  },
   { code: "es", tag: "es", native: "Español", english: "Spanish" },
   { code: "ru", tag: "ru", native: "Русский", english: "Russian" },
-  { code: "zh", tag: "zh-CN", native: "简体中文", english: "Simplified Chinese" },
+  {
+    code: "zh",
+    tag: "zh-CN",
+    native: "简体中文",
+    english: "Simplified Chinese",
+  },
   { code: "de", tag: "de", native: "Deutsch", english: "German" },
   { code: "fr", tag: "fr", native: "Français", english: "French" },
   { code: "pl", tag: "pl", native: "Polski", english: "Polish" },
@@ -49,7 +59,9 @@ export function detectLanguage(tags: readonly unknown[]): LanguageCode {
   return DEFAULT_LANGUAGE;
 }
 /** Parses an Accept-Language header into tags ordered by q-value. */
-export function acceptLanguageTags(header: string | null | undefined): string[] {
+export function acceptLanguageTags(
+  header: string | null | undefined,
+): string[] {
   if (!header) return [];
   return header
     .split(",")

@@ -46,6 +46,7 @@ erDiagram
     text steam_id UK
     text role
     jsonb steam_profile
+    text lang "web selector language, null until chosen"
     int retention_days
     bool telemetry_consent
   }

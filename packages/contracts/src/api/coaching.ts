@@ -1,3 +1,4 @@
+import type { LanguageCode } from "../languages.js";
 import type { PersonalCoachPlan } from "../personal-coach.js";
 import type { LobbyComparison, TeamReview } from "../team.js";
 import { z } from "zod";
@@ -14,7 +15,7 @@ export type CoachProfileDto = {
 export type AutoReviewSettingsDto = {
   enabled: boolean;
   tier: "quick" | "deep";
-  lang: "en" | "pt";
+  lang: LanguageCode;
 };
 /** GET /v1/matches/auto-reviews?ids= item (jobs without an item were not considered). */
 export type AutoReviewStatusDto = {
@@ -31,7 +32,7 @@ export type AutoReviewStatusDto = {
 };
 export type AutoReviewStatusListDto = { items: AutoReviewStatusDto[] };
 /** POST /v1/analyses/:id/team-review body. */
-export type TeamReviewRequest = { steamId: string; lang?: "en" | "pt" };
+export type TeamReviewRequest = { steamId: string; lang?: LanguageCode };
 /** POST /v1/analyses/:id/team-review. */
 export type TeamReviewResponseDto = {
   reviewId: string;
@@ -274,7 +275,7 @@ export type MatchOwnershipRequest = {
 /** POST /v1/analyses/:id/coaching body (tier defaults to quick). */
 export type PlayerReviewRequest = {
   steamId: string;
-  lang?: "en" | "pt";
+  lang?: LanguageCode;
   tier?: "quick" | "deep";
 };
 /** POST /v1/analyses/:id/coaching. */
